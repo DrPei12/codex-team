@@ -1,0 +1,43 @@
+profile: codex-multitask-artifact
+schema_version: "0.1-draft"
+
+artifact_id: "artifact:<project>:<task>:<name>:<version>"
+task_id: "task:<project>:<work-item>"
+context_id: "context:<project>:<feature-or-milestone>"
+
+a2a_artifact:
+  name: "<artifact name>"
+  description: "<what this artifact proves or provides>"
+  parts:
+    - kind: file
+      path: "<repository-relative or declared absolute path>"
+      media_type: "application/octet-stream"
+
+artifact_type: "<design|schema|git-revision|test-report|log|handoff|evidence>"
+producer_worker_id: "worker:<project>:<role>:<instance>"
+created_at: "<RFC3339 timestamp>"
+
+source:
+  repository: "<repository identity>"
+  revision: "<git revision>"
+  workspace: "<workspace id/path>"
+
+integrity:
+  algorithm: sha256
+  digest: "<hex digest>"
+  size_bytes: 0
+
+contract:
+  version: "<artifact contract version>"
+  consumers:
+    - "<worker or task id>"
+  compatibility: "<compatibility statement>"
+
+reproduction:
+  command: null
+  inputs:
+    - "<artifact id/hash>"
+
+retention:
+  policy: project-history
+  expires_at: null

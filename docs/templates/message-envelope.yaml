@@ -1,0 +1,36 @@
+profile: codex-multitask-message
+schema_version: "0.1-draft"
+
+message_id: "message:<project>:<uuid>"
+idempotency_key: "<stable key for retried delivery>"
+intent: HANDOFF_READY
+
+a2a_message:
+  role: agent
+  task_id: "task:<project>:<work-item>"
+  context_id: "context:<project>:<feature-or-milestone>"
+
+from_worker_id: "worker:<project>:<role>:<instance>"
+to_worker_id: "worker:<project>:<role>:<instance>"
+created_at: "<RFC3339 timestamp>"
+
+summary: "<one or two sentences sufficient to choose the next action>"
+
+parts:
+  - kind: artifact-reference
+    artifact_id: "<artifact id>"
+    digest: "sha256:<hash>"
+    path: "<path or URI>"
+
+status_transition:
+  from: working
+  to: completed
+
+requested_action:
+  type: validate-handoff
+  deadline: null
+
+delivery:
+  transport: codex-native-task-message
+  attempt: 1
+  acknowledgement_required: true

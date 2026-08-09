@@ -1,0 +1,70 @@
+profile: codex-multitask-handoff
+schema_version: "0.1-draft"
+
+handoff_id: "handoff:<project>:<task>:<sequence>"
+task_id: "task:<project>:<work-item>"
+context_id: "context:<project>:<feature-or-milestone>"
+
+from_worker_id: "worker:<project>:<role>:<instance>"
+to_worker_id: "worker:<project>:integrator:<instance>"
+created_at: "<RFC3339 timestamp>"
+
+outcome:
+  state: complete
+  summary: "<what is now true>"
+  acceptance_requested: integration
+
+workspace_state:
+  path: "<workspace path>"
+  branch: "<branch>"
+  base_revision: "<base hash>"
+  head_revision: "<head hash>"
+  tree: "<tree hash>"
+  clean: true
+  uncommitted_artifact: null
+
+changes:
+  summary:
+    - "<meaningful change>"
+  files_or_modules:
+    - "<path/module>"
+  design_decisions:
+    - "<decision and reason>"
+  public_contract_changes:
+    - "<none or versioned change>"
+
+artifacts:
+  - artifact_id: "<artifact id>"
+    digest: "sha256:<hash>"
+
+verification:
+  evidence_ids:
+    - "<evidence id>"
+  verified_scope:
+    - "<verified behavior>"
+  not_verified:
+    - "<remaining behavior>"
+  rerun_triggers:
+    - "<condition>"
+
+risks:
+  known:
+    - "<risk or none>"
+  blockers:
+    - "<blocker or none>"
+  assumptions:
+    - "<assumption>"
+
+requested_action:
+  action: validate-and-integrate
+  minimum_checks:
+    - verify-artifact-hashes
+    - verify-head-and-tree
+    - run-affected-integration-gate
+  full-suite_required: false
+
+receiver_record:
+  status: pending
+  received_by: null
+  received_at: null
+  decision_reason: null

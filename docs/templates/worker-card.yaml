@@ -1,0 +1,76 @@
+profile: codex-multitask-worker-card
+schema_version: "0.1-draft"
+
+worker_id: "worker:<project>:<role>:<instance>"
+display_name: "<human-readable name>"
+
+codex_task:
+  thread_id: "<thread-id-or-pending>"
+  title: "<task title>"
+
+role:
+  type: component-owner
+  responsibilities:
+    - "<responsibility>"
+  non_responsibilities:
+    - "<explicit non-scope>"
+  capabilities:
+    - "<capability>"
+
+history:
+  origin: fresh
+  source_thread_id: null
+  source_revision: "<git revision>"
+  briefing_artifacts:
+    - "<artifact-id>"
+
+workspace:
+  mode: managed-worktree
+  path: "<absolute path assigned at runtime>"
+  repository: "<repository identity>"
+  branch: "<branch-or-detached-head>"
+  base_revision: "<git revision>"
+  shared_external_resources:
+    - name: "<database-or-service>"
+      isolation: "<namespace/port/fixture policy>"
+
+ownership:
+  modules:
+    - "<module>"
+  files_or_globs:
+    - "<owned path or glob>"
+  forbidden_paths:
+    - "<path owned by another worker>"
+
+model_policy:
+  capability_tier: standard
+  thinking: medium
+  exact_model: null
+  escalation_triggers:
+    - public-contract-change
+    - cross-owner-edit
+    - destructive-operation
+    - unexplained-test-failure
+
+permissions:
+  may_edit: true
+  may_commit: true
+  may_merge: false
+  may_push: false
+  may_deploy: false
+  destructive_actions: user-approval-required
+
+communication:
+  reports_to: "worker:<project>:orchestrator:main"
+  artifact_first: true
+  status_events:
+    - blocked
+    - input-required
+    - contract-change
+    - handoff-ready
+
+lifecycle:
+  class: retained-owner
+  state: proposed
+  archive_after_acceptance: false
+  rotate_on_context_degradation: true

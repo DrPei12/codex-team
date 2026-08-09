@@ -1,0 +1,76 @@
+profile: codex-multitask-verification-evidence
+schema_version: "0.1-draft"
+
+evidence_id: "evidence:<project>:<task>:<suite>:<run>"
+task_id: "task:<project>:<work-item>"
+producer_worker_id: "worker:<project>:<role>:<instance>"
+
+subject:
+  repository: "<repository identity>"
+  commit: "<commit hash or null>"
+  tree: "<tree hash>"
+  dirty: false
+  dirty_diff_artifact: null
+
+execution:
+  working_directory: "<declared path>"
+  command: "<exact command>"
+  started_at: "<RFC3339 timestamp>"
+  finished_at: "<RFC3339 timestamp>"
+  duration_seconds: 0
+  exit_code: 0
+  canceled: false
+
+suite:
+  name: "<suite name>"
+  version_or_hash: "<suite version/hash>"
+  selector: "<all or affected selector>"
+  discovered: null
+  passed: null
+  failed: null
+  skipped: null
+  flaky_retries: 0
+
+environment:
+  os: "<OS/version>"
+  architecture: "<architecture>"
+  toolchain:
+    - name: "<tool>"
+      version: "<version>"
+  dependency_lock_hashes:
+    - path: "<lockfile>"
+      sha256: "<hash>"
+  fixtures:
+    - name: "<fixture/service>"
+      version_or_hash: "<version/hash>"
+
+result:
+  outcome: passed
+  summary: "<one paragraph>"
+  coverage_scope:
+    - "<what was verified>"
+  not_covered:
+    - "<what remains unverified>"
+
+artifacts:
+  stdout:
+    path: "<path>"
+    sha256: "<hash>"
+  stderr:
+    path: "<path>"
+    sha256: "<hash>"
+  native_report:
+    path: "<path or null>"
+    media_type: "<e.g. application/junit+xml>"
+    sha256: "<hash or null>"
+
+reuse:
+  cache_key: "<derived immutable key>"
+  reusable: true
+  invalidation_triggers:
+    - source-tree-change
+    - suite-change
+    - lockfile-change
+    - environment-mismatch
+    - fixture-change
+    - integration-combination-change

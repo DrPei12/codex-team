@@ -1,0 +1,77 @@
+profile: codex-multitask-task
+schema_version: "0.1-draft"
+
+task_id: "task:<project>:<work-item>"
+context_id: "context:<project>:<feature-or-milestone>"
+title: "<short task title>"
+
+a2a_status:
+  state: submitted
+  timestamp: "<RFC3339 timestamp>"
+  message_ref: null
+
+project_status: proposed
+owner_worker_id: "worker:<project>:<role>:<instance>"
+reviewer_worker_id: null
+integrator_worker_id: "worker:<project>:integrator:<instance>"
+
+objective: "<observable outcome>"
+background: "<why this matters>"
+
+scope:
+  in:
+    - "<required work>"
+  out:
+    - "<explicit non-goal>"
+  ownership:
+    - "<module/path>"
+
+workspace_contract:
+  mode: managed-worktree
+  base_revision: "<git revision>"
+  branch: "<assigned branch>"
+  clean_start_required: true
+
+dependencies:
+  tasks:
+    - task_id: "<dependency task id>"
+      required_status: integrated
+  input_artifacts:
+    - artifact_id: "<artifact id>"
+      expected_hash: "sha256:<hash>"
+
+implementation_contract:
+  public_contract_version: "<version-or-none>"
+  constraints:
+    - "<constraint>"
+  forbidden_changes:
+    - "<forbidden change>"
+
+outputs:
+  required_artifact_types:
+    - git-revision
+    - handoff
+    - verification-evidence
+
+acceptance:
+  risk_level: medium
+  gates:
+    - id: targeted-tests
+      owner: task-worker
+      command: "<exact command>"
+    - id: affected-integration
+      owner: integrator
+      command: "<exact command or generated selector>"
+  completion_definition:
+    - "<observable acceptance condition>"
+
+escalation:
+  stop_on:
+    - contract-conflict
+    - ownership-boundary-crossing
+    - missing-required-input
+    - destructive-operation
+
+timestamps:
+  created_at: "<RFC3339 timestamp>"
+  due_at: null

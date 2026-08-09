@@ -1,0 +1,18 @@
+# Local work and generated evidence
+.codex-local/
+work/
+scratch/
+tmp/
+
+# Test and build outputs
+coverage/
+dist/
+build/
+artifacts/runtime/
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
