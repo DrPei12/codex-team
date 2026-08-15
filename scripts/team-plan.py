@@ -131,6 +131,7 @@ def _branch(value: Any, path: str) -> str:
         or text.endswith(".lock")
         or text == "@"
         or "@{" in text
+        or "//" in text
         or any(component.startswith(".") or component.endswith(".lock") for component in components)
         or any(ord(char) < 32 or ord(char) == 127 for char in text)
         or any(char.isspace() or char in invalid for char in text)
@@ -215,6 +216,30 @@ def _nearest_existing_path(value: str) -> str:
 
 def _real_path(value: str) -> str:
     return _normal_path(os.path.realpath(value))
+
+
+def _path_is_ancestor_or_descendant(left: str, right: str) -> bool:
+    return _path_is_within(left, right) or _path_is_within(right, left)
+
+
+def _paths_overlap(left: str, right: str) -> bool:
+    """Detect lexical and resolved-parent ancestor/descendant overlap."""
+
+    if _path_is_ancestor_or_descendant(left, right):
+        return True
+    left_real = _real_path(left)
+    right_real = _real_path(right)
+    if _path_is_ancestor_or_descendant(left_real, right_real):
+        return True
+    left_parent_real = _real_path(_nearest_existing_path(left))
+    right_parent_real = _real_path(_nearest_existing_path(right))
+    return _path_is_within(left_parent_real, right_real) or _path_is_within(right_parent_real, left_real)
+
+
+def _real_path_is_within(child: str, root: str) -> bool:
+    """Resolve existing path components without requiring a future leaf."""
+
+    return _path_is_within(_real_path(child), _real_path(root))
 
 
 def _check_output_parent_real_path(output: str, artifact_root: str, experiment_root: str) -> None:
@@ -482,6 +507,16 @@ def validate_manifest(manifest: Any) -> None:
         _fail("workspace_policy.worktree_root", "worktree_root is outside experiment_root")
     if not _path_is_within(artifact_root, experiment_root):
         _fail("workspace_policy.artifact_root", "artifact_root is outside experiment_root")
+    if not _real_path_is_within(worktree_root, experiment_root):
+        _fail(
+            "workspace_policy.worktree_root",
+            "worktree_root real path is outside experiment_root",
+        )
+    if _paths_overlap(task_project_path, artifact_root):
+        _fail(
+            "workspace_policy.artifact_root",
+            "artifact_root overlaps task_project.path",
+        )
 
     contract_allowed = {"state", "source", "invariants", "forbidden_changes"}
     contract = _object(manifest_object["contract"], "contract", contract_allowed, contract_allowed)
@@ -546,16 +581,26 @@ def validate_manifest(manifest: Any) -> None:
         workspace_key = _normal_path(workspace_path)
         workspace_keys.setdefault(workspace_key, []).append(lane_id)
         if role != "reviewer":
+            if _paths_overlap(workspace_path, task_project_path):
+                _fail(
+                    f"{lane_path}.workspace.path",
+                    "mutable workspace overlaps task_project.path",
+                )
             if not _path_is_within(workspace_path, worktree_root):
                 _fail(
                     f"{lane_path}.workspace.path",
                     "mutable workspace is outside worktree_root",
                 )
-            if _normal_path(workspace_path) == _normal_path(task_project_path):
+            if not _real_path_is_within(workspace_path, worktree_root):
                 _fail(
                     f"{lane_path}.workspace.path",
-                    "mutable workspace must not equal task_project.path",
+                    "mutable workspace real path is outside worktree_root",
                 )
+        if _paths_overlap(artifact_root, workspace_path):
+            _fail(
+                f"{lane_path}.workspace.path",
+                "lane workspace overlaps artifact_root",
+            )
         _commit(workspace["base_revision"], f"{lane_path}.workspace.base_revision")
         _boolean(workspace["clean_start_required"], f"{lane_path}.workspace.clean_start_required")
 
