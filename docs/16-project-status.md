@@ -69,6 +69,8 @@
 - [x] sealed 后 ordinary Git status clean、commit/tree 不变；29 个 ignored `.pyc` 被完整记录并保留，没有静默清理
 - [x] 接受 D-027/D-028/D-029：canonical manifest、append-only proof-carrying recovery、artifact-root 与多层 cleanliness Gate
 - [x] 完成 [OutputGuard 全流程实录](research/outputguard-vertical-slice-2026-08-15.md)和[机器 evidence](../evidence/experiments/2026-08-15-outputguard-vertical-slice.json)
+- [x] 实现首个 `incubating` `team-plan`：canonical manifest schema、标准库 validate/project helper、精炼 skill/reference 和 19 项回归
+- [x] 完成 `team-plan` RED/GREEN/REFACTOR：污染基线保留为失败语料，两次 forward test 一次 fail-closed、一次生成 4 份 digest-bound brief，四轮 fresh review 最终 approve
 
 ## 明确未完成
 
@@ -78,8 +80,9 @@
 - [x] 资格化离线 package build 命令，并把 dist/cache 全部限制在 run artifact 目录
 - [x] 用真实 Desktop task 验证 saved project 控制入口与 assigned permanent worktree 写入边界
 - [x] 启动真实 Desktop lane，并通过多次 fail-closed successor run 形成可验收 recovery lineage；未得到“一次无中断四任务 run”证据
-- [ ] 把 canonical manifest、机器派生 projection、artifact-root receipt、Gate receipt、recovery link 和 ordinary/ignored receipt 固化为 workflow schema/validator v0.2
-- [ ] 实现并验证 `team-plan`、`team-run`、`team-status`、`team-integrate`、`team-finish`，并把 `team-recover` 纳入首批 incubating 候选
+- [x] 把 canonical manifest、机器派生 projection 和 artifact/worktree 安全边界固化为 `team-plan` v0.1 schema/validator；Gate/recovery/cleanliness receipts 仍待后续入口
+- [x] 实现并验证 `team-plan` v0.1；成熟度为 `incubating`
+- [ ] 实现 `team-run`、`team-status`、`team-integrate`、`team-finish`，并把 `team-recover` 纳入首批 incubating 候选
 - [ ] 建立 Desktop-native 实验记录器，强制 client surface、task/project、Git identity、证据路径和可观察的 requested/effective model/thinking 取证
 - [x] 完成第一次 Desktop-native 多任务恢复链的 exact-tree public/review/sealed 验收
 - [ ] 在隔离 solution objects/refs 的新 Git object store 中补充 OutputGuard Desktop single；将其明确标为有顺序污染风险的补充对照
@@ -96,9 +99,9 @@
 产物：
 
 1. 冻结 Run02–Run10 failure corpus 和 Run10 exact-tree acceptance evidence，不重跑 sealed、不清理隔离现场；
-2. workflow schema/validator v0.2：一个 canonical manifest，其他 brief/preregistration/freeze/receipt 为机器派生 projection；
+2. 已完成 `team-plan` 范围的 canonical manifest 与 brief projection；下一步补 preregistration、Gate/recovery/cleanliness receipt；
 3. deterministic helpers：parent/worker preflight、artifact-root 初始化、Git/diff identity、Gate receipt、ordinary/untracked/ignored audit；
-4. `team-plan -> team-run -> team-status -> team-integrate -> team-finish` 的最小 incubating 实现；
+4. `team-plan` 已完成；继续 `team-run -> team-status -> team-integrate -> team-finish` 的最小 incubating 实现；
 5. `team-recover` 的 incubating 实现：predecessor、exact candidate、已成立 proof、唯一新事实、预算和 stop rule；
 6. 用 OutputGuard 失败语料做已知回归，再冻结 skills；
 7. 选择第二个未见 benchmark，建立反 solution-ref 泄漏边界，完成主要 no-skill/native single/native multi-task/skill-assisted 对照。
@@ -115,7 +118,8 @@
 - CLI 历史回合能读取 token usage，但 Desktop task/follow-up/fork 未保证暴露同等 usage；telemetry 仍不完整，不能混合统计；
 - 外部论文和社区仓库更新很快，数字和 HEAD 只能作为 2026-08-10 snapshot；
 - skill 可能无正向边际效用、与项目版本冲突或形成供应链/权限风险；
-- 主工作区当前包含本项目尚未提交的 prior-art 与 M1 文档变化，行为 fixture 不得复用该 dirty workspace；
+- `team-plan` 当前通过 repo-local 绝对路径显式加载；作为可安装 skill 后能否稳定定位共享 schema/helper 尚未验证；
+- `team-plan` 的 symlink 边界已实测，Windows junction 未现场实测；
 - 独立 cwd/worktree 仍会加载用户级 memory、skills、plugins、MCP 与 Git 配置；文件隔离不能当作上下文隔离；
 - 两个历史 CLI 会话并发启动时出现一次共享 system-skills 目录 access-denied；它是 Desktop preflight 的风险提示，不是 Desktop 已复现缺陷；
 - 第一组 minimal flags 已证明不安全且更贵，不能因名称是“minimal”就在后续 worker 中默认使用；

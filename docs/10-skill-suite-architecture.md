@@ -25,6 +25,8 @@ D-023 再收紧了执行边界：这里的 “Codex session/task” 默认就是
 | `team-finish` | 形成里程碑结论，归档已接收的一次性任务，保留未获授权清理的 worktree，并写明恢复入口 |
 | `team-recover` | 从一个明确 blocked run 继续：绑定精确 candidate、旧证据、尚未建立的新事实和新预算；保持旧 run 不变，禁止无关重做 |
 
+截至 2026-08-15，`team-plan` v0.1 已达到 `incubating`：它能生成并校验 canonical run manifest，再从同一 digest 派生 task briefs；它不会创建任务、消息、worktree 或实现代码。其运行时 validator 已覆盖 DAG、Windows ownership 别名、workspace/artifact real-path 边界、Reviewer 对 Integrator 目标树的只读依赖和 projection 覆盖保护。它尚未验证安装后的共享路径、隐式触发、Windows junction、第二个 blind benchmark 或真实 dispatch，因此不能标为 `stable`。其他入口仍是设计候选。
+
 `team-review`、`team-benchmark` 和 capability audit 后续可以形成独立入口；第一版仍可作为 `team-integrate`、`team-status` 或项目开发工具的子流程。`team-recover` 的晋升来自重复实测：Run03、Run05、Run06、Run08、Run09、Run10 都需要“保留旧结论，只验证一个新事实”的恢复语义。入口 skill 是路由器和治理者，不应复制每个范式的完整说明。
 
 这五个入口分别对应用户可说出的独立意图。Capability matrix、worker profile 和 pattern catalog 是它们按需读取的支撑资源，不为目录对称强行包装成用户入口。
@@ -213,8 +215,8 @@ codex-multitask-engineering/
 
 长期范围可以超过 20 个 skills，但首批实现按证据风险排序，不按目录展示效果排序：
 
-1. 先升级共享 schema/validator：canonical run manifest、生成式 projection、artifact-root precondition、Gate receipt、recovery link 和 ordinary/ignored cleanliness receipt；
-2. `team-plan`：仓库调查、contract freeze、DAG、所有权和集成计划，并生成 canonical manifest；
+1. 已完成第一小段共享 schema/validator：canonical run manifest、生成式 projection 和 artifact-root/worktree safety；Gate receipt、recovery link 和 ordinary/ignored cleanliness receipt 仍待后续入口；
+2. 已实现 `team-plan` v0.1：仓库调查、contract freeze、DAG、所有权和集成计划，并生成 canonical manifest；当前成熟度为 `incubating`；
 3. `team-run`：从 manifest 派生 brief/preregistration，通过 Desktop 创建 3–5 条可观察的 worker task/workspace，先由 parent 和真实 task 分别通过机器 preflight；
 4. `team-status`：等待、消息、阻塞、依赖解锁和 append-only timeline，不把 `DONE` 当作 `ACCEPTED`；
 5. `team-integrate`：单一 integrator 接收 commit/evidence，运行合并产生的新事实 Gate，并要求新 Reviewer；

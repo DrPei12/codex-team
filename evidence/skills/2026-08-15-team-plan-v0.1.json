@@ -1,0 +1,58 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-evaluation-evidence",
+  "skill": "team-plan",
+  "maturity": "incubating",
+  "date": "2026-08-15",
+  "client_surface": "codex_desktop",
+  "requested_runtime": {
+    "model": "gpt-5.6-luna",
+    "thinking": "max"
+  },
+  "effective_runtime": {
+    "model": "unknown",
+    "thinking": "unknown"
+  },
+  "implementation": {
+    "branch": "codex/team-plan-v01",
+    "commit": "9254d1de74e19a62b3f3e71661f968812f3368aa",
+    "tree": "bd4eb2b32e66531f118ae504aeaa2a37a03f15b4",
+    "test_commit": "aff647d35893295aaa397cc99d4a629b44be676c",
+    "tests": {
+      "command": "python -B tests/test_team_plan.py",
+      "result": "19 passed, 0 failed"
+    },
+    "skill_validation": "Skill is valid!",
+    "review": "approve"
+  },
+  "desktop_tasks": {
+    "contaminated_no_skill_baseline": "01a0057f-10ff-7c40-8340-b2e0810f3b47",
+    "implementation_and_recovery": "01a00587-df07-7483-9503-4e1df7bd8637",
+    "independent_reviewer": "01a0059d-034a-7143-9128-a2440d72ee89",
+    "forward_fail_closed": "01a0059d-15a3-7f91-8cef-1b6ec491d613",
+    "forward_success": "01a005b5-5aa9-7581-918f-fd307003321a"
+  },
+  "baseline": {
+    "classification": "invalid_for_skill_effect_comparison",
+    "reason": "The task read seven historical solution refs and used other planning guidance/memory.",
+    "use": "failure_corpus_only"
+  },
+  "forward_test": {
+    "repository_head": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+    "repository_tree": "063ebf5b6cb7dca61d9ceb08bbf7d9dff54061a7",
+    "artifact_root": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-08-15-team-plan-forward-02",
+    "manifest_digest": "sha256:da72149fd716f7c2284064dda3cc6ff7dd2232a77bbc1fddb06542283a5b4261",
+    "manifest_canonical_bytes": 13511,
+    "brief_count": 4,
+    "topology": [["core", "cli"], ["integrator"], ["reviewer"]],
+    "validator": "PASS: run-manifest team-plan-forward-02",
+    "target_checkout_after": "clean"
+  },
+  "known_limits": [
+    "Windows junction was not exercised; symlink cases were exercised.",
+    "The skill was loaded from a repository path, not installed or implicitly triggered.",
+    "No actual dispatch, implementation, integration, handoff, or sealed evaluation was performed.",
+    "OutputGuard is a seen failure corpus, not the second blind benchmark.",
+    "No fair no-skill effect estimate is available."
+  ]
+}

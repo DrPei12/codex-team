@@ -235,11 +235,11 @@ Codex 官方文档提供测试用例 baseline，A2A 提供 task/message/artifact
 2. 已完成：注册实验场内 checkout，并通过一个 Desktop local、只读、单回合 preflight，证明 task/project/cwd/HEAD/clean 和 Python 导入条件。
 3. 已完成：在相同 Desktop local 权限模型中验证简单 Git index/ref 写入与 cleanup、无缓存 public baseline、Ruff 和 mypy 外置缓存；失败 run 保持原结论，不接触 sealed evaluator。
 4. 已完成：冻结 `team-plan` 的四任务 DAG、所有权、依赖、task/workspace、Gate、集成顺序和停止条件；Core 与 CLI 可并行，Integrator 与 Reviewer 串行依赖。
-5. 已完成：冻结该闭环需要的 session plan、roster、task brief、worker report、integration queue schema v0.1、正向样例、缺 proof 负对照和 validator；尚未实现五个 skills。
+5. 已完成：冻结该闭环需要的 session plan、roster、task brief、worker report、integration queue schema v0.1、正向样例、缺 proof 负对照和 validator；五个主线入口当时尚未实现。
 6. 已完成：离线 package build qualification 和 assigned permanent worktree task preflight；两者均保留失败尝试、固定输入和父任务独立验收，且不接触 sealed evaluator。
 7. 已完成：Desktop 原生 task 形成 Run02–Run10 recovery lineage，最终 exact tree 通过 public Gate、fresh review 和单次 sealed Gate；失败 run 不翻案，CLI 不作 fallback。该事实不等于无中断四任务 run 或多任务优于 single。
-8. 下一步把实战约束写入 schema/validator v0.2 和 deterministic helpers：canonical manifest、机器派生 projection、artifact-root receipt、Gate receipt、append-only recovery link、ordinary/ignored cleanliness receipt。
-9. 实现最小 incubating `team-plan`、`team-run`、`team-status`、`team-integrate`、`team-finish`，并把已反复出现独立触发的 `team-recover` 纳入首批候选。先用 OutputGuard failure corpus 做回归，不继续改变功能题目。
+8. 部分完成：`team-plan` v0.1 已实现 canonical manifest、机器派生 projection、artifact/worktree real-path 边界和 19 项回归；Gate receipt、append-only recovery link、ordinary/ignored cleanliness receipt 仍待其他入口。
+9. 部分完成：`team-plan` 已作为首个 `incubating` skill 通过 fresh forward test；`team-run`、`team-status`、`team-integrate`、`team-finish` 和 `team-recover` 尚未实现。OutputGuard 只作为已知 failure corpus，不把本轮结果当 no-skill A/B。
 10. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
 11. skills 实现冻结后选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow。再注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
 12. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。

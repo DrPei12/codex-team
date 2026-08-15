@@ -2,7 +2,7 @@
 
 一个面向 Codex 的社区开源研究与 skills 工程：调查多任务、subagent、Git worktree、直接任务通信、验收证据与生命周期治理已经能做到什么，再把可复现的方法、失败边界和工具化实践分享出来。
 
-它不是商业产品，也不以“发明新范式”作为成立条件。项目可以广泛吸收、复现和组合已有实践，但只有经过当前 Codex 环境实测的能力才会晋升为稳定 skill。当前尚未实现可安装的 skills。
+它不是商业产品，也不以“发明新范式”作为成立条件。项目可以广泛吸收、复现和组合已有实践，但只有经过当前 Codex 环境实测的能力才会晋升为稳定 skill。当前已经有首个可执行但仍属 `incubating` 的 `team-plan`，尚未形成完整可安装套件。
 
 ## 项目要解决什么
 
@@ -47,6 +47,7 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论�
 - D-023 Desktop-first 执行规则；Desktop local 任务已完成只读、Git index/ref 写入、完整 public pytest、Ruff、mypy 外置缓存、离线 package build 和 assigned worktree marker commit 资格检查；
 - 已冻结并实际执行的 [OutputGuard 首个 Desktop 纵向切片计划](docs/19-outputguard-vertical-slice-plan.md)，以及 session plan、roster、task brief、worker report、integration queue 的最小 JSON Schema、样例和 fail-closed validator；
 - [Run02–Run10 全流程实录](docs/research/outputguard-vertical-slice-2026-08-15.md)：最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed evaluator `37/37`，同时保留每个 blocked run、一个 low finding 和 29 个 ignored bytecode 残留的限制。
+- 首个 `incubating` workflow skill：[`team-plan`](skills/team-plan/SKILL.md)、canonical manifest schema、标准库 validator/projector 和 19 项边界回归；一次 fresh forward test 生成 1 份 manifest 与 4 份 digest-bound task brief，详见 [team-plan v0.1 实录](docs/research/team-plan-v0.1-2026-08-15.md)。
 
 ## 从哪里开始读
 
@@ -63,4 +64,4 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论�
 
 首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
 
-Run02–Run10 暴露的主要问题集中在控制面：重复 hash 手抄、diff 算法未冻结、test artifact 根目录缺失、可变 formatter 与 check 混淆，以及 ordinary clean 掩盖 ignored residue。下一步先把这些约束固化为 canonical manifest、schema/validator v0.2 和 deterministic helpers，再实现 `team-plan`、`team-run`、`team-status`、`team-integrate`、`team-finish` 与首批候选 `team-recover`。OutputGuard 转为 failure corpus；skills 冻结后用第二个未见 benchmark 做主要 no-skill 对照。参见[评测路线](docs/12-evaluation-roadmap.md)。
+Run02–Run10 暴露的 canonical identity、artifact root、所有权和 review target 约束，已经先进入 `team-plan` v0.1；但 Gate receipt、recovery link、cleanliness receipt、安装/隐式触发和实际 dispatch 仍未完成。下一步实现 `team-run` 的最小 Desktop dispatch/preflight 切片，再接 `team-status`、`team-integrate`、`team-finish` 与候选 `team-recover`。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。

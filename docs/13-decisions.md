@@ -216,3 +216,13 @@
 - 决策：task 创建前必须创建并验证声明的 artifact/test/cache/dist root 初始状态；预授权的 formatter apply 等 mutation step 与 check-only Gate 分开。结束验收分别报告 ordinary tracked status、untracked、ignored、Git operation residue 和 run-local artifact，不把普通 `git status` clean 等同于完全无残留，也不静默清理证据现场。
 - 原因：Run09 因父任务没有预创建 `--basetemp` 的父目录而产生 20 个 fixture `FileNotFoundError`；Run10 sealed 功能 37/37 通过且普通状态 clean，但 evaluator 子进程留下 29 个 ignored `.pyc`。两者都说明运行目录条件和产品正确性必须分开取证。
 - 对 skills 的影响：`team-run` 负责 root precondition receipt；`team-finish` 负责 ordinary/untracked/ignored/operation-residue receipt。清理是单独授权的生命周期动作，不是为了让报告好看而自动执行。
+
+## D-030：首个可执行入口冻结为只规划、不派发的 `team-plan` v0.1
+
+- 日期：2026-08-15
+- 状态：Accepted
+- 决策：`team-plan` 只负责检查并行是否值得、冻结 contract、生成 canonical run manifest、运行 fail-closed validator，并从同一 digest 派生 task brief；成功后停止，把结果交给另一个已获授权的 orchestrator/`team-run`。它不得自行 create/fork/message、创建 worktree 或实现功能。
+- 安全边界：mutable workspace 必须位于声明的 worktree root，不得与 saved task project 或 artifact root 重叠；Reviewer 必须直接依赖 Integrator 并审查其 resolved shared workspace；Windows ownership 与 workspace alias 按 canonical/real path 判冲突；projection 只能写入 manifest 的 artifact root 且不得覆盖非空目录。
+- 证据：19 项标准库回归通过；fresh forward test `01a005b5-5aa9-7581-918f-fd307003321a` 首次 validate PASS，生成 4 份 digest-bound brief；独立 reviewer 在四轮中先后发现 7 个 P1 边界缺陷，最终对 commit `9254d1d` / tree `bd4eb2b` 给出 `approve`。
+- 限制：no-skill 基线读取了 7 条历史 solution ref 并使用其他 planning skill，不能作为公平 A/B；当前只验证 repo-local 显式加载，未验证安装、隐式触发、Windows junction、实际 dispatch、第二 blind benchmark 或多任务收益。该 skill 只能标为 `incubating`。
+- 模型记录：本轮所有新建/续跑 Desktop 任务均按用户明确要求请求 `gpt-5.6-luna` + `max`；产品读取结果未暴露 effective 值，因此只记录 requested，不能宣称严格控制了 effective 配置。

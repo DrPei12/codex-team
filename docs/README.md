@@ -38,6 +38,8 @@
 - [2026-08-12 Worker Profile 对照](research/profile-comparison-2026-08-12.md)
 - [2026-08-15 OutputGuard Desktop 纵向切片实录](research/outputguard-vertical-slice-2026-08-15.md)
 - [OutputGuard 纵向切片机器 evidence](../evidence/experiments/2026-08-15-outputguard-vertical-slice.json)
+- [2026-08-15 team-plan v0.1 实录](research/team-plan-v0.1-2026-08-15.md)
+- [team-plan v0.1 机器 evidence](../evidence/skills/2026-08-15-team-plan-v0.1.json)
 - [模板目录](templates/README.md)
 
 ## 文档状态标签
