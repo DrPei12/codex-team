@@ -130,7 +130,38 @@
     "branch": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^(?!/)(?!.*\\.\\.)(?!.*\\/$)(?!.*\\.$)(?!.*\\.lock$)(?!.*[\\s~^:?*\\[\\]\\\\]).+$"
+      "allOf": [
+        {
+          "pattern": "^(?!@?$).+$"
+        },
+        {
+          "pattern": "^(?!.*@\\{).+$"
+        },
+        {
+          "pattern": "^(?!.*[\\u0000-\\u001F\\u007F]).+$"
+        },
+        {
+          "pattern": "^(?!.*\\.\\.).+$"
+        },
+        {
+          "pattern": "^(?!/).+$"
+        },
+        {
+          "pattern": "^(?!.*\\/$).+$"
+        },
+        {
+          "pattern": "^(?!.*\\.$).+$"
+        },
+        {
+          "pattern": "^(?!.*(?:^|/)\\.).+$"
+        },
+        {
+          "pattern": "^(?!.*(?:^|/)[^/]*\\.lock(?:/|$)).+$"
+        },
+        {
+          "pattern": "^(?!.*[\\s~^:?*\\[\\]\\\\]).+$"
+        }
+      ]
     },
     "absolute_path": {
       "type": "string",
@@ -232,12 +263,15 @@
     "workspace_policy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["experiment_root", "worktree_root", "require_clean_start"],
+      "required": ["experiment_root", "worktree_root", "artifact_root", "require_clean_start"],
       "properties": {
         "experiment_root": {
           "$ref": "#/$defs/absolute_path"
         },
         "worktree_root": {
+          "$ref": "#/$defs/absolute_path"
+        },
+        "artifact_root": {
           "$ref": "#/$defs/absolute_path"
         },
         "require_clean_start": {

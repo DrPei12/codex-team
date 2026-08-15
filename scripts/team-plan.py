@@ -99,8 +99,13 @@ def _identity(value: Any, path: str, pattern: re.Pattern[str]) -> str:
 
 def _timestamp(value: Any, path: str) -> str:
     text = _string(value, path)
+    if not re.match(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T", text):
+        _fail(path, "timestamp must use 'T' between date and time")
+    if not re.search(r"(?:Z|[+-][0-9]{2}:[0-9]{2})$", text):
+        _fail(path, "must include a timezone offset")
     try:
-        parsed = _datetime.datetime.fromisoformat(text.replace("Z", "+00:00"))
+        iso_text = text[:-1] + "+00:00" if text.endswith("Z") else text
+        parsed = _datetime.datetime.fromisoformat(iso_text)
     except ValueError:
         _fail(path, "must be an ISO-8601 timestamp")
     if parsed.tzinfo is None or parsed.utcoffset() is None:
@@ -118,11 +123,16 @@ def _commit(value: Any, path: str) -> str:
 def _branch(value: Any, path: str) -> str:
     text = _string(value, path)
     invalid = {" ", "~", "^", ":", "?", "*", "[", "]", "\\"}
+    components = text.split("/")
     if (
         text.startswith("/")
         or text.endswith(("/", "."))
         or ".." in text
         or text.endswith(".lock")
+        or text == "@"
+        or "@{" in text
+        or any(component.startswith(".") or component.endswith(".lock") for component in components)
+        or any(ord(char) < 32 or ord(char) == 127 for char in text)
         or any(char.isspace() or char in invalid for char in text)
     ):
         _fail(path, "has an invalid branch identity")
@@ -168,17 +178,20 @@ def _owned_path(value: Any, path: str) -> str:
         _fail(path, "write paths must be relative")
     if any(part == ".." for part in normalized.split("/")):
         _fail(path, "write paths must not escape the repository")
-    if normalized in {"", "."}:
+    parts = [part for part in normalized.split("/") if part not in {"", "."}]
+    if not parts:
         _fail(path, "write path must not be empty")
-    return normalized.rstrip("/")
+    return ntpath.normcase("/".join(parts)).replace("\\", "/")
 
 
 def _path_patterns_overlap(left: str, right: str) -> bool:
     """Conservatively detect overlap for exact paths and common glob paths."""
 
-    left = left.replace("\\", "/")
-    right = right.replace("\\", "/")
+    left = left.replace("\\", "/").casefold()
+    right = right.replace("\\", "/").casefold()
     if left == right:
+        return True
+    if left.startswith(right + "/") or right.startswith(left + "/"):
         return True
     if fnmatch.fnmatchcase(left, right) or fnmatch.fnmatchcase(right, left):
         return True
@@ -188,6 +201,97 @@ def _path_patterns_overlap(left: str, right: str) -> bool:
             if candidate == prefix or candidate.startswith(prefix + "/"):
                 return True
     return False
+
+
+def _nearest_existing_path(value: str) -> str:
+    candidate = value
+    while not os.path.lexists(candidate):
+        parent = os.path.dirname(candidate)
+        if not parent or parent == candidate:
+            return candidate
+        candidate = parent
+    return candidate
+
+
+def _real_path(value: str) -> str:
+    return _normal_path(os.path.realpath(value))
+
+
+def _check_output_parent_real_path(output: str, artifact_root: str, experiment_root: str) -> None:
+    """Reject symlink/junction escapes before creating any output directory."""
+
+    experiment_real = _real_path(experiment_root)
+    artifact_anchor = _nearest_existing_path(artifact_root)
+    artifact_anchor_real = _real_path(artifact_anchor)
+    if not _path_is_within(artifact_anchor_real, experiment_real):
+        _fail("output", "artifact_root real path escapes experiment_root")
+
+    output_parent = _nearest_existing_path(output)
+    output_parent_real = _real_path(output_parent)
+    if not _path_is_within(output_parent_real, artifact_anchor_real):
+        _fail("output", "existing parent real path escapes artifact_root")
+
+
+def _check_reviewer_workspaces(
+    lane_by_id: dict[str, dict[str, Any]],
+    lane_roles: dict[str, str],
+    graph: dict[str, list[str]],
+) -> None:
+    for lane_id, role in lane_roles.items():
+        if role != "reviewer":
+            continue
+        integrator_dependencies = [
+            dependency for dependency in graph[lane_id] if lane_roles[dependency] == "integrator"
+        ]
+        if not integrator_dependencies:
+            _fail(
+                f"lanes[{lane_id}].depends_on",
+                "reviewer must directly depend on at least one integrator",
+            )
+        reviewer = lane_by_id[lane_id]
+        reviewer_workspace = reviewer["workspace"]
+        reviewer_path = _normal_path(reviewer_workspace["path"])
+        matching_integrators = [
+            dependency
+            for dependency in integrator_dependencies
+            if _normal_path(lane_by_id[dependency]["workspace"]["path"]) == reviewer_path
+        ]
+        if not matching_integrators:
+            _fail(
+                f"lanes[{lane_id}].workspace.path",
+                "reviewer workspace must match a directly depended-on integrator",
+            )
+        if not any(
+            reviewer_workspace["base_revision"] == lane_by_id[dependency]["workspace"]["base_revision"]
+            for dependency in matching_integrators
+        ):
+            _fail(
+                f"lanes[{lane_id}].workspace.base_revision",
+                "reviewer workspace base_revision must match the shared integrator",
+            )
+
+
+def _check_workspace_conflicts(
+    workspace_keys: dict[str, list[str]],
+    lane_by_id: dict[str, dict[str, Any]],
+    lane_roles: dict[str, str],
+    graph: dict[str, list[str]],
+) -> None:
+    for workspace_key, lane_ids in workspace_keys.items():
+        if len(lane_ids) == 1:
+            continue
+        if len(lane_ids) == 2:
+            reviewer = next((lane_id for lane_id in lane_ids if lane_roles[lane_id] == "reviewer"), None)
+            integrator = next((lane_id for lane_id in lane_ids if lane_roles[lane_id] == "integrator"), None)
+            if reviewer and integrator and integrator in graph[reviewer]:
+                reviewer_base = lane_by_id[reviewer]["workspace"]["base_revision"]
+                integrator_base = lane_by_id[integrator]["workspace"]["base_revision"]
+                if reviewer_base == integrator_base:
+                    continue
+        _fail(
+            "lanes.workspace.path",
+            f"workspace conflicts between lanes: {', '.join(lane_ids)}",
+        )
 
 
 def _gate(value: Any, path: str, *, command_required: bool) -> dict[str, Any]:
@@ -343,7 +447,7 @@ def validate_manifest(manifest: Any) -> None:
     for field in sorted(runtime_allowed):
         _string(runtime[field], f"runtime.{field}")
 
-    policy_allowed = {"experiment_root", "worktree_root", "require_clean_start"}
+    policy_allowed = {"experiment_root", "worktree_root", "artifact_root", "require_clean_start"}
     workspace_policy = _object(
         manifest_object["workspace_policy"],
         "workspace_policy",
@@ -361,10 +465,23 @@ def validate_manifest(manifest: Any) -> None:
         root=experiment_root,
         label="worktree_root",
     )
+    artifact_root = _absolute_path(
+        workspace_policy["artifact_root"],
+        "workspace_policy.artifact_root",
+        root=experiment_root,
+        label="artifact_root",
+    )
     _boolean(workspace_policy["require_clean_start"], "workspace_policy.require_clean_start")
-    _absolute_path(task_project["path"], "task_project.path", root=experiment_root, label="task project path")
+    task_project_path = _absolute_path(
+        task_project["path"],
+        "task_project.path",
+        root=experiment_root,
+        label="task project path",
+    )
     if not _path_is_within(worktree_root, experiment_root):
         _fail("workspace_policy.worktree_root", "worktree_root is outside experiment_root")
+    if not _path_is_within(artifact_root, experiment_root):
+        _fail("workspace_policy.artifact_root", "artifact_root is outside experiment_root")
 
     contract_allowed = {"state", "source", "invariants", "forbidden_changes"}
     contract = _object(manifest_object["contract"], "contract", contract_allowed, contract_allowed)
@@ -392,7 +509,7 @@ def validate_manifest(manifest: Any) -> None:
     lane_roles: dict[str, str] = {}
     graph: dict[str, list[str]] = {}
     write_paths: dict[str, list[str]] = {}
-    workspace_keys: dict[str, str] = {}
+    workspace_keys: dict[str, list[str]] = {}
     branch_keys: dict[str, str] = {}
     gate_ids: set[str] = set()
 
@@ -427,12 +544,18 @@ def validate_manifest(manifest: Any) -> None:
             label="workspace",
         )
         workspace_key = _normal_path(workspace_path)
-        if workspace_key in workspace_keys:
-            _fail(
-                f"{lane_path}.workspace.path",
-                f"workspace conflicts with lane {workspace_keys[workspace_key]!r}",
-            )
-        workspace_keys[workspace_key] = lane_id
+        workspace_keys.setdefault(workspace_key, []).append(lane_id)
+        if role != "reviewer":
+            if not _path_is_within(workspace_path, worktree_root):
+                _fail(
+                    f"{lane_path}.workspace.path",
+                    "mutable workspace is outside worktree_root",
+                )
+            if _normal_path(workspace_path) == _normal_path(task_project_path):
+                _fail(
+                    f"{lane_path}.workspace.path",
+                    "mutable workspace must not equal task_project.path",
+                )
         _commit(workspace["base_revision"], f"{lane_path}.workspace.base_revision")
         _boolean(workspace["clean_start_required"], f"{lane_path}.workspace.clean_start_required")
 
@@ -522,6 +645,8 @@ def validate_manifest(manifest: Any) -> None:
                     f"unknown dependency {dependency!r}",
                 )
     _check_cycles(graph)
+    _check_reviewer_workspaces(lane_by_id, lane_roles, graph)
+    _check_workspace_conflicts(workspace_keys, lane_by_id, lane_roles, graph)
     _check_parallel_groups(parallel_groups, lane_ids, graph, write_paths)
 
     order = _string_list(manifest_object["integration_order"], "integration_order", min_items=1)
@@ -622,7 +747,18 @@ def project_manifest(manifest: dict[str, Any], output_value: str) -> int:
     validate_manifest(manifest)
     digest = manifest_digest(manifest)
     lanes = manifest["lanes"]
-    output = Path(output_value)
+    artifact_root = manifest["workspace_policy"]["artifact_root"]
+    output_text = _absolute_path(output_value, "output", label="output")
+    if not _path_is_within(output_text, artifact_root):
+        raise ManifestError(f"output: {output_text} is outside artifact_root")
+    if _normal_path(output_text) == _normal_path(manifest["task_project"]["path"]):
+        raise ManifestError("output: must not equal task_project.path")
+    for lane in lanes:
+        if _normal_path(output_text) == _normal_path(lane["workspace"]["path"]):
+            raise ManifestError(f"output: must not equal lane workspace {lane['lane_id']!r}")
+    _check_output_parent_real_path(output_text, artifact_root, manifest["workspace_policy"]["experiment_root"])
+
+    output = Path(output_text)
     if output.exists():
         if output.is_symlink() or not output.is_dir():
             raise ManifestError(f"output: {output} is not a directory")

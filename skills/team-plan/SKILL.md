@@ -17,12 +17,14 @@ Workflow:
    [manifest-fields.md](references/manifest-fields.md) for the compact field map.
 3. Run the validator before any dispatch:
    `python scripts/team-plan.py validate MANIFEST`
+   If validation fails, fix only the manifest from the concrete error and run the validator again. Stop when identity or a required fact is missing, or when the same error repeats.
 4. After a passing validation, project immutable lane briefs from that same
    manifest:
    `python scripts/team-plan.py project MANIFEST --out DIR`
-5. Dispatch only the already-defined lanes through the surrounding orchestrator,
-   preserving the manifest digest and ownership boundaries.
+5. Stop after project succeeds, then hand the manifest, digest, and brief
+   directory to the already-authorized orchestrator, preserving ownership
+   boundaries.
 
-Do not create tasks, fork or message workers, implement code, change the frozen
-contract, or invent lane data in this skill. Stop on validation failure or an
-identity, ownership, dependency, workspace, or output-directory conflict.
+Do not create or dispatch tasks, fork or message workers, implement code, change
+the frozen contract, or invent lane data in this skill. The authorized
+orchestrator owns dispatch and implementation after this skill stops.
