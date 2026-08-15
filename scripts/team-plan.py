@@ -275,11 +275,11 @@ def _check_reviewer_workspaces(
             )
         reviewer = lane_by_id[lane_id]
         reviewer_workspace = reviewer["workspace"]
-        reviewer_path = _normal_path(reviewer_workspace["path"])
+        reviewer_path = _real_path(reviewer_workspace["path"])
         matching_integrators = [
             dependency
             for dependency in integrator_dependencies
-            if _normal_path(lane_by_id[dependency]["workspace"]["path"]) == reviewer_path
+            if _real_path(lane_by_id[dependency]["workspace"]["path"]) == reviewer_path
         ]
         if not matching_integrators:
             _fail(
@@ -578,7 +578,7 @@ def validate_manifest(manifest: Any) -> None:
             root=experiment_root,
             label="workspace",
         )
-        workspace_key = _normal_path(workspace_path)
+        workspace_key = _real_path(workspace_path)
         workspace_keys.setdefault(workspace_key, []).append(lane_id)
         if role != "reviewer":
             if _paths_overlap(workspace_path, task_project_path):
