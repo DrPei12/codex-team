@@ -1,0 +1,165 @@
+{
+  "profile": "codex-multitask-workflow",
+  "schema_version": "0.1",
+  "kind": "session-plan",
+  "artifact_id": "plan:outputguard-jsonl:desktop-managed-01",
+  "context_id": "context:outputguard:jsonl-stream-v1",
+  "created_at": "2026-08-13T00:40:00-04:00",
+  "status": "frozen",
+  "objective": "Implement and independently verify the frozen OutputGuard JSONL streaming contract using four bounded Codex Desktop tasks.",
+  "client_surface": "codex_desktop",
+  "base": {
+    "repository": "ndcorder/outputguard",
+    "commit": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+    "tree": "063ebf5b6cb7dca61d9ceb08bbf7d9dff54061a7"
+  },
+  "task_project": {
+    "project_id": "082eff70-1f80-4421-bb5b-d896d12961ff",
+    "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-single",
+    "environment": "local"
+  },
+  "lanes": [
+    {
+      "lane_id": "core",
+      "role": "implementer",
+      "task_mode": "fresh-desktop-task",
+      "depends_on": [],
+      "workspace": {
+        "mode": "existing-permanent-worktree",
+        "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-team-core-01",
+        "branch": "codex/outputguard-team-core-01",
+        "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+        "clean_start_required": true
+      },
+      "ownership": {
+        "write_paths": [
+          "outputguard/jsonl.py",
+          "outputguard/__init__.py",
+          "tests/test_jsonl.py",
+          "docs/batch-processing.md"
+        ],
+        "forbidden_paths": [
+          "outputguard/cli.py",
+          "tests/test_jsonl_cli.py",
+          "docs/cli.md",
+          "pyproject.toml"
+        ]
+      },
+      "inputs": [
+        {
+          "artifact_id": "contract:outputguard-jsonl:v1",
+          "path": "D:\\Desktop\\Codex多任务工程系统实验场\\benchmarks\\outputguard-jsonl-stream-v1\\public\\contract.json",
+          "sha256": "sha256:6e6a32fe2c23263795780abd66ce54b10c51a277d137f500bbd4a1234b7c34a9"
+        }
+      ],
+      "gates": [
+        {
+          "gate_id": "core-targeted-tests",
+          "owner": "worker",
+          "command": "python -B -m pytest -q -p no:cacheprovider tests/test_jsonl.py",
+          "evidence_required": ["exact command", "exit code", "summary", "head revision"]
+        }
+      ],
+      "stop_conditions": ["contract change", "ownership crossing", "workspace identity mismatch", "unexplained test failure"]
+    },
+    {
+      "lane_id": "cli",
+      "role": "implementer",
+      "task_mode": "fresh-desktop-task",
+      "depends_on": [],
+      "workspace": {
+        "mode": "existing-permanent-worktree",
+        "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-team-cli-01",
+        "branch": "codex/outputguard-team-cli-01",
+        "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+        "clean_start_required": true
+      },
+      "ownership": {
+        "write_paths": ["outputguard/cli.py", "tests/test_jsonl_cli.py", "docs/cli.md"],
+        "forbidden_paths": ["outputguard/jsonl.py", "outputguard/__init__.py", "tests/test_jsonl.py", "docs/batch-processing.md", "pyproject.toml"]
+      },
+      "inputs": [
+        {
+          "artifact_id": "contract:outputguard-jsonl:v1",
+          "path": "D:\\Desktop\\Codex多任务工程系统实验场\\benchmarks\\outputguard-jsonl-stream-v1\\public\\contract.json",
+          "sha256": "sha256:6e6a32fe2c23263795780abd66ce54b10c51a277d137f500bbd4a1234b7c34a9"
+        }
+      ],
+      "gates": [
+        {
+          "gate_id": "cli-targeted-tests",
+          "owner": "worker",
+          "command": "python -B -m pytest -q -p no:cacheprovider tests/test_jsonl_cli.py",
+          "evidence_required": ["exact command", "exit code", "summary", "head revision"]
+        }
+      ],
+      "stop_conditions": ["contract change", "ownership crossing", "workspace identity mismatch", "unexplained test failure"]
+    },
+    {
+      "lane_id": "integrator",
+      "role": "integrator",
+      "task_mode": "fresh-desktop-task",
+      "depends_on": ["core", "cli"],
+      "workspace": {
+        "mode": "existing-permanent-worktree",
+        "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-team-integrate-01",
+        "branch": "codex/outputguard-team-integrate-01",
+        "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+        "clean_start_required": true
+      },
+      "ownership": {
+        "write_paths": ["outputguard/**", "tests/**", "docs/**"],
+        "forbidden_paths": ["pyproject.toml", "uv.lock", ".gitignore"]
+      },
+      "inputs": [],
+      "gates": [
+        {
+          "gate_id": "public-integration",
+          "owner": "integrator",
+          "command": "python -B -m pytest -q -p no:cacheprovider",
+          "evidence_required": ["exact integration commit", "tree hash", "test counts", "clean state"]
+        }
+      ],
+      "stop_conditions": ["invalid worker report", "ownership violation", "merge conflict requiring contract change", "package build qualification missing"]
+    },
+    {
+      "lane_id": "reviewer",
+      "role": "reviewer",
+      "task_mode": "fresh-desktop-task",
+      "depends_on": ["integrator"],
+      "workspace": {
+        "mode": "read-only",
+        "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-team-integrate-01",
+        "branch": "codex/outputguard-team-integrate-01",
+        "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+        "clean_start_required": true
+      },
+      "ownership": {
+        "write_paths": [],
+        "forbidden_paths": ["outputguard/**", "tests/**", "docs/**", "pyproject.toml", "uv.lock"]
+      },
+      "inputs": [],
+      "gates": [
+        {
+          "gate_id": "contract-review",
+          "owner": "reviewer",
+          "command": null,
+          "evidence_required": ["reviewed commit", "findings", "recommendation"]
+        }
+      ],
+      "stop_conditions": ["integration tree dirty", "review target changed", "missing public Gate evidence"]
+    }
+  ],
+  "integration_order": ["core", "cli", "integrator", "reviewer"],
+  "budgets": {
+    "desktop_tasks": 4,
+    "max_followups_per_task": 1
+  },
+  "global_stop_conditions": [
+    "Desktop project or assigned workspace identity mismatch",
+    "public contract or evaluator manifest changes",
+    "network or hidden evaluator access",
+    "CLI worker fallback",
+    "unapproved destructive cleanup"
+  ]
+}

@@ -63,6 +63,14 @@
 
 ## 三、按 workspace 分类
 
+以下分类描述 worker 使用的文件环境。每一种都必须另行记录三层边界：
+
+- 文件边界：cwd、允许的根目录和可写路径；
+- Git 边界：repo、branch、HEAD、dirty 状态和 owner；
+- 运行上下文边界：Codex user config、memory、skills、plugins、MCP 和模型设置。
+
+Worktree 主要隔离文件和 Git 状态，不会自动隔离第三层。
+
 ### 1. 同一 checkout / 同目录
 
 多个执行者看见同一份实时文件。

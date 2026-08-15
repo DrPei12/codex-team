@@ -13,8 +13,11 @@
 | proposed | 已规划，尚未创建/启动 | 否 |
 | active | 正在承担明确责任 | 是 |
 | waiting | 等依赖或外部事件 | 原则上否 |
+| blocked | stop rule 已触发，原因和证据已固化；不能在原 run 中继续试错 | 否 |
 | handoff-ready | 输出完成，等待接收 | 否 |
+| accepted | 主编排者已验收 handoff identity/evidence，等待或允许集成 | 原则上否 |
 | integrating | 由集成者处理 | 仅修复集成问题 |
+| reviewed | 精确 integration tree 已得到独立 review 决定 | 否 |
 | retained | 阶段完成，但作为长期 owner 保留 | 可唤醒 |
 | rotating | 正在向后继任务交接 | 否 |
 | archived | 历史可查，不在活动 roster | 否 |
@@ -89,6 +92,22 @@
 4. 新任务独立确认路径、Git 状态和关键 contract；
 5. 用一个小的 continuation task 验证接班质量；
 6. 通过后归档旧任务，失败则补交接而不是让两者长期双 owner。
+
+## Blocked run 与 recovery lineage
+
+任务生命周期和实验 run 生命周期不能混为一个可覆盖状态。某个 task 可以结束并归档，但它参与的 run 仍永久保持 `blocked`；后续成功只能通过新的 successor run 建立。
+
+恢复流程：
+
+1. 冻结 predecessor 的 status、timeline、artifact hash 和 worktree 现场；
+2. 区分仍有效的 proof、未知事实和明确失效的 evidence；
+3. 对 dirty candidate 绑定 exact bytes/hash、Git identity 和唯一生成算法；
+4. 创建新的 run ID、预算和 task，不复用旧 run 的“继续按钮”隐藏额外尝试；
+5. 只授权验证唯一的新事实，遵守新的 first-nonzero stop；
+6. successor 成功后引用 predecessor，但不修改 predecessor result；
+7. 接收完成后再按任务治理决定 archive/retain，worktree cleanup 仍需单独授权。
+
+OutputGuard Run02–Run10 已在一个案例中观察到这种 append-only lineage 能最终通过公开、审查和 sealed Gate；它尚未证明自动 recovery、长期 lease 或跨机器恢复。
 
 ## Worktree 生命周期
 

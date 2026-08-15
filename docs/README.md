@@ -14,6 +14,8 @@
 - [Worker 分类](02-worker-taxonomy.md)
 - [编排范式](03-orchestration-patterns.md)
 - [Codex 任务与 worktree 机制](05-thread-and-worktree-mechanics.md)
+- [Codex Capability Contract](18-capability-contract.md)
+- [OutputGuard 首个 Desktop 纵向切片计划](19-outputguard-vertical-slice-plan.md)
 - [任务与消息模型](06-task-and-message-model.md)
 - [交接与验收](07-handoff-and-verification.md)
 - [模型与上下文策略](08-model-and-context-policy.md)
@@ -29,6 +31,13 @@
 - [讨论记录](15-conversation-record.md)
 - [术语表](17-glossary.md)
 - [官方与研究来源](research/official-sources.md)
+- [Prior art 与能力上限调查](research/prior-art-and-capability-limits.md)
+- [大型 Skill 套件的工程方法提炼](research/large-skill-suite-engineering-methods.md)
+- [Capability 行为实验计划](research/capability-experiment-plan.md)
+- [2026-08-12 隔离会话 Pilot](research/capability-pilot-2026-08-12.md)
+- [2026-08-12 Worker Profile 对照](research/profile-comparison-2026-08-12.md)
+- [2026-08-15 OutputGuard Desktop 纵向切片实录](research/outputguard-vertical-slice-2026-08-15.md)
+- [OutputGuard 纵向切片机器 evidence](../evidence/experiments/2026-08-15-outputguard-vertical-slice.json)
 - [模板目录](templates/README.md)
 
 ## 文档状态标签

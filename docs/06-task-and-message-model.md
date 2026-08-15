@@ -35,6 +35,19 @@ Agent 消息也不应成为不可读的纯 JSON 垃圾。推荐“短人类摘�
 
 ## 核心对象
 
+### Canonical run manifest
+
+描述“一次 run 所有角色共同依赖的不可重复事实”：
+
+- `run_id`、predecessor 和状态历史；
+- repository/common-dir、base commit/tree 和允许的 target identity；
+- task graph、owner、路径/资源边界和集成顺序；
+- contract、文件、helper、解释器和 evaluator manifest 的 bytes/hash；
+- exact command、环境、artifact-root 初始状态、次数预算和 stop rule；
+- task、review、sealed 与 cleanup 的授权边界。
+
+Session plan、roster、task brief、preregistration、freeze 和 receipt 是 manifest 的角色/阶段 projection。它们可以增加本角色的叙述，但不能成为重复 identity 的第二事实源。
+
 ### Worker Card
 
 描述“谁能做什么、在哪做、能做多久”：
@@ -96,6 +109,8 @@ Agent 消息也不应成为不可读的纯 JSON 垃圾。推荐“短人类摘�
 - 已知风险、阻塞和建议下一步；
 - 接收方需要执行的最低确认。
 
+Recovery handoff 还要引用不可变 predecessor result，区分 `proof_reused`、`proof_invalidated` 和 `new_fact_required`。它产生新的 run ID，不能把旧 `failed/blocked` 原地改成继续执行。
+
 ## 消息的五种用途
 
 第一版只规范以下意图，不创造新的网络 method：
@@ -129,6 +144,7 @@ Requested action: integrator validate evidence key, merge, then run affected-con
 - 项目层可另设 `accepted` / `integrated` / `released`，不要伪装成 A2A 标准 Task 状态。
 - `input-required` 必须写明缺什么、为什么无法合理假设、谁有权回答。
 - `failed` 要区分产品缺陷、环境失败、权限失败和任务定义失败。
+- run-level `blocked` 是 append-only 结论；后继 recovery 的成功通过 predecessor link 表达，不覆盖旧状态。
 - 状态消息到达不等于磁盘状态或 revision 已被验收。
 
 ## 可靠性原则

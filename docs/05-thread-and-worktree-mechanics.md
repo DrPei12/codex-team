@@ -4,11 +4,25 @@
 
 Codex 界面常把独立会话称为 task；底层工具名可能使用 thread。本项目面向用户统一写“任务”，在涉及工具字段时保留 `threadId`。
 
-## 当前可确认的能力
+## 当前可确认的声明面
 
-截至本项目建立时，Codex 桌面环境提供了围绕任务的创建、fork、列出、读取、等待、直接发送消息、handoff、固定、归档和重命名能力。Git 项目可以为任务使用 Codex 管理的 worktree，handoff 可在本地 checkout 与 managed worktree 之间转移任务和 Git 状态。
+2026-08-11 的本地静态 snapshot 是：
 
-这些是当前产品能力的快照；具体参数、默认分支行为和 UI 表现仍应在实现 skills 时以当时官方文档和实际工具 schema 为准。
+- Codex AppX：`OpenAI.Codex 26.803.10989.0`，Windows X64；
+- Codex CLI：`codex-cli 0.146.0`；
+- CLI feature flag：`multi_agent` 标为 `stable=true`，`multi_agent_v2` 标为 `stable=false`；
+- 当前 Desktop tool schema 声明了任务创建、fork、列出、读取、等待、直接消息、handoff、固定、归档和重命名入口；Git project create 可以请求 managed worktree，handoff 声明可在 checkout 与 managed worktree 之间移动其他任务及其 Git 状态；
+- 当前 session collaboration schema 声明了 subagent 的 spawn、follow-up、message、interrupt、list 和 wait 入口。
+
+以上大部分仍只是**当前环境声明**，不是行为保证。当前行为观测已增加到：只读 list/read、两个 `codex exec -C` 手工 worktree 会话、一个 idle direct message/wait 回合，以及一个 idle same-directory fork。Desktop managed-worktree create/worktree fork、handoff、archive、subagent 和故障状态仍未确认。完整环境、claim、证据关系和 unknown 见 [Capability Contract](18-capability-contract.md)；实验结果见 [2026-08-12 pilot](research/capability-pilot-2026-08-12.md)。
+
+Pilot 还证明 workspace 至少有三层边界：文件目录、Git 身份和 Codex 运行上下文。`-C` 与 worktree 解决前两层的一部分，但不会阻止全局 memory、skills、plugins 和用户配置加载。后续 workspace policy 必须同时记录三层，不能把“在独立目录”写成“完全隔离”。
+
+## Desktop 是后续执行基准
+
+从 D-023 起，用户可见 worker 的创建、fork、消息、等待和 handoff 都以 Codex Desktop 原生任务为准。Shell 只承担 Git 状态、测试、hash 和 artifact 等机械工作；`codex exec` 不再启动 worker，也不能用来“补齐”Desktop 实验。前述 CLI 观测保留为历史兼容性资料，不能证明 Desktop 当前行为。
+
+路径约束已经部分解除：用户已把实验场内的 clean checkout `outputguard-single` 注册为 saved project，Desktop `local` 任务随后通过只读和 write/test qualification。Qualification 09 先证明固定 helper 可在 assigned permanent worktree 创建 marker commit；OutputGuard Run02–Run10 又观察到真实 implementer、recovery、integrator 和 reviewer task 能以 saved project 为控制入口，在 brief 指定的 permanent worktree 中产生功能 commit、artifact handoff、合并和只读 review，同时保持 hub checkout 不被写入。create/fork schema 仍不能把任意已有 worktree 直接设为 task cwd，所以这不是“产品入口直接绑定 worktree”或 Desktop-managed worktree 证据。每条真实任务仍必须先自证 Git common dir、branch、HEAD、ordinary/ignored state 与定向执行能力，父任务再独立复核。若该机制失败，`team-run` 停止，不改用 hub checkout、Desktop 默认 managed worktree 或 CLI。
 
 ## Fork 到底复制什么
 
@@ -92,3 +106,7 @@ flowchart TD
 - 活跃任务、等待和并发的实际限制。
 
 在核验前，skills 必须 fail closed：不根据猜测自动删除 worktree、覆盖状态或合并分支。
+
+当前已创建多条符合 D-023 的 Desktop local 实验任务，并观察到 saved-project task 创建、只读身份核验、简单 Git index/ref 操作、public Gate、外置缓存、离线 build、assigned permanent worktree 的真实功能 commit、artifact-based handoff、integration 和 review。正式 `handoff_thread` 产品操作、Desktop-managed worktree、产品入口对任意既有 worktree 的正式 cwd 绑定、archive 和 subagent 仍未由本轮验证；这些组合继续保持 `declared_unverified` 或 `unknown`，按真实 workflow 需要逐项补最小 probe。
+
+Run10 还补充了一个 Git 细节：普通 porcelain clean 不包含 ignored residue。sealed evaluator 子进程留下 29 个 ignored `.pyc`，而 commit/tree 和 ordinary status 都未变化。后续 preflight/finish 必须显式选择是否审计 `--ignored --untracked-files=all`，不能用单个 `clean=true` 覆盖不同边界。

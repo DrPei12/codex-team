@@ -6,7 +6,19 @@
 
 极端二：认为主编排者只要写出“极其详细的 prompt”，低能力 worker 就一定能可靠完成。详细 prompt 可能造成信息淹没，也无法补足跨文件推理、异常诊断或新情况判断能力。
 
-第一版采用结构化 briefing + 分级模型 + 明确升级条件。
+长期方向仍是结构化 briefing + 分级模型 + 明确升级条件。当前 M1 先固定 Desktop 任务拓扑、brief、workspace 和 Gate；模型只有在用户明确选择或产品可稳定观测时才作为受控变量，不能为了补齐表格而猜测 effective 配置。
+
+## 当前实验场政策
+
+从 D-023 起，`D:\Desktop\Codex多任务工程系统实验场` 的 Agent 回合以 Codex Desktop 为唯一权威执行面：
+
+- 用户没有明确指定 model/thinking 时，创建任务不传覆盖值，使用其 Desktop 默认配置；
+- 用户明确指定后才固定 model/thinking，并在同一对照内保持一致；
+- run artifact 同时记录 requested/effective model 与 thinking；产品未暴露时写 `unknown`，不根据任务表现反推；
+- 配置不可用时停止并报告，不静默换模型，也不改用 CLI；
+- 2026-08-12 的 `gpt-5.6-luna + high` 只描述已经发生的 CLI 历史实验，不再自动授权后续 Desktop task。
+
+这样先回答 Desktop 原生任务能否按计划完成工程闭环，再研究不同模型的成本和质量。否则执行面、模型、workspace 和编排方式同时变化，失败无法归因。
 
 ## 按认知难度分配，而非按职位名称硬编码
 
@@ -18,7 +30,7 @@
 - 证据冲突和复杂故障归因；
 - 多 worker 结果综合和最终验收。
 
-这类任务由当前可用的高能力模型和较高 thinking 承担。用户提出的 `sol-max/ultra` 可作为实验候选，但具体模型名、档位和可用性必须在运行时核验。
+长期这类任务通常需要较强模型或更高 thinking，但具体档位必须实测。一个 run 一旦开始，就不能在看到失败后临时换模型并仍算同一条件；升级应成为预先定义的新回合或新条件。
 
 ### 中等认知任务
 
@@ -27,7 +39,7 @@
 - 常规 code review；
 - 生成结构化 artifact。
 
-可以使用成本更低的常规模型，但要允许遇到升级条件时返回主编排者或切换更强模型。用户提出的 `luna-max` 属于候选思路；在确认 Codex 当前是否提供该配置前，不能写成默认事实。
+长期可以使用成本更低的常规模型，并在触发升级条件时返回主编排者或切换更强模型。当前先保持每个 Desktop 对照内部配置一致，检验任务规格、所有权和 Gate 是否足以支撑实现。
 
 ### 低认知任务
 
@@ -36,7 +48,7 @@
 - 机械更新多个独立文件；
 - 小范围、强测试约束的实现。
 
-优先交给 subagent 或低成本 worker，避免消耗主编排者上下文。
+优先交给 subagent 或低成本 worker。首个 Desktop 纵向切片不主动做模型分层；等流程可运行后，再把低成本配置作为单独对照。
 
 ## Worker 自升级条件
 
@@ -64,7 +76,13 @@
 
 Prompt 长度本身不是质量指标。后续评测应比较：短结构化、长叙述、结构化 + 按需 references 三组。
 
-## 单任务“最高有效上下文”
+## 上下文策略的当前优先级
+
+上下文问题仍然存在，但不是当前主线。前一轮 normal/minimal profile 反例已经足以说明“关掉更多加载项”不等于更便宜或更可靠；现在不继续穷举 memory/plugin/skill 开关。
+
+当前只保留两个底线：task brief 只给本 lane 所需事实；项目真相写入 artifact/Git，不只留在聊天历史。自动 compaction、长期 owner 轮换、上下文阈值和 curated profile 在第一条多 session 工程闭环之后再优化。
+
+## 单任务“最高有效上下文”（后续研究）
 
 不存在一个仅由 token 数决定、对所有任务通用的断崖。研究和实际使用通常显示：随着上下文增长，检索位置、干扰信息、旧假设、任务切换和多轮错误累积都会影响表现；模型即使没有超过硬 context window，也可能出现有效性下降。
 
@@ -91,13 +109,13 @@ Prompt 长度本身不是质量指标。后续评测应比较：短结构化、�
 
 不能只靠固定“第 N 轮就换人”。任务复杂度、每轮信息量和 compaction 行为不同。
 
-## 待做对照实验
+## 对照实验顺序
 
-1. 高能力编排者 + 常规模型 worker，对比全员高能力；
-2. 短结构化 brief、长详细 prompt、按需 references；
-3. 同一 worker 连续 1/3/5/8 个同类任务，对比每次 fresh task；
-4. 长期 owner、压缩后的 owner、rehydrated 新 owner；
-5. 低能力 worker 遇到异常时是否能正确升级；
-6. 相同质量下的 wall time、token、返工和用户介入次数。
+1. 在同一 Desktop 模型/thinking 条件内，先比较单 task 与受管理的多 task 工程闭环；如果 effective 配置不可观测，只报告该限制，不声称模型已严格控制；
+2. 在同一多 session 拓扑中比较任务拆分、所有权、review 和 integration 策略；
+3. 比较短结构化 brief、长详细 prompt、按需 references；
+4. 第一条闭环稳定后，再比较 worker 模型分层和 thinking；
+5. 再研究同一 worker 连续多任务、compaction、rehydration 和上下文轮换；
+6. 全程记录 wall time、token、返工、用户介入和最终 Gate。
 
 Token 记录当前不是 Phase 0 的阻塞项，但评测框架应预留导入外部 telemetry 的字段，不伪造产品未提供的数据。

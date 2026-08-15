@@ -1,0 +1,36 @@
+{
+  "profile": "codex-multitask-workflow",
+  "schema_version": "0.1",
+  "kind": "integration-queue",
+  "artifact_id": "queue:outputguard-jsonl:desktop-managed-01",
+  "context_id": "context:outputguard:jsonl-stream-v1",
+  "created_at": "2026-08-13T00:40:00-04:00",
+  "plan_ref": "plan:outputguard-jsonl:desktop-managed-01",
+  "integration_lane_id": "integrator",
+  "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+  "current_head": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+  "status": "planned",
+  "items": [
+    {
+      "lane_id": "core",
+      "report_ref": "report:outputguard-jsonl:core:pending",
+      "commit": null,
+      "tree": null,
+      "order": 1,
+      "status": "pending",
+      "validation": {"schema": false, "identity": false, "ownership": false, "evidence": false},
+      "decision_reason": null
+    },
+    {
+      "lane_id": "cli",
+      "report_ref": "report:outputguard-jsonl:cli:pending",
+      "commit": null,
+      "tree": null,
+      "order": 2,
+      "status": "pending",
+      "validation": {"schema": false, "identity": false, "ownership": false, "evidence": false},
+      "decision_reason": null
+    }
+  ],
+  "next_action": "Create and preflight the four planned Desktop tasks after worktree and package-build qualification."
+}

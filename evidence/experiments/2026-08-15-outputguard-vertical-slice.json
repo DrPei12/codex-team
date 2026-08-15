@@ -1,0 +1,171 @@
+{
+  "schema_version": "0.1",
+  "evidence_id": "OUTPUTGUARD-DESKTOP-VERTICAL-SLICE-LINEAGE-2026-08-15",
+  "recorded_at": "2026-08-15",
+  "classification": "observed_single_lineage_with_explicit_limitations",
+  "surface": "Codex Desktop",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.1",
+    "model_requested": null,
+    "model_effective": "unknown",
+    "network_allowed_for_tasks": false,
+    "dependency_installs_allowed_for_tasks": false
+  },
+  "benchmark": {
+    "repository": "ndcorder/outputguard",
+    "upstream_commit": "cfcdf871ae613f4a958f1880283f31aa87d5875d",
+    "public_scaffold_commit": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+    "task": "OUTPUTGUARD-JSONL-STREAM-V1",
+    "evaluator_manifest_sha256": "a6c1a7fbd1efa884ec26913a38af8099da1cebcb2d2af466741fcb91128cf733",
+    "sealed_test_sha256": "ab331e8d422ff0834a73c8ddede85abcaa25b5c45911eb93c4602f933279dccc"
+  },
+  "local_artifact_root": "D:\\Desktop\\Codex多任务工程系统实验场\\runs",
+  "lineage": [
+    {
+      "run_id": "OUTPUTGUARD-DESKTOP-MULTITASK-02",
+      "directory": "2026-08-13-outputguard-desktop-multitask-02",
+      "status": "blocked",
+      "run_result_bytes": 1209,
+      "run_result_sha256": "fda127837bdc1c17ba2827d705be7b1c3156b2f351f6941b06fdcdd021a64ba0",
+      "new_fact": "Substantive public commands passed on an integrated tree.",
+      "stop_reason": "The parent-authored final-boundary helper falsely rejected an exact one-byte dist/.gitignore metadata file."
+    },
+    {
+      "run_id": "OUTPUTGUARD-PUBLIC-GATE-RECOVERY-03",
+      "directory": "2026-08-15-outputguard-public-gate-recovery-03",
+      "status": "changes_requested",
+      "run_result_bytes": 2077,
+      "run_result_sha256": "572acf4b2334113d1748605378a7bc85264df0fd7a059eb87e0f36118d948e5b",
+      "new_fact": "The corrected public boundary passed on the unchanged tree; fresh review found high R-001.",
+      "stop_reason": "Supported custom formats could produce non-JSON-native values that failed CLI record serialization."
+    },
+    {
+      "run_id": "OUTPUTGUARD-JSONSAFE-REPAIR-04",
+      "directory": "2026-08-15-outputguard-jsonsafe-repair-04",
+      "status": "blocked_core_format_gate",
+      "run_result_bytes": 1545,
+      "run_result_sha256": "95491ab2d30a7bddcbca3702b1be075f1ddb8803af2eb65062c7530bd2ca1313",
+      "new_fact": "Core logic reached 22 targeted passes and the CLI RED contract was committed for reuse.",
+      "stop_reason": "A check-only Ruff format Gate stopped on mechanically format-able owned files before a commit."
+    },
+    {
+      "run_id": "OUTPUTGUARD-JSONSAFE-INTEGRATION-RECOVERY-05",
+      "directory": "2026-08-15-outputguard-jsonsafe-integration-recovery-05",
+      "status": "blocked_diff_hash_algorithm_ambiguity",
+      "run_result_bytes": 1013,
+      "run_result_sha256": "8c65761dabac3f440e8424fcf7f4fb21fe56a639aabc293aa2f3848f26354d2b",
+      "new_fact": "Per-file hashes agreed.",
+      "stop_reason": "The aggregate diff proof lacked one canonical byte-producing command and could not safely transfer ownership."
+    },
+    {
+      "run_id": "OUTPUTGUARD-JSONSAFE-CANONICAL-RECOVERY-06",
+      "directory": "2026-08-15-outputguard-jsonsafe-canonical-recovery-06",
+      "status": "changes_requested",
+      "run_result_bytes": 2270,
+      "run_result_sha256": "230dd2124fd7085fda87fb3115a3bdef7e6a61e4e9ba44682335fee9b19208fa",
+      "new_fact": "Canonical recovery, integration and the public Gate passed; fresh review closed R-001 only partially and found R-002, R-003 and R-004.",
+      "stop_reason": "Three high strict-record defects remained: exponent-overflow ID, isolated-surrogate UTF-8 failure and decoder RecursionError isolation."
+    },
+    {
+      "run_id": "OUTPUTGUARD-STRICT-RECORD-REPAIR-07",
+      "directory": "2026-08-15-outputguard-strict-record-repair-07",
+      "status": "blocked_core_preflight_false_negative",
+      "run_result_bytes": 1713,
+      "run_result_sha256": "e6f7f6c90bdda07cde86c5326e9ce7a4e79e1674b7f9541144de2d5d3bedbf48",
+      "new_fact": "The independent real-CLI RED contract was accepted as commit c8d874e43eeb4b680d7f3c3d7be4b6c41a72ef4a.",
+      "stop_reason": "The Core task reported a preflight mismatch without evidence even though the parent later observed matching bytes and hash; the exact worker failure mechanism remains unknown."
+    },
+    {
+      "run_id": "OUTPUTGUARD-STRICT-RECORD-CANONICAL-RECOVERY-08",
+      "directory": "2026-08-15-outputguard-strict-record-canonical-recovery-08",
+      "status": "blocked_parent_preregistration_hash_error",
+      "run_result_bytes": 1188,
+      "run_result_sha256": "e5ee9220268b7edf2ce2ed3f5714e6cd8d654cadf9f30cf924527231123d0303",
+      "new_fact": "The canonical helper itself passed 51 of 51 with zero writes and the worker failed closed.",
+      "stop_reason": "Two parent-authored preregistration hashes were manually transcribed incorrectly and contradicted the machine-derived manifest."
+    },
+    {
+      "run_id": "OUTPUTGUARD-STRICT-RECORD-MANIFEST-RECOVERY-09",
+      "directory": "2026-08-15-outputguard-strict-record-manifest-recovery-09",
+      "status": "blocked_green_basetemp_parent_absent",
+      "run_result_bytes": 1370,
+      "run_result_sha256": "20edcff5a7d9c103f236b88680e53d3d6b220c8f12e262a22be62818e7d790fb",
+      "new_fact": "The outer manifest passed 66 of 66; one RED produced 24 passes and 7 expected failures; an exact three-file candidate was quarantined.",
+      "stop_reason": "The parent required an absent artifact root while giving pytest a nested --basetemp path, causing 20 fixture-level FileNotFoundError errors."
+    },
+    {
+      "run_id": "OUTPUTGUARD-STRICT-RECORD-GREEN-RECOVERY-10",
+      "directory": "2026-08-15-outputguard-strict-record-green-recovery-10",
+      "status": "completed_passed_with_sealed_ignored_residue",
+      "run_result_bytes": 7018,
+      "run_result_sha256": "fd546c5e6d9b6b042f8f0340c82daf499fa85e5774c0bba691e2a5594c38075c",
+      "new_fact": "The exact candidate passed recovery, public integration, fresh review and one sealed evaluation.",
+      "limitation": "Sealed-test subprocesses left 29 ignored CPython bytecode files in the isolated worktree."
+    }
+  ],
+  "accepted_result": {
+    "base_commit": "08be188d405ff90e90669142d9e8d00d0e00450d",
+    "cli_commit": "c8d874e43eeb4b680d7f3c3d7be4b6c41a72ef4a",
+    "core_commit": "cde55924f8c0fc92074d352fd54c8607a0485808",
+    "final_commit": "b67c8e361ff72b1c75a2d0988acf126c81d71d93",
+    "final_tree": "41de9670e0e9358fa7090e336ec2b561e139febb",
+    "run10_desktop_tasks": [
+      "01a004af-3c3e-77e3-bccc-7ce202e7f20f",
+      "01a004bc-8537-7373-aeb1-3b359357a961",
+      "01a004cb-b2e3-7380-bcc8-dac229adaec0"
+    ],
+    "core_gate": "59 passed once",
+    "integration_affected_gate": "64 passed once",
+    "integration_full_gate": "2093 passed and 28 skipped once",
+    "ruff_format": "93 files passed once",
+    "ruff_lint": "passed once",
+    "mypy": "29 source files passed once",
+    "offline_build": "one wheel and one sdist once",
+    "review": {
+      "decision": "approved",
+      "closed": ["R-002", "R-003", "R-004"],
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 1
+    },
+    "sealed": {
+      "invocations": 1,
+      "retries": 0,
+      "result": "37 passed in 1.18s",
+      "exit_code": 0
+    },
+    "ordinary_git_status_after_sealed": "clean",
+    "ignored_bytecode_paths_after_sealed": 29,
+    "cleanup_performed": false
+  },
+  "claim_boundaries": {
+    "confirmed": [
+      "One exact Codex Desktop recovery lineage produced a reviewed tree that passed its public Gate and the single authorized sealed Gate.",
+      "Fail-closed run states preserved parent-authored harness failures instead of converting them into false completion claims.",
+      "Proof-carrying recovery avoided replaying Run09 RED and avoided parent repetition of the Run10 public Gate."
+    ],
+    "not_confirmed": [
+      "A clean uninterrupted four-task run succeeds reliably.",
+      "Multi-task is faster, cheaper or better than a native single task.",
+      "The proposed skills add positive marginal value.",
+      "The workflow is residue-free or stable across repositories, models, clients or repeated runs."
+    ]
+  },
+  "retained_findings": [
+    "Run09 RED has no raw pytest log artifact; it is a worker-reported result bound to the exact candidate identity.",
+    "Reviewer L-001 remains: a stateful or concurrently mutated caller-owned ValidationResult can cause fail-closed termination between two projections.",
+    "The sealed evaluator subprocesses left 29 ignored bytecode files; ordinary clean and ignored clean are separate facts.",
+    "The final success used the accepted CLI commit from Run07 plus three new Run10 tasks; it was not one uninterrupted four-task execution."
+  ],
+  "skills_requirements_derived": [
+    "One canonical run manifest must own repeated identities; briefs and preregistrations must be generated projections rather than manually copied hash tables.",
+    "Preflight helpers must emit machine-readable evidence and fail before task creation when parent inputs disagree.",
+    "Artifact roots must be created and verified before nested test or cache paths are handed to workers.",
+    "Mutating normalization steps such as formatter application must be distinct from check-only acceptance Gates.",
+    "Run history must be append-only; recovery binds exact candidate bytes, Git identity and commands without rewriting failed predecessors.",
+    "Finish must audit ordinary, untracked and ignored state separately and must not silently clean evidence residue.",
+    "Public Gate, review and sealed Gate must remain separately authorized phases, with expensive Gates executed only for new facts."
+  ]
+}

@@ -151,7 +151,7 @@ B 向 A 的汇报应与面向用户的自然语言答复不同：结构化、可
 
 在目标名称没有另行指定的情况下，采用说明性名称 `D:\Desktop\Codex多任务工程系统`。立项阶段只建立文档和治理基线，不越权直接实现全部 skills。
 
-## 当前一致结论
+## 第六阶段结束时的一致结论
 
 - 这是一个正式 Codex 工程项目，不是一段 prompt。
 - 多任务的潜力来自独立历史、workspace 隔离、直接通信和可持续角色，但收益不是任务数的线性倍增。
@@ -162,3 +162,126 @@ B 向 A 的汇报应与面向用户的自然语言答复不同：结构化、可
 - 模型、thinking、context 阈值和并发甜点区必须用对照实验决定。
 - 完成的临时任务归档，长期 owner 保留并可 handoff 轮换。
 - 只做 Codex；A2A 采用语义复用，不建设不必要的协议服务。
+
+## 第七阶段：重新明确社区开源与 prior-art 定位
+
+接管主任务后，用户要求在实现前先全面理解最终效果，并调查 Claude Code Agent Teams、Codex 官方能力和社区方案。一次早期总结错误地把问题带向“产品价值、创新性、竞争差异和规模收缩”，用户明确纠正：
+
+- 项目不商业化、不出售，也不以创新点作为成立条件；
+- 它是社区开源项目，用于分享功能的使用方法并研究应用上限；
+- 调查外部信息是为了知道专业实践已经走到哪里、哪些坑仍未补上；
+- oh-my-codex 是规模和实践参照，不是竞品，也不是要求项目刻意做得更轻；
+- 长期仍希望尽可能多做有价值的内容，但形态边界是 Codex plugin/skills 能合理承载的范围。
+
+据此完成第一轮 prior-art 与能力上限调查，纳入 Codex、Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、长时 Agent harness、多 Agent failure 研究和 skills 实证/安全研究。新的项目结论是：
+
+- 外部已经实现大量单点机制，本项目无需声称发明它们；
+- 多 Agent 的有效性取决于任务拓扑、状态、verifier 和恢复，而不是数量；
+- skills 的边际效用可能为零或为负，必须逐项做 no-skill 与版本兼容评测；
+- 本项目价值在于 Codex-only 的复现、组合、教学、证据和失败边界；
+- 长期范围可以很大，但每项通过 research、incubating、stable、deprecated 管理；
+- pattern 和 worker role 先作为 reference/profile，出现独立触发、行为和验收后再晋升 skill；
+- M1 先核验当前 Codex capability contract，再冻结最小 schema 与纵向切片。
+
+本阶段没有实现 skill，也没有运行多任务行为实验；只修改研究、架构、路线、决策与状态文档。
+
+## 当前一致结论
+
+- 这是 Codex-only 的社区开源研究、实践与 skills 工程，不是商业产品，也不需要证明创新性。
+- prior art 用于了解已达到的能力上限、复现成熟机制和发现未补坑点，不用于竞品排名或跨平台兼容。
+- “强主编排者 + 长期模块任务 + 临时 subagent + 单一 integrator + CI/Gate”仍是默认治理骨架，但是否并行、采用何种拓扑必须由任务可分解性和风险决定。
+- 长期可以建设丰富的 skills、profiles、references、scripts、evaluations 和案例；每项按证据独立管理成熟度。
+- 任务消息保持短而结构化，真实产物、项目状态和 proof 进入版本化 artifact。
+- 首要下一步是 Codex capability contract、最小 schema、固定 benchmark 和 no-skill/single/subagent/multi-task 对照，不是批量生成全部 skills。
+
+## 第八阶段：M1 capability contract 静态 preflight
+
+用户要求继续推进。主任务先固定当前 Windows 环境、Codex AppX/CLI、相关 feature flag、Git 和 repo snapshot，并读取当前 Desktop task 与 session subagent tool schema。这里发现一个必须保留的边界：CLI 把 `multi_agent` 标为 stable 且启用，只证明功能旗标声明；create/fork/message/wait/handoff/archive 的 schema 存在，也不证明具体组合行为。
+
+据此建立 `0.1-draft` capability contract、JSON Schema、只读 PowerShell probe、Python 标准库 validator 和预注册行为实验计划。每个 capability 只允许 `declared_unverified`、`observed`、`contradicted`、`unsupported` 或 `unknown`。随后完成不创建任务的 list/read pilot：当前项目 task 可定位和读取，不存在 ID 显式失败；因此只有 `codex.task.inspect` 成为有条件的 `observed`，其余八项保持 `declared_unverified`。
+
+实验计划加入 native single/Git/native subagent baseline、invalid thread/stale cursor/untracked marker 等负对照、版本与 workspace 泄漏审计、最多 3 个测试任务和 2 个 worktree 的 pilot 预算，以及遇到状态不明或用户修改时 fail closed 的停止规则。
+
+本阶段没有创建、fork、handoff、归档任何任务或运行 subagent，因为这些动作会创建用户可见状态，当前“继续推进”不被解释为明确创建任务授权。下一步需要用户明确授权 disposable test tasks/worktrees 后，才能把相应 claim 从声明推进到行为观测。
+
+## 第九阶段：独立实验场与第一轮多会话行为 Pilot
+
+用户明确授权继续，并要求所有派发会话和 worktree 使用项目外的独立目录，不能污染当前项目 checkout。主任务建立 `D:\Desktop\Codex多任务工程系统实验场`，其中 `source` 是零依赖干净 fixture，两个手工 worktree 位于 `worktrees\worker-a` 和 `worktrees\worker-b`；项目原有 dirty 文档没有被复制进去。
+
+按预注册预算运行两个持久 CLI 会话和一个 same-directory fork，共 3 个会话、2 个 worktree。两个 CLI 会话都在各自 `-C` 目录完成只读 fixture 验证，主任务独立复查后仍保持共同 HEAD 和 clean。worker A 又通过 Desktop direct message 被唤醒，`wait` 收到新 nonce；随后 fork child 在相同 cwd 继承两个已完成父回合并恢复父任务 nonce。
+
+实验同时暴露重要限制：cwd/worktree 隔离并不隔离全局 memory、skills、plugins、MCP 和用户配置；两个极小任务初始 input tokens 分别约 11.3 万和 6.4 万，并发启动时一方出现 system-skills 目录 access-denied。CLI session 也不会自动把新 repo 注册进 Desktop saved projects，所以 managed-worktree create/worktree-fork/handoff 尚不能在用户指定根目录内安全测试。
+
+据此接受 D-018，把 workspace 隔离拆成文件、Git 与运行上下文三层。实验到达预算后停止，没有追加第 4 个会话；三个任务和两个 worktree保留，未归档、未删除。
+
+## 第十阶段：Worker Profile 配对反例
+
+在首轮 pilot 已停止后，另行预注册两个串行会话、零新增 worktree 的 profile 对照。两个会话使用同一 prompt、fixture、sandbox 和默认模型；normal 使用当前配置，minimal 同时使用 `--ignore-user-config` 并关闭 memories、plugins 和 skill_search。
+
+Normal 在约 43 秒内通过，input tokens 为 42,231。Minimal 因用户配置中的执行规则消失，多条只读命令和固定 verifier 被 execution policy 拒绝；Agent 拆分和改写命令后仍无法运行 verifier，约 91 秒、input tokens 219,179。skills loader 仍然扫描了技能，因此该组合既没有达到上下文隔离，也破坏了可执行性。
+
+实验按两会话预算停止，没有追加 flag 组合。接受 D-019：worker context 优化必须保留 auth/rules/sandbox，一次只裁剪一个来源，正确性优先于 token；本结果只否定该 bundle，不外推为“所有 minimal profile 都无效”。
+
+## 第十一阶段：把主线拉回多 Session 工程开发
+
+用户指出前一轮工作的优先级出现偏移：skill/plugin 自动加载目前不是主要问题，profile 实验虽然有观察价值，但测试的大多是已知能力，不能继续占据主线。当前最重要的问题应是：面对稍微大型的工程开发，如何分配和管理多条 session 并行工作。
+
+用户同时给出当前成本政策：实验场 session 使用 `gpt-5.6-luna`，thinking 至少 `high`；暂不使用 Terra 或 Sol 做实验。该要求被记录为阶段性实验默认，而不是模型质量结论；运行时必须取证 effective 配置，不可静默 fallback。
+
+为补足大型工程经验，主任务对 gstack、Superpowers 和 oh-my-codex 的固定源码快照做了第二轮方法级调查：
+
+- gstack 的核心是让单条 session 经过 Think、Plan、Build、Review、Test、Ship、Reflect 的完整阶段；它的多 sprint 并行主要由外部 Conductor 提供 workspace/session 管理；
+- Superpowers 通过精确 task brief、接口、worktree、逐任务双重审查和最终 review 控制质量；它只并行真正无共享状态的 domain，计划型写入任务默认不并行实现者；
+- oh-my-codex 的 Team 已拥有 DAG、task claim、mailbox、状态、worktree、重分配和 Git 集成证据，但依赖 tmux、CLI、hooks 和专用 runtime，不能原样塞进纯 skills。
+
+据此接受 D-020 至 D-022：
+
+1. M1 改为真实的多 session 工程纵向切片，剩余 capability probe 按需进行；
+2. 当前实验固定 Luna + high，不做 Terra/Sol 对照；
+3. 第一版组合 gstack 的阶段、Superpowers 的任务/review 纪律和 oh-my-codex 的轻量状态语义，但只依赖 Codex 原生任务工具、Git worktree 和仓库 artifact。
+
+第一批主线入口收敛为 `team-plan`、`team-run`、`team-status`、`team-integrate` 和 `team-finish`。上下文裁剪、长期轮换、完整 lifecycle fault matrix、watchdog/lease 等继续保留为后续研究，不再阻塞第一条闭环。
+
+## 第十二阶段：冻结无效 CLI 试跑并改为 Desktop-first
+
+用户要求 benchmark 不随意选择，应便于客观判定且防止通过搜索目标项目原实现“作弊”。主任务据此选择 OutputGuard 的 JSONL streaming 功能，固定 upstream、公共 scaffold、公开 task/contract 和 sealed evaluator，并预注册 managed-first 与 single 对照、反泄漏规则、成本字段和停止条件。
+
+随后发生的 CLI 混合试跑只启动了 core 与 CLI 两个实现回合。两个 worker 都只交付 partial：Ruff 通过，但真实 worker sandbox 的 Python launcher 无效，pytest/mypy 没有运行；linked-worktree Git metadata 不可写，因而没有 commit；记录器也没有完成 retry manifest。integrator、reviewer、single condition 和 sealed evaluator 均未运行。
+
+用户追问 CLI 与 Codex Desktop 的关系，并最终明确“以后以 Codex Desktop 为准”。因此接受 D-023：后续 worker 只通过 Desktop 原生 task/fork/message/wait/handoff 工具创建和管理；Shell 仍可运行 Git、测试和确定性 helper，CLI 不再是 Agent 执行后端。前述 run 被冻结为 `stopped_invalid_for_comparison`，保留 token、文件状态和失败证据，但不得据此评价单任务或多任务优劣，也不得通过补跑 CLI 把它救成正式结果。
+
+新的只读检查确认，Desktop saved projects 中有主项目，却没有实验场或 OutputGuard benchmark；当前 create/fork schema 也不能指定任意 worktree root。这使“所有实验都位于自定义实验场”和“直接使用 Desktop-managed worktree”产生真实冲突。下一步不自动创建任务，而是等待用户选择：在 Desktop 注册实验场内的干净 checkout 后创建 `local` 只读 task，或明确允许 managed worktree 位于 Desktop 默认位置。两种方案都必须由用户明确要求创建测试任务后才执行。
+
+## 第十三阶段：Desktop local 只读任务通过
+
+用户把实验场内 `outputguard-single` checkout 注册为 Desktop project，并进一步授权：既定范围内能由主编排者直接完成的项目、任务和会话操作应自主完成，不再让用户代发机械指令。由此接受 D-024，但删除、覆盖 dirty 状态、合并、推送、部署、隐藏 evaluator 等高风险或改变实验条件的操作仍不在默认授权内。
+
+主编排者复核 saved project、`codex/outputguard-single`、`d235f59` 和 clean 后，通过 Desktop `local` 创建只读任务 `019ff93b-d3a1-7cf3-8ee5-14a6e0561b65`，未指定 model/thinking。任务在一个回合内确认 cwd、Git root/branch/HEAD、开始与结束 clean、Git common dir 和 Python 3.12.1 无 bytecode导入；主编排者随后用 Desktop read/list 与 Git 独立验收，结果为只读范围 PASS。
+
+该任务没有验证 Git metadata 写入、commit、pytest/mypy/Ruff 或 sealed evaluator，因此不能声称实现环境已完全就绪。下一步应先做独立 write/test qualification，再写首个 task plan，不能从“只读 PASS”直接跳到正式 benchmark。
+
+## 第十四阶段：Desktop qualification 与首个 task plan 冻结
+
+主编排者按预注册 stop rule 进行了四轮 Desktop write/test qualification。第一轮因 worker 在父任务要求停止后自行改写命令继续，整体标为无效；没有因后续 cleanup 成功而翻案。第二轮证明简单 Git index/ref 写入、核验和删除，但系统 Python 缺 pytest。第三轮在固定 lab venv 中得到 `2048 passed, 28 skipped`，随后因 Ruff 参数位置错误停止。第四轮的 Ruff、mypy 和 Git 命令均 exit 0，但 mypy 在 checkout 生成 `.mypy_cache`，所以整体仍为 BLOCKED；缓存被完整移动进 run artifact。第五轮只验证外置 cache，mypy exit 0，19 个 cache 文件全部位于 run 目录，父任务确认仓库 clean，结果 PASS。
+
+基于这些条件化事实，项目冻结了 OutputGuard 四任务 DAG：Core 与 CLI 并行，Integrator 串行接收，Reviewer 只读复核；同时冻结 session plan、roster、task brief、worker report、integration queue schema v0.1、正向样例、缺 proof 负对照和无第三方依赖 validator。正向五类 artifact 与引用 hash 检查通过，负对照按预期非零。
+
+随后进行了三轮离线 package build qualification。第六轮因父任务给出的 PowerShell wrapper 与 cache tree digest 规范有歧义，在 build 前停止；第七轮用确定性 helper 通过边界检查，但 `uv` 读取 `.python-version=3.10` 后因本机没有 3.10 失败；第八轮只增加显式固定 Python 3.12.1 与 `--no-python-downloads`，使用原始 seed 的新 run-local cache，成功生成一份 wheel 与一份 sdist，父任务确认 checkout clean。失败轮次没有翻案。
+
+第九轮先在实验场新建专用 preflight worktree，再通过 saved project `outputguard-single` 创建真实 Desktop local task。任务只运行一个预先锁定 hash 的 helper；helper 验证 task cwd、Git common dir、branch/HEAD/tree/clean 后，只在 assigned worktree 写入并提交 marker。父任务独立确认新 commit `fd81338` 的 parent 是 `d235f59`、只改一个预定文件、两边 clean。Desktop task reader 未暴露底层 tool-call 明细，因此“没有额外只读命令”只能依据任务自报；核心跨-worktree 写入事实不依赖该自报。至此实现前 plumbing 已就绪，但功能、handoff、integration、review、sealed Gate、single baseline 和 skills 效用仍未验证。
+
+## 第十五阶段：真实功能、连续 fail-closed 与最终 recovery lineage
+
+真实 OutputGuard 功能没有按“第一次四任务就全部通过”的理想路径结束。Run02 的集成代码通过实质 public 命令，却被父任务错误的 `dist/.gitignore` boundary helper 判为失败；Run03 修正 helper 后由新的 Reviewer 找到 high R-001。Run04 的 Core repair 逻辑测试已绿，又因为 brief 把 formatter apply 与 check-only Gate 混淆而停止；Run05 因 aggregate diff proof 没定义唯一字节算法停止。Run06 完成 canonical recovery 和完整 public Gate后，Reviewer 继续发现 R-002 数值溢出 ID、R-003 surrogate UTF-8、R-004 decoder `RecursionError` 三个 high。
+
+后续恢复继续保留原状态。Run07 得到可复用的独立 CLI RED commit，但 Core free-form preflight 无证据 false negative；Run08 的 canonical helper 51/51 通过，worker 又正确发现父任务手抄的两个 preregistration hash 错误；Run09 改用 outer manifest，完成一轮 RED 和精确三文件 candidate，却因父任务没有预创建 pytest `--basetemp` 父目录出现 20 个 fixture error。每个 run 都在第一个不满足条件的位置停止，没有访问 sealed evaluator，也没有用后继结果把旧 run 改成 PASS。
+
+Run10 只修复 parent-owned artifact-root 前置条件，复用 Run09 exact candidate，不重跑 RED也不再改源码。Core recovery `59 passed` 后提交 `cde5592`；Integrator 复用 Run07 CLI commit，实际按 CLI → Core 合并，得到 final commit `b67c8e` / tree `41de967`。affected tests `64 passed`，完整 public suite `2093 passed, 28 skipped`，Ruff、mypy、offline build 和最终身份边界通过。fresh Reviewer 关闭 R-002/R-003/R-004，critical/high/medium 为 0，保留 low L-001。父任务随后只运行一次 sealed evaluator，`37 passed in 1.18s`。
+
+sealed 子进程同时在隔离 worktree 留下 29 个 ignored `.pyc`。普通 Git status clean、commit/tree 未变，但目录不能称为完全无残留；主编排者没有静默删除现场。最终表述因此是“一条 exact Desktop recovery lineage 通过 public/review/sealed，并带 evaluator harness cleanliness 限制”，不是“一次四任务无中断成功”或“多任务优于 single”。
+
+## 第十六阶段：从实录反推 skills 架构
+
+用户要求继续推进并用人话汇报。项目据此把实战中最常见的控制面失败直接纳入架构：接受 D-027 的 canonical manifest 与机器派生 projection、D-028 的 append-only proof-carrying recovery、D-029 的 artifact-root 与 ordinary/ignored 分层 Gate。`team-recover` 因多次出现独立触发、输入和验收，从后续构想晋升为首批 incubating 候选。
+
+OutputGuard 自此主要作为 failure corpus 和回归任务，不再承担 skills 泛化价值的唯一证明。下一步先实现 schema/validator v0.2 与 deterministic helpers，再实现主线 skills；冻结后选择第二个未见 benchmark 做主要 no-skill 对照。OutputGuard single 若补做，必须使用不含 lane solution refs/objects 的独立 Git object store，并明确执行顺序已经带来污染风险。

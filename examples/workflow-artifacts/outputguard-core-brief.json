@@ -1,0 +1,53 @@
+{
+  "profile": "codex-multitask-workflow",
+  "schema_version": "0.1",
+  "kind": "task-brief",
+  "artifact_id": "brief:outputguard-jsonl:core:01",
+  "context_id": "context:outputguard:jsonl-stream-v1",
+  "created_at": "2026-08-13T00:40:00-04:00",
+  "plan_ref": "plan:outputguard-jsonl:desktop-managed-01",
+  "lane_id": "core",
+  "objective": "Implement the frozen lazy JSONL Python API and owned public tests without modifying CLI-owned or shared configuration files.",
+  "scope_in": ["JSONL record dataclasses", "lazy physical-line iterator", "strict envelope parsing", "owned tests and documentation"],
+  "scope_out": ["CLI command", "package configuration", "sealed evaluator", "contract changes"],
+  "task_project": {
+    "project_id": "082eff70-1f80-4421-bb5b-d896d12961ff",
+    "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-single",
+    "environment": "local"
+  },
+  "workspace": {
+    "mode": "existing-permanent-worktree",
+    "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-team-core-01",
+    "branch": "codex/outputguard-team-core-01",
+    "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+    "clean_start_required": true
+  },
+  "ownership": {
+    "write_paths": ["outputguard/jsonl.py", "outputguard/__init__.py", "tests/test_jsonl.py", "docs/batch-processing.md"],
+    "forbidden_paths": ["outputguard/cli.py", "tests/test_jsonl_cli.py", "docs/cli.md", "pyproject.toml"]
+  },
+  "inputs": [
+    {
+      "artifact_id": "contract:outputguard-jsonl:v1",
+      "path": "D:\\Desktop\\Codex多任务工程系统实验场\\benchmarks\\outputguard-jsonl-stream-v1\\public\\contract.json",
+      "sha256": "sha256:6e6a32fe2c23263795780abd66ce54b10c51a277d137f500bbd4a1234b7c34a9"
+    }
+  ],
+  "contract": {
+    "version": "OUTPUTGUARD-JSONL-STREAM-V1",
+    "sha256": "sha256:6e6a32fe2c23263795780abd66ce54b10c51a277d137f500bbd4a1234b7c34a9",
+    "invariants": ["creation consumes zero input lines", "each next consumes one physical line", "every line produces exactly one record", "existing batch behavior remains unchanged"],
+    "forbidden_changes": ["public contract", "CLI-owned files", "dependency or build configuration", "sealed evaluator"]
+  },
+  "required_outputs": ["owned source and tests", "one clean commit", "worker-report JSON", "command evidence"],
+  "gates": [
+    {
+      "gate_id": "core-targeted-tests",
+      "owner": "worker",
+      "command": "python -B -m pytest -q -p no:cacheprovider tests/test_jsonl.py",
+      "evidence_required": ["exact command", "exit code", "summary", "head revision"]
+    }
+  ],
+  "stop_conditions": ["workspace preflight mismatch", "contract conflict", "ownership crossing", "unexplained test failure", "network or evaluator access needed"],
+  "handoff_to": "integrator"
+}

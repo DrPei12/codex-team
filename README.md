@@ -1,19 +1,19 @@
 # Codex 多任务工程系统
 
-一个面向 Codex 的大型 skills 工程：把多个长期任务、临时子代理、Git worktree、直接任务通信、验收证据与生命周期治理，组合成可重复的软件开发方法。
+一个面向 Codex 的社区开源研究与 skills 工程：调查多任务、subagent、Git worktree、直接任务通信、验收证据与生命周期治理已经能做到什么，再把可复现的方法、失败边界和工具化实践分享出来。
 
-本项目已经立项，但当前阶段仅建立文档与治理基线。尚未实现可安装的 skills，也没有把任何未经测试的编排策略声明为稳定能力。
+它不是商业产品，也不以“发明新范式”作为成立条件。项目可以广泛吸收、复现和组合已有实践，但只有经过当前 Codex 环境实测的能力才会晋升为稳定 skill。当前尚未实现可安装的 skills。
 
 ## 项目要解决什么
 
 单个 Codex 任务可以完成复杂工程，但大型开发仍会遇到四类上限：
 
-1. 不同专业工作争夺同一上下文；
-2. 可并行工作被迫串行；
+1. 功能没有按依赖和共享契约正确拆分，可并行工作被迫串行，或错误并行造成返工；
+2. 多条 session 缺少清楚的文件/资源所有权、任务状态和集成顺序；
 3. 多任务之间靠自由文本交接，证据、责任和状态容易丢失；
-4. 并行数量增加后，Git 冲突、重复测试、任务堆积和上下文衰减抵消收益。
+4. 并行数量增加后，Git 冲突、重复测试、等待、任务堆积和上下文干扰抵消收益。
 
-本项目不把“多开几个 Agent”当作答案，而是为下面这套系统建立规范和 skills：
+本项目不把“多开几个 Agent”当作答案，而是研究、验证并逐步工具化下面这套方法：
 
 - 一个高能力主编排者负责目标、架构、切分、风险和最终整合；
 - 若干长期任务像项目成员一样拥有独立历史和可隔离的工作环境；
@@ -26,6 +26,8 @@
 
 只面向 Codex。不会设计“平台无关核心”、adapter 层或 Claude Code 兼容预留。如果未来需要 Claude Code 版本，应作为独立项目重新设计。
 
+Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论文可以作为 prior art 与实验参照，但不是本项目要兼容的运行目标，也不是需要击败的竞争对象。项目规模可以随可靠能力累积而扩大；边界来自 Codex plugin/skills 能承载什么，而不是预先规定一个最小目录。
+
 ## 当前成果
 
 - 项目章程、概念模型和术语体系；
@@ -36,7 +38,15 @@
 - 模型、thinking、上下文和任务生命周期策略；
 - 大型 skills 套件的信息架构与渐进式披露原则；
 - 评测路线、决策日志、开放问题和完整讨论记录；
-- 可用于后续实现的结构化模板草案。
+- 对原生产品、社区实践、长时多 Agent 实验和 skills 实证研究的 [prior-art 与能力上限调查](docs/research/prior-art-and-capability-limits.md)；
+- 对 gstack、Superpowers、oh-my-codex 固定源码快照的 [大型工程方法提炼](docs/research/large-skill-suite-engineering-methods.md)；
+- 区分声明与行为观测的 [Codex capability contract](docs/18-capability-contract.md)、静态环境快照、只读探针和 validator；
+- 首轮隔离行为 [pilot](docs/research/capability-pilot-2026-08-12.md)：两个外部 worktree、三个会话、idle message/wait 与 same-directory fork；
+- 首个 worker profile [对照](docs/research/profile-comparison-2026-08-12.md)：粗暴关闭用户配置不仅未降本，还使 verifier 失败并把输入放大约 5.2 倍；
+- 已冻结的 OutputGuard JSONL benchmark、反作弊边界和失败记录；第一次 CLI 混合试跑因真实 worker 环境与 Git preflight 失败而停止，没有形成对照结论；
+- D-023 Desktop-first 执行规则；Desktop local 任务已完成只读、Git index/ref 写入、完整 public pytest、Ruff、mypy 外置缓存、离线 package build 和 assigned worktree marker commit 资格检查；
+- 已冻结并实际执行的 [OutputGuard 首个 Desktop 纵向切片计划](docs/19-outputguard-vertical-slice-plan.md)，以及 session plan、roster、task brief、worker report、integration queue 的最小 JSON Schema、样例和 fail-closed validator；
+- [Run02–Run10 全流程实录](docs/research/outputguard-vertical-slice-2026-08-15.md)：最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed evaluator `37/37`，同时保留每个 blocked run、一个 low finding 和 29 个 ignored bytecode 残留的限制。
 
 ## 从哪里开始读
 
@@ -45,9 +55,12 @@
 3. [默认运行架构](docs/04-default-operating-model.md)
 4. [文档导航](docs/README.md)
 5. [当前状态](docs/16-project-status.md)
+6. [Prior art 与能力上限](docs/research/prior-art-and-capability-limits.md)
 
 ## 当前阶段
 
-`Phase 0 — Project foundation`
+`M1.1 — Turn the accepted manual lineage into incubating skills`
 
-下一阶段是把文档中的假设转换为可测的协议草案和对照实验，再决定第一批 skills 的实现顺序。参见[评测路线](docs/12-evaluation-roadmap.md)。
+首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
+
+Run02–Run10 暴露的主要问题集中在控制面：重复 hash 手抄、diff 算法未冻结、test artifact 根目录缺失、可变 formatter 与 check 混淆，以及 ordinary clean 掩盖 ignored residue。下一步先把这些约束固化为 canonical manifest、schema/validator v0.2 和 deterministic helpers，再实现 `team-plan`、`team-run`、`team-status`、`team-integrate`、`team-finish` 与首批候选 `team-recover`。OutputGuard 转为 failure corpus；skills 冻结后用第二个未见 benchmark 做主要 no-skill 对照。参见[评测路线](docs/12-evaluation-roadmap.md)。

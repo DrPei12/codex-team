@@ -10,13 +10,15 @@
 | 角色 | 这个执行者负责什么 | 架构师、模块 owner、实现者、验证者、集成者 |
 | 执行身份 | 它是长期任务还是临时工具 | 用户可见 Codex 任务、任务内 subagent |
 | 历史来源 | 它一开始知道什么 | 新建、从已有任务 fork、通过 handoff 接班 |
-| Workspace | 它在哪里改文件 | 同一 checkout、独立 managed worktree、既有 permanent worktree、只读环境 |
+| Workspace | 它在哪改文件、使用哪个 Git 状态、加载什么运行上下文 | Desktop local checkout、Desktop managed worktree、既有 permanent worktree、只读环境 |
 | 生命周期 | 它存在多久 | 一次性、阶段性、长期保留、轮换后归档 |
 | 模型配置 | 用多强的模型和 thinking | 高能力编排者、常规模块 worker、按风险升级 |
 
 因此，一个实际 worker 可以被完整描述为：
 
 > “支付模块 owner（角色），参与 contract-parallel（范式），是长期 Codex 任务（身份），从项目主任务 fork 获得背景（历史），在独立 managed worktree 修改（workspace），阶段结束后保留（生命周期），默认中档模型、遇到跨模块决策升级（模型策略）。”
+
+2026-08-12 pilot 后，workspace 内部再分三层：文件/可写根目录、Git branch/HEAD/dirty 状态、Codex 自动加载的 user config/memory/skills/plugins/MCP。前两层隔离不能推出第三层也隔离；三层都应进入 worker card 和 evidence。
 
 ## 三个平面
 

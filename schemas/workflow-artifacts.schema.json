@@ -1,0 +1,424 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask-engineering/workflow-artifacts.schema.json",
+  "title": "Codex multitask workflow artifacts v0.1",
+  "description": "Minimal frozen profile for session-plan, roster, task-brief, worker-report, and integration-queue artifacts.",
+  "oneOf": [
+    {"$ref": "#/$defs/session_plan"},
+    {"$ref": "#/$defs/roster"},
+    {"$ref": "#/$defs/task_brief"},
+    {"$ref": "#/$defs/worker_report"},
+    {"$ref": "#/$defs/integration_queue"}
+  ],
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "string_array": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/non_empty_string"}
+    },
+    "git_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40,64}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "artifact_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "path", "sha256"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/non_empty_string"},
+        "path": {"$ref": "#/$defs/non_empty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "task_project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "path", "environment"],
+      "properties": {
+        "project_id": {"$ref": "#/$defs/non_empty_string"},
+        "path": {"$ref": "#/$defs/non_empty_string"},
+        "environment": {"type": "string", "enum": ["local", "worktree"]}
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "branch", "base_revision", "clean_start_required"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["desktop-local-checkout", "desktop-managed-worktree", "existing-permanent-worktree", "read-only"]
+        },
+        "path": {"$ref": "#/$defs/non_empty_string"},
+        "branch": {"type": ["string", "null"], "minLength": 1},
+        "base_revision": {"$ref": "#/$defs/git_hash"},
+        "clean_start_required": {"type": "boolean"}
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["write_paths", "forbidden_paths"],
+      "properties": {
+        "write_paths": {"$ref": "#/$defs/string_array"},
+        "forbidden_paths": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "owner", "command", "evidence_required"],
+      "properties": {
+        "gate_id": {"$ref": "#/$defs/non_empty_string"},
+        "owner": {"type": "string", "enum": ["worker", "integrator", "reviewer", "orchestrator", "ci"]},
+        "command": {"type": ["string", "null"], "minLength": 1},
+        "evidence_required": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_id",
+        "role",
+        "task_mode",
+        "depends_on",
+        "workspace",
+        "ownership",
+        "inputs",
+        "gates",
+        "stop_conditions"
+      ],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "role": {"type": "string", "enum": ["implementer", "integrator", "reviewer"]},
+        "task_mode": {"type": "string", "enum": ["fresh-desktop-task", "continued-desktop-task"]},
+        "depends_on": {"$ref": "#/$defs/string_array"},
+        "workspace": {"$ref": "#/$defs/workspace"},
+        "ownership": {"$ref": "#/$defs/ownership"},
+        "inputs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact_ref"}
+        },
+        "gates": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/gate"}
+        },
+        "stop_conditions": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "session_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "artifact_id",
+        "context_id",
+        "created_at",
+        "status",
+        "objective",
+        "client_surface",
+        "base",
+        "task_project",
+        "lanes",
+        "integration_order",
+        "budgets",
+        "global_stop_conditions"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-workflow"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "session-plan"},
+        "artifact_id": {"$ref": "#/$defs/non_empty_string"},
+        "context_id": {"$ref": "#/$defs/non_empty_string"},
+        "created_at": {"$ref": "#/$defs/non_empty_string"},
+        "status": {"type": "string", "enum": ["draft", "frozen", "running", "completed", "blocked", "canceled"]},
+        "objective": {"$ref": "#/$defs/non_empty_string"},
+        "client_surface": {"const": "codex_desktop"},
+        "base": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "commit", "tree"],
+          "properties": {
+            "repository": {"$ref": "#/$defs/non_empty_string"},
+            "commit": {"$ref": "#/$defs/git_hash"},
+            "tree": {"$ref": "#/$defs/git_hash"}
+          }
+        },
+        "task_project": {"$ref": "#/$defs/task_project"},
+        "lanes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/lane"}
+        },
+        "integration_order": {"$ref": "#/$defs/string_array"},
+        "budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["desktop_tasks", "max_followups_per_task"],
+          "properties": {
+            "desktop_tasks": {"type": "integer", "minimum": 1},
+            "max_followups_per_task": {"type": "integer", "minimum": 0}
+          }
+        },
+        "global_stop_conditions": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "roster_member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_id",
+        "thread_id",
+        "status",
+        "task_project_id",
+        "workspace_path",
+        "branch",
+        "head",
+        "last_update",
+        "report_ref"
+      ],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "thread_id": {"type": ["string", "null"], "minLength": 1},
+        "status": {
+          "type": "string",
+          "enum": ["planned", "preflight", "working", "input-required", "handoff-ready", "accepted", "blocked", "failed", "canceled", "archived"]
+        },
+        "task_project_id": {"$ref": "#/$defs/non_empty_string"},
+        "workspace_path": {"$ref": "#/$defs/non_empty_string"},
+        "branch": {"type": ["string", "null"], "minLength": 1},
+        "head": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40,64}$"},
+        "last_update": {"$ref": "#/$defs/non_empty_string"},
+        "report_ref": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "roster": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "schema_version", "kind", "artifact_id", "context_id", "created_at", "plan_ref", "revision", "members"],
+      "properties": {
+        "profile": {"const": "codex-multitask-workflow"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "roster"},
+        "artifact_id": {"$ref": "#/$defs/non_empty_string"},
+        "context_id": {"$ref": "#/$defs/non_empty_string"},
+        "created_at": {"$ref": "#/$defs/non_empty_string"},
+        "plan_ref": {"$ref": "#/$defs/non_empty_string"},
+        "revision": {"type": "integer", "minimum": 1},
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/roster_member"}
+        }
+      }
+    },
+    "task_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "artifact_id",
+        "context_id",
+        "created_at",
+        "plan_ref",
+        "lane_id",
+        "objective",
+        "scope_in",
+        "scope_out",
+        "task_project",
+        "workspace",
+        "ownership",
+        "inputs",
+        "contract",
+        "required_outputs",
+        "gates",
+        "stop_conditions",
+        "handoff_to"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-workflow"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "task-brief"},
+        "artifact_id": {"$ref": "#/$defs/non_empty_string"},
+        "context_id": {"$ref": "#/$defs/non_empty_string"},
+        "created_at": {"$ref": "#/$defs/non_empty_string"},
+        "plan_ref": {"$ref": "#/$defs/non_empty_string"},
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "objective": {"$ref": "#/$defs/non_empty_string"},
+        "scope_in": {"$ref": "#/$defs/string_array"},
+        "scope_out": {"$ref": "#/$defs/string_array"},
+        "task_project": {"$ref": "#/$defs/task_project"},
+        "workspace": {"$ref": "#/$defs/workspace"},
+        "ownership": {"$ref": "#/$defs/ownership"},
+        "inputs": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}},
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "sha256", "invariants", "forbidden_changes"],
+          "properties": {
+            "version": {"$ref": "#/$defs/non_empty_string"},
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "invariants": {"$ref": "#/$defs/string_array"},
+            "forbidden_changes": {"$ref": "#/$defs/string_array"}
+          }
+        },
+        "required_outputs": {"$ref": "#/$defs/string_array"},
+        "gates": {"type": "array", "items": {"$ref": "#/$defs/gate"}},
+        "stop_conditions": {"$ref": "#/$defs/string_array"},
+        "handoff_to": {"$ref": "#/$defs/non_empty_string"}
+      }
+    },
+    "test_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "exit_code", "outcome", "duration_seconds", "evidence_path"],
+      "properties": {
+        "command": {"$ref": "#/$defs/non_empty_string"},
+        "exit_code": {"type": "integer"},
+        "outcome": {"type": "string", "enum": ["passed", "failed", "blocked", "not-run"]},
+        "duration_seconds": {"type": ["number", "null"], "minimum": 0},
+        "evidence_path": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "worker_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "artifact_id",
+        "context_id",
+        "created_at",
+        "plan_ref",
+        "brief_ref",
+        "lane_id",
+        "status",
+        "summary",
+        "task",
+        "workspace_state",
+        "changed_files",
+        "commits",
+        "tests",
+        "artifacts",
+        "risks",
+        "not_verified",
+        "requested_action"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-workflow"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "worker-report"},
+        "artifact_id": {"$ref": "#/$defs/non_empty_string"},
+        "context_id": {"$ref": "#/$defs/non_empty_string"},
+        "created_at": {"$ref": "#/$defs/non_empty_string"},
+        "plan_ref": {"$ref": "#/$defs/non_empty_string"},
+        "brief_ref": {"$ref": "#/$defs/non_empty_string"},
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "status": {"type": "string", "enum": ["completed", "partial", "blocked"]},
+        "summary": {"$ref": "#/$defs/non_empty_string"},
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["thread_id", "project_id"],
+          "properties": {
+            "thread_id": {"$ref": "#/$defs/non_empty_string"},
+            "project_id": {"$ref": "#/$defs/non_empty_string"}
+          }
+        },
+        "workspace_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "branch", "base_revision", "head_revision", "tree", "clean"],
+          "properties": {
+            "path": {"$ref": "#/$defs/non_empty_string"},
+            "branch": {"$ref": "#/$defs/non_empty_string"},
+            "base_revision": {"$ref": "#/$defs/git_hash"},
+            "head_revision": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40,64}$"},
+            "tree": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40,64}$"},
+            "clean": {"type": "boolean"}
+          }
+        },
+        "changed_files": {"$ref": "#/$defs/string_array"},
+        "commits": {"type": "array", "items": {"$ref": "#/$defs/git_hash"}},
+        "tests": {"type": "array", "items": {"$ref": "#/$defs/test_result"}},
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}},
+        "risks": {"$ref": "#/$defs/string_array"},
+        "not_verified": {"$ref": "#/$defs/string_array"},
+        "requested_action": {"type": "string", "enum": ["validate-and-integrate", "request-input", "record-blocked"]}
+      }
+    },
+    "queue_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "identity", "ownership", "evidence"],
+      "properties": {
+        "schema": {"type": "boolean"},
+        "identity": {"type": "boolean"},
+        "ownership": {"type": "boolean"},
+        "evidence": {"type": "boolean"}
+      }
+    },
+    "queue_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "report_ref", "commit", "tree", "order", "status", "validation", "decision_reason"],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "report_ref": {"$ref": "#/$defs/non_empty_string"},
+        "commit": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40,64}$"},
+        "tree": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40,64}$"},
+        "order": {"type": "integer", "minimum": 1},
+        "status": {"type": "string", "enum": ["pending", "validated", "integrated", "rejected", "blocked"]},
+        "validation": {"$ref": "#/$defs/queue_validation"},
+        "decision_reason": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "integration_queue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "artifact_id",
+        "context_id",
+        "created_at",
+        "plan_ref",
+        "integration_lane_id",
+        "base_revision",
+        "current_head",
+        "status",
+        "items",
+        "next_action"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-workflow"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "integration-queue"},
+        "artifact_id": {"$ref": "#/$defs/non_empty_string"},
+        "context_id": {"$ref": "#/$defs/non_empty_string"},
+        "created_at": {"$ref": "#/$defs/non_empty_string"},
+        "plan_ref": {"$ref": "#/$defs/non_empty_string"},
+        "integration_lane_id": {"$ref": "#/$defs/non_empty_string"},
+        "base_revision": {"$ref": "#/$defs/git_hash"},
+        "current_head": {"$ref": "#/$defs/git_hash"},
+        "status": {"type": "string", "enum": ["planned", "receiving", "integrating", "review", "completed", "blocked"]},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/queue_item"}},
+        "next_action": {"$ref": "#/$defs/non_empty_string"}
+      }
+    }
+  }
+}

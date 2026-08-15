@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:codex-multitask-engineering:schema:capability-contract:0.1-draft",
+  "title": "Codex multitask capability contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "schema_version",
+    "snapshot_id",
+    "captured_at",
+    "scope",
+    "environment",
+    "evidence",
+    "capabilities",
+    "unknowns",
+    "behavior_test_authorization"
+  ],
+  "properties": {
+    "profile": { "const": "codex-multitask-capability-contract" },
+    "schema_version": { "const": "0.1-draft" },
+    "snapshot_id": { "$ref": "#/$defs/nonEmptyString" },
+    "captured_at": { "type": "string", "format": "date-time" },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "platform", "claim_boundary"],
+      "properties": {
+        "project": { "const": "Codex 多任务工程系统" },
+        "platform": { "const": "Codex" },
+        "claim_boundary": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "environment": { "$ref": "#/$defs/environment" },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/capability" }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unknown" }
+    },
+    "behavior_test_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "granted", "reason"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "granted": { "type": "boolean" },
+        "reason": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "shell", "codex", "git", "repository"],
+      "properties": {
+        "os": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["description", "architecture"],
+          "properties": {
+            "description": { "$ref": "#/$defs/nonEmptyString" },
+            "architecture": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "shell": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "edition"],
+          "properties": {
+            "name": { "$ref": "#/$defs/nonEmptyString" },
+            "version": { "$ref": "#/$defs/nonEmptyString" },
+            "edition": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "codex": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["app", "cli", "relevant_feature_flags"],
+          "properties": {
+            "app": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["package_name", "version", "architecture"],
+              "properties": {
+                "package_name": { "$ref": "#/$defs/nonEmptyString" },
+                "version": { "$ref": "#/$defs/nonEmptyString" },
+                "architecture": { "$ref": "#/$defs/nonEmptyString" }
+              }
+            },
+            "cli": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["version", "path"],
+              "properties": {
+                "version": { "$ref": "#/$defs/nonEmptyString" },
+                "path": { "$ref": "#/$defs/nonEmptyString" }
+              }
+            },
+            "relevant_feature_flags": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "stage", "enabled"],
+                "properties": {
+                  "name": { "$ref": "#/$defs/nonEmptyString" },
+                  "stage": { "$ref": "#/$defs/nonEmptyString" },
+                  "enabled": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "git": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "core_autocrlf"],
+          "properties": {
+            "version": { "$ref": "#/$defs/nonEmptyString" },
+            "core_autocrlf": { "type": ["string", "null"] }
+          }
+        },
+        "repository": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "branch", "head", "status", "dirty_paths", "preexisting_changes_preserved"],
+          "properties": {
+            "path": { "$ref": "#/$defs/nonEmptyString" },
+            "branch": { "$ref": "#/$defs/nonEmptyString" },
+            "head": { "$ref": "#/$defs/nonEmptyString" },
+            "status": { "enum": ["clean", "dirty"] },
+            "dirty_paths": { "$ref": "#/$defs/stringArray" },
+            "preexisting_changes_preserved": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_quality", "directness", "reproducibility", "applicability"],
+      "properties": {
+        "source_quality": { "enum": ["high", "medium", "low", "unknown"] },
+        "directness": { "enum": ["direct", "indirect", "unknown"] },
+        "reproducibility": { "enum": ["high", "medium", "low", "unknown"] },
+        "applicability": { "enum": ["current-local", "historical-local", "external", "unknown"] }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "kind", "relation", "captured_at", "locator", "result", "conditions", "limitations", "confidence"],
+      "properties": {
+        "evidence_id": { "$ref": "#/$defs/nonEmptyString" },
+        "kind": { "enum": ["local_command", "tool_schema", "official_document", "behavior_run", "historical_experiment"] },
+        "relation": { "enum": ["supports", "contradicts", "qualifies", "mentions", "no_evidence"] },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "locator": { "$ref": "#/$defs/nonEmptyString" },
+        "result": { "type": "object" },
+        "conditions": { "$ref": "#/$defs/stringArray" },
+        "limitations": { "$ref": "#/$defs/stringArray" },
+        "confidence": { "$ref": "#/$defs/confidence" }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "surface", "claim", "state", "conditions", "evidence_refs", "required_tests", "limitations", "failure_policy"],
+      "properties": {
+        "capability_id": { "$ref": "#/$defs/nonEmptyString" },
+        "surface": { "enum": ["desktop_tool", "cli", "subagent", "git_workspace"] },
+        "claim": { "$ref": "#/$defs/nonEmptyString" },
+        "state": { "enum": ["declared_unverified", "observed", "contradicted", "unsupported", "unknown"] },
+        "conditions": { "$ref": "#/$defs/stringArray" },
+        "evidence_refs": { "$ref": "#/$defs/stringArray" },
+        "required_tests": { "$ref": "#/$defs/stringArray" },
+        "limitations": { "$ref": "#/$defs/stringArray" },
+        "failure_policy": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "unknown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unknown_id", "question", "priority", "evidence_gap", "next_action"],
+      "properties": {
+        "unknown_id": { "$ref": "#/$defs/nonEmptyString" },
+        "question": { "$ref": "#/$defs/nonEmptyString" },
+        "priority": { "enum": ["P0", "P1", "P2"] },
+        "evidence_gap": { "$ref": "#/$defs/nonEmptyString" },
+        "next_action": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

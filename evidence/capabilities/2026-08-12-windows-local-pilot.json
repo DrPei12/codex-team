@@ -1,0 +1,526 @@
+{
+  "profile": "codex-multitask-capability-contract",
+  "schema_version": "0.1-draft",
+  "snapshot_id": "capability:windows-local:2026-08-12:pilot-01",
+  "captured_at": "2026-08-12T09:49:24.3814326Z",
+  "scope": {
+    "project": "Codex 多任务工程系统",
+    "platform": "Codex",
+    "claim_boundary": "Current Windows behavior pilot with three persisted Codex sessions in two manually bounded lab worktrees. CLI cwd binding, idle direct message, completed-session wait/cursor, and idle same-directory fork were exercised. Desktop managed-worktree creation, worktree fork, handoff, archive, subagent, active-turn, dirty-state, restart, ordering, and reliability behavior remain untested."
+  },
+  "environment": {
+    "os": {
+      "description": "Microsoft Windows 10.0.26200",
+      "architecture": "X64"
+    },
+    "shell": {
+      "name": "Windows PowerShell",
+      "version": "5.1.26100.8875",
+      "edition": "Desktop"
+    },
+    "codex": {
+      "app": {
+        "package_name": "OpenAI.Codex",
+        "version": "26.803.10989.0",
+        "architecture": "X64"
+      },
+      "cli": {
+        "version": "codex-cli 0.146.0",
+        "path": "%APPDATA%\\npm\\codex.ps1"
+      },
+      "relevant_feature_flags": [
+        { "name": "artifact", "stage": "under development", "enabled": false },
+        { "name": "goals", "stage": "stable", "enabled": true },
+        { "name": "multi_agent", "stage": "stable", "enabled": true },
+        { "name": "multi_agent_v2", "stage": "stable", "enabled": false },
+        { "name": "plugins", "stage": "stable", "enabled": true },
+        { "name": "skill_search", "stage": "stable", "enabled": true }
+      ]
+    },
+    "git": {
+      "version": "git version 2.44.0.windows.1",
+      "core_autocrlf": "true"
+    },
+    "repository": {
+      "path": "D:\\Desktop\\Codex多任务工程系统",
+      "branch": "main",
+      "head": "35bec9534eee779fcb9943232a43c8245a4cbc17",
+      "status": "dirty",
+      "dirty_paths": [
+        ".gitignore",
+        "README.md",
+        "docs/00-project-charter.md",
+        "docs/01-conceptual-model.md",
+        "docs/02-worker-taxonomy.md",
+        "docs/05-thread-and-worktree-mechanics.md",
+        "docs/10-skill-suite-architecture.md",
+        "docs/12-evaluation-roadmap.md",
+        "docs/13-decisions.md",
+        "docs/14-open-questions.md",
+        "docs/15-conversation-record.md",
+        "docs/16-project-status.md",
+        "docs/17-glossary.md",
+        "docs/18-capability-contract.md",
+        "docs/README.md",
+        "docs/research/capability-experiment-plan.md",
+        "docs/research/capability-pilot-2026-08-12.md",
+        "docs/research/official-sources.md",
+        "docs/research/prior-art-and-capability-limits.md",
+        "evidence/capabilities/2026-08-11-windows-local-preflight.json",
+        "evidence/capabilities/2026-08-12-windows-local-pilot.json",
+        "schemas/capability-contract.schema.json",
+        "scripts/probe-codex-capabilities.ps1",
+        "scripts/validate-capability-contract.py"
+      ],
+      "preexisting_changes_preserved": true
+    }
+  },
+  "evidence": [
+    {
+      "evidence_id": "evidence:local-environment:2026-08-11",
+      "kind": "local_command",
+      "relation": "supports",
+      "captured_at": "2026-08-11T14:46:47.3572530Z",
+      "locator": "powershell.exe read-only version/AppX/Git probe; reproducible with scripts/probe-codex-capabilities.ps1",
+      "result": {
+        "app_package": "OpenAI.Codex 26.803.10989.0 X64",
+        "cli": "codex-cli 0.146.0",
+        "os": "Microsoft Windows 10.0.26200 X64",
+        "powershell": "5.1.26100.8875 Desktop",
+        "git": "2.44.0.windows.1",
+        "repository": "main@35bec9534eee779fcb9943232a43c8245a4cbc17 dirty"
+      },
+      "conditions": ["Local host", "Windows AppX installation", "Repository path fixed in this snapshot"],
+      "limitations": ["Does not inspect UI behavior", "Does not capture tool schema", "The user-home portion of the CLI path is normalized", "Dirty paths belong to the ongoing documentation work and were not modified by the probe"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "high",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:cli-features:2026-08-11",
+      "kind": "local_command",
+      "relation": "supports",
+      "captured_at": "2026-08-11T14:48:00Z",
+      "locator": "codex features list",
+      "result": {
+        "multi_agent": { "stage": "stable", "enabled": true },
+        "multi_agent_v2": { "stage": "stable", "enabled": false },
+        "artifact": { "stage": "under development", "enabled": false }
+      },
+      "conditions": ["codex-cli 0.146.0", "Current user configuration as resolved by the CLI"],
+      "limitations": ["Feature stage and enablement do not specify create/fork/message/handoff behavior", "No subagent was spawned"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "high",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:desktop-task-tool-schema:2026-08-11",
+      "kind": "tool_schema",
+      "relation": "supports",
+      "captured_at": "2026-08-11T14:50:00Z",
+      "locator": "Current Codex Desktop tool declarations for create_thread, fork_thread, list_threads, read_thread, wait_threads, send_message_to_thread, handoff_thread, get_handoff_status, set_thread_archived, set_thread_pinned, and set_thread_title",
+      "result": {
+        "create": "Explicit user request required; Git projects default to worktree; optional existing branch or working-tree starting state",
+        "fork": "Same-directory or worktree; completed history only",
+        "message": "Background follow-up to an existing task",
+        "wait": "Wait for first completion/input-required among up to eight targets; cursor suppresses delivered final",
+        "handoff": "Move another task and associated Git state between checkout and Codex worktree; calling task cannot move itself",
+        "archive": "Archive or unarchive a task in the background"
+      },
+      "conditions": ["Codex Desktop session", "Local host is available", "Tool declarations visible to this task"],
+      "limitations": ["Schema is a declaration, not a behavior run", "Return object details and failure cases are not fully specified", "Tool declarations may change independently of App/CLI versions"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:session-subagent-schema:2026-08-11",
+      "kind": "tool_schema",
+      "relation": "supports",
+      "captured_at": "2026-08-11T14:50:00Z",
+      "locator": "Current session collaboration declarations for spawn_agent, followup_task, send_message, interrupt_agent, list_agents, and wait_agent",
+      "result": {
+        "available_operations": ["spawn", "follow-up", "message", "interrupt", "list", "wait"],
+        "session_concurrency_slots": 4,
+        "workspace_declaration": "Agents share the same filesystem and current working directory"
+      },
+      "conditions": ["Current primary task", "Current collaboration mode and developer policy"],
+      "limitations": ["No subagent behavior was executed", "Availability and policy are session-scoped", "Shared filesystem does not prove safe concurrent writes"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:historical-message-smoke:2026-08-09",
+      "kind": "historical_experiment",
+      "relation": "qualifies",
+      "captured_at": "2026-08-09T00:00:00Z",
+      "locator": "docs/12-evaluation-roadmap.md#已完成的最小通信实验",
+      "result": {
+        "outcome": "A bounded shared-directory direct-message loop completed after independent acceptance",
+        "fixture": "UTF-8 text statistics CLI",
+        "final_exit_code": 0
+      },
+      "conditions": ["Earlier Codex task environment", "Windows PowerShell 5.1", "Explicit file ownership"],
+      "limitations": ["Not captured under the current App/CLI snapshot", "No token, model-tier, lifecycle, fault-injection, or context-decay comparison", "Cannot establish current message reliability"],
+      "confidence": {
+        "source_quality": "medium",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "historical-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:task-inspection-pilot:2026-08-11",
+      "kind": "behavior_run",
+      "relation": "supports",
+      "captured_at": "2026-08-11T15:00:15.7990333Z",
+      "locator": "Read-only current-session calls: list_threads(limit=10), read_thread(current project task, turnLimit=1, includeOutputs=false), and read_thread(nonexistent UUID)",
+      "result": {
+        "current_task": {
+          "thread_id": "normalized:current-project-task",
+          "host_id": "local",
+          "backing_kind": "codex",
+          "list_status": "active"
+        },
+        "valid_read": {
+          "status": "active",
+          "returned_turns": 1,
+          "content_output": "not recorded"
+        },
+        "invalid_read": {
+          "target": "00000000-0000-0000-0000-000000000000",
+          "outcome": "explicit not-found error"
+        }
+      },
+      "conditions": ["Current project task was active", "Local host", "No tool outputs or other task conversation content were requested or persisted"],
+      "limitations": ["Only one current task and one invalid ID were tested", "Does not test pagination, stale host IDs, archived tasks, wait, message, or persistence", "Task titles and summaries are untrusted and were not used as instructions"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:isolated-cli-sessions:2026-08-12",
+      "kind": "behavior_run",
+      "relation": "supports",
+      "captured_at": "2026-08-12T09:43:42.673178Z",
+      "locator": "Local run artifact D:/Desktop/Codex多任务工程系统实验场/runs/2026-08-12-pilot-01/run.json; sha256=9213b537f089a5abe11d4ca03404ca78e40474f4e65f9c1e98f8b3d8ce8f4e2a",
+      "result": {
+        "fixture_head": "a4288a5905abbd4efd5ddd4a9b4acafd021366ab",
+        "sessions": 2,
+        "worktrees": 2,
+        "cwd_matches": 2,
+        "baseline_passes": 2,
+        "clean_after": 2,
+        "initial_input_tokens": [113136, 64308]
+      },
+      "conditions": ["codex-cli 0.146.0", "Windows", "read-only sandbox", "Manual Git worktrees under an external lab root", "Normal user configuration loaded"],
+      "limitations": ["Does not exercise Desktop create_thread", "Only one launch per worktree", "Codex internal session metadata remains in Codex-managed global storage", "Initial prompts triggered global memory/skill/plugin loading"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:idle-message-wait:2026-08-12",
+      "kind": "behavior_run",
+      "relation": "supports",
+      "captured_at": "2026-08-12T09:45:42Z",
+      "locator": "CAP-PILOT-2026-08-12-01 message/wait run; normalized session=worker-a; nonce=CAP-MSG-A-20260812-0946Z",
+      "result": {
+        "send": "accepted",
+        "wait_wake_reason": "turnCompleted",
+        "cursor_changed": true,
+        "nonce_returned": true,
+        "cwd_preserved": true,
+        "git_clean": true,
+        "writes_performed": false,
+        "prior_cursor_behavior": "message body suppressed when unchanged, but completed notLoaded CLI session still woke with inactiveStatus"
+      },
+      "conditions": ["Existing completed local CLI session", "Known thread and host identity", "Idle target", "Read-only follow-up"],
+      "limitations": ["One happy-path delivery", "No running/input-required/invalid/duplicate/order/restart test", "Cursor behavior observed only for completed CLI sessions"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:idle-same-directory-fork:2026-08-12",
+      "kind": "behavior_run",
+      "relation": "supports",
+      "captured_at": "2026-08-12T09:46:58Z",
+      "locator": "CAP-PILOT-2026-08-12-01 same-directory fork; normalized source=worker-a, child=fork-a",
+      "result": {
+        "source_completed_turns": 2,
+        "child_inherited_turns_before_probe": 2,
+        "child_cwd_matches_source": true,
+        "parent_only_nonce_recovered": true,
+        "branch_preserved": "lab/worker-a",
+        "git_clean": true,
+        "writes_performed": false
+      },
+      "conditions": ["Idle source session", "Two completed source turns", "same-directory fork", "Read-only child probe"],
+      "limitations": ["Active-turn cutoff not tested", "No overlapping writes", "No worktree fork", "One source/child pair"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:cli-global-context:2026-08-12",
+      "kind": "behavior_run",
+      "relation": "contradicts",
+      "captured_at": "2026-08-12T09:43:42.673178Z",
+      "locator": "CAP-PILOT-2026-08-12-01 concurrent CLI startup stderr and session items",
+      "result": {
+        "global_memory_loaded": true,
+        "global_skills_loaded": true,
+        "global_plugins_loaded": true,
+        "skills_context_budget_exceeded": true,
+        "system_skills_access_denied_in_one_concurrent_session": true,
+        "model_cache_parse_error": true,
+        "plugin_auth_warnings": true,
+        "powershell_shell_snapshot_unsupported": true
+      },
+      "conditions": ["Normal user config", "Two near-simultaneous codex exec launches", "Separate filesystem worktrees"],
+      "limitations": ["Warnings were non-fatal in this run", "Causal attribution for each startup warning is not isolated", "No ignore-user-config comparison yet"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "low",
+        "applicability": "current-local"
+      }
+    },
+    {
+      "evidence_id": "evidence:cli-project-registration:2026-08-12",
+      "kind": "behavior_run",
+      "relation": "contradicts",
+      "captured_at": "2026-08-12T09:44:30Z",
+      "locator": "list_projects before and after two persisted CLI sessions; read_thread for both session IDs",
+      "result": {
+        "lab_in_saved_projects_before": false,
+        "lab_in_saved_projects_after": false,
+        "cli_threads_readable_by_id": true
+      },
+      "conditions": ["Local Desktop and CLI", "New standalone Git repository", "Two persisted CLI sessions"],
+      "limitations": ["No UI action was taken to save the project", "Does not show that registration is impossible through another interface"],
+      "confidence": {
+        "source_quality": "high",
+        "directness": "direct",
+        "reproducibility": "medium",
+        "applicability": "current-local"
+      }
+    }
+  ],
+  "capabilities": [
+    {
+      "capability_id": "codex.task.inspect",
+      "surface": "desktop_tool",
+      "claim": "In the current Desktop session, list can locate this active project task and read returns its task identity/status, while a nonexistent thread ID produces an explicit not-found failure.",
+      "state": "observed",
+      "conditions": ["Local host", "Current task is active", "Read uses includeOutputs=false and turnLimit=1"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11", "evidence:task-inspection-pilot:2026-08-11"],
+      "required_tests": ["T-LIST-CURRENT", "T-READ-INVALID"],
+      "limitations": ["No reliability rate or archived/paginated/stale-host behavior established", "Does not imply mutation or coordination capabilities"],
+      "failure_policy": "Treat not-found and host mismatch as explicit failures; never infer success from an empty task result."
+    },
+    {
+      "capability_id": "codex.cli.session.cwd",
+      "surface": "cli",
+      "claim": "In this environment, codex exec -C can create persisted read-only CLI sessions whose reported and Desktop-observed cwd is the requested manual worktree.",
+      "state": "observed",
+      "conditions": ["Existing clean Git worktree", "Absolute -C path", "read-only sandbox", "Local host"],
+      "evidence_refs": ["evidence:isolated-cli-sessions:2026-08-12"],
+      "required_tests": ["T-CLI-CWD-TWO-WORKTREES"],
+      "limitations": ["Filesystem cwd does not isolate global memory, skills, plugins, Git user config, or Codex session storage", "Desktop saved-project registration did not occur"],
+      "failure_policy": "Independently verify cwd, branch, HEAD, status, and allowed roots; do not treat -C as full runtime isolation."
+    },
+    {
+      "capability_id": "codex.cli.context-isolation",
+      "surface": "cli",
+      "claim": "Selecting a separate cwd and read-only sandbox is sufficient to give a CLI worker a minimal, self-contained runtime context.",
+      "state": "contradicted",
+      "conditions": ["Normal user configuration loaded", "Current installed memory/skills/plugins", "Two concurrent sessions"],
+      "evidence_refs": ["evidence:cli-global-context:2026-08-12"],
+      "required_tests": ["T-CLI-IGNORE-USER-CONFIG", "T-CLI-SERIAL-STARTUP"],
+      "limitations": ["The run proves context loading and warnings, not that every loaded component affected the answer", "A clean-profile comparison is pending"],
+      "failure_policy": "Budget and audit global context separately from workspace isolation; use a controlled profile only after verifying required auth and policies remain available."
+    },
+    {
+      "capability_id": "codex.task.create.worktree",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can create a user-owned project task in a Codex-managed worktree from the default branch, an existing branch, or the current working tree.",
+      "state": "declared_unverified",
+      "conditions": ["User explicitly requests a new task", "Saved project is a Git repository", "Target host supports the requested starting state"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11"],
+      "required_tests": ["T-CREATE-DEFAULT", "T-CREATE-WORKING-TREE"],
+      "limitations": ["Default HEAD/branch/detached behavior not observed", "Dirty, ignored, submodule, LFS, and failure recovery not observed"],
+      "failure_policy": "Do not create a test task without explicit user authorization; do not infer copied state from the tool call alone."
+    },
+    {
+      "capability_id": "codex.task.fork.same-directory",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can fork completed task history into a child that uses the same directory.",
+      "state": "observed",
+      "conditions": ["Idle local CLI source task", "Two completed source turns", "Fork environment is same-directory"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11", "evidence:idle-same-directory-fork:2026-08-12"],
+      "required_tests": ["T-FORK-SAME-IDLE"],
+      "limitations": ["Active-turn cutoff not observed", "Concurrent write collision behavior not observed", "One source/child pair"],
+      "failure_policy": "Treat same-directory forks as unsafe for overlapping writes until an isolated fixture demonstrates the boundary."
+    },
+    {
+      "capability_id": "codex.task.fork.worktree",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can fork a Codex task into a child whose setup uses a worktree.",
+      "state": "declared_unverified",
+      "conditions": ["Source is a Codex task", "Fork environment is worktree"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11"],
+      "required_tests": ["T-FORK-WORKTREE"],
+      "limitations": ["Starting revision, branch identity, setup failure, and cleanup are not observed"],
+      "failure_policy": "Do not assign mutable files until the child workspace and base revision are independently confirmed."
+    },
+    {
+      "capability_id": "codex.task.message",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can send a background follow-up prompt to an existing task.",
+      "state": "observed",
+      "conditions": ["Target is an idle completed local CLI session", "Target threadId and hostId resolve", "Read-only follow-up"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11", "evidence:historical-message-smoke:2026-08-09", "evidence:idle-message-wait:2026-08-12"],
+      "required_tests": ["T-MESSAGE-IDLE"],
+      "limitations": ["One current delivery", "Ordering, duplication, restart persistence, invalid target, and active-turn behavior remain unobserved"],
+      "failure_policy": "Use messages as control signals; require artifact/revision evidence before accepting state changes."
+    },
+    {
+      "capability_id": "codex.task.wait",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can wait on up to eight tasks and uses cursors to suppress previously delivered final text.",
+      "state": "declared_unverified",
+      "conditions": ["Target identities and optional host IDs resolve"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11"],
+      "required_tests": ["T-WAIT-FINAL", "T-WAIT-CURSOR"],
+      "limitations": ["Timeout, error, input-required, commentary, and stale-cursor behavior are not observed"],
+      "failure_policy": "Do not interpret timeout or omitted final text as task success."
+    },
+    {
+      "capability_id": "codex.task.wait.completed-cli",
+      "surface": "desktop_tool",
+      "claim": "For a completed local CLI session, wait returns the final message and cursor; reusing the cursor suppresses that message body, while a new follow-up completion produces a changed cursor and turnCompleted wake.",
+      "state": "observed",
+      "conditions": ["Known local CLI task identity", "Completed or idle task", "timeoutMs is zero for snapshots or bounded for a new turn"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11", "evidence:idle-message-wait:2026-08-12"],
+      "required_tests": ["T-WAIT-COMPLETED-CLI", "T-WAIT-CURSOR", "T-WAIT-NEW-TURN"],
+      "limitations": ["An unchanged completed session still woke with inactiveStatus rather than timing out", "No active/input-required/commentary/error/eight-target case"],
+      "failure_policy": "Use changed plus latest-turn state to distinguish new work; do not treat inactiveStatus alone as a new completion."
+    },
+    {
+      "capability_id": "codex.task.handoff",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can move another task and associated Git state between its checkout and a Codex worktree on the current host.",
+      "state": "declared_unverified",
+      "conditions": ["Target is another local Codex task", "The caller is not handing off itself", "Cloud handoff is not requested"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11"],
+      "required_tests": ["T-HANDOFF-CLEAN", "T-HANDOFF-DIRTY"],
+      "limitations": ["Dirty/untracked/submodule/LFS/conflict behavior and recovery are not observed", "Tool completion does not prove destination understanding"],
+      "failure_policy": "Destination must recheck cwd, HEAD, status, artifact hashes, and unresolved risks before continuing."
+    },
+    {
+      "capability_id": "codex.task.archive",
+      "surface": "desktop_tool",
+      "claim": "The current Desktop tool schema can archive or unarchive a Codex task in the background.",
+      "state": "declared_unverified",
+      "conditions": ["Target task resolves"],
+      "evidence_refs": ["evidence:desktop-task-tool-schema:2026-08-11"],
+      "required_tests": ["T-ARCHIVE-PRESERVE"],
+      "limitations": ["Relationship between archive state and managed worktree retention is not observed"],
+      "failure_policy": "Never treat archive as authorization or evidence that a worktree was deleted."
+    },
+    {
+      "capability_id": "codex.subagent.lifecycle",
+      "surface": "subagent",
+      "claim": "The current task exposes spawn, follow-up, message, interrupt, list, and wait operations for session-scoped subagents that share the filesystem.",
+      "state": "declared_unverified",
+      "conditions": ["Current collaboration policy permits the requested subagent action", "Available session concurrency slot"],
+      "evidence_refs": ["evidence:session-subagent-schema:2026-08-11", "evidence:cli-features:2026-08-11"],
+      "required_tests": ["T-SUBAGENT-READONLY"],
+      "limitations": ["Context inheritance, cwd, nested spawn, write visibility, interruption, and cleanup are not observed", "Feature flag stability does not prove lifecycle semantics"],
+      "failure_policy": "Use explicit ownership and independently verify outputs; do not infer workspace isolation."
+    }
+  ],
+  "unknowns": [
+    {
+      "unknown_id": "unknown:create-starting-state",
+      "question": "What exact branch, detached HEAD, tracked, ignored, and untracked state does each create startingState produce?",
+      "priority": "P0",
+      "evidence_gap": "Tool declaration only; no before/after worktree experiment.",
+      "next_action": "Run T-CREATE-DEFAULT and T-CREATE-WORKING-TREE in an approved disposable fixture."
+    },
+    {
+      "unknown_id": "unknown:message-reliability",
+      "question": "How do direct message and wait behave for idle, running, input-required, invalid-target, duplicate, and stale-cursor cases?",
+      "priority": "P0",
+      "evidence_gap": "One current idle message/wait run and one historical shared-directory run; running, input-required, invalid-target, duplicate, ordering, restart, and persistence cases remain absent.",
+      "next_action": "Run the next smallest discriminating cases using the retained lab sessions; do not repeat the completed idle happy path."
+    },
+    {
+      "unknown_id": "unknown:handoff-git-state",
+      "question": "Which clean, dirty, untracked, ignored, submodule, LFS, detached HEAD, and conflict states survive or block handoff?",
+      "priority": "P0",
+      "evidence_gap": "No current behavior run or recovery evidence.",
+      "next_action": "Start with clean and one dirty fixture case; expand only after safe cleanup is proved."
+    },
+    {
+      "unknown_id": "unknown:archive-cleanup",
+      "question": "Does task archive change, retain, or eventually clean a managed worktree, and is deletion separately authorized?",
+      "priority": "P0",
+      "evidence_gap": "Archive tool schema contains no worktree-retention guarantee.",
+      "next_action": "Record task list and git worktree list before/after archive without deleting the fixture."
+    },
+    {
+      "unknown_id": "unknown:subagent-boundary",
+      "question": "What context, workspace, model, write, nesting, interruption, and lifecycle boundaries do current subagents actually have?",
+      "priority": "P1",
+      "evidence_gap": "Session tool declarations and CLI feature flag only.",
+      "next_action": "Run an approved read-only subagent probe with no file mutation."
+    },
+    {
+      "unknown_id": "unknown:cli-context-minimality",
+      "question": "Which user config, memory, skills, plugins, MCP servers, Git config, and telemetry can be safely disabled for a low-context worker without losing required auth or policy?",
+      "priority": "P0",
+      "evidence_gap": "The full-profile run exposed high input cost and global-state warnings; no controlled-profile comparison exists.",
+      "next_action": "Compare normal config with an explicitly reviewed minimal profile in the same retained worktree and task, holding prompt and verifier constant."
+    },
+    {
+      "unknown_id": "unknown:desktop-project-registration",
+      "question": "How can an externally created fixture repository be registered as a Desktop saved project without moving its worktrees outside the user-approved lab root?",
+      "priority": "P1",
+      "evidence_gap": "Persisted CLI sessions are readable by task ID but did not add the repository to list_projects; no callable save-project tool is exposed.",
+      "next_action": "Treat Desktop managed-worktree tests as blocked by path control until an explicit saved-project registration mechanism or custom managed-worktree root is available."
+    }
+  ],
+  "behavior_test_authorization": {
+    "required": true,
+    "granted": true,
+    "reason": "The user explicitly requested an independent directory for all dispatched sessions and worktrees and authorized continuation. The pilot used the preregistered maximum of three sessions and two worktrees, retained them for inspection, and performed no deletion."
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "profile": "codex-multitask-workflow",
+  "schema_version": "0.1",
+  "kind": "worker-report",
+  "artifact_id": "report:outputguard-jsonl:core:example",
+  "context_id": "context:outputguard:jsonl-stream-v1",
+  "created_at": "2026-08-13T00:40:00-04:00",
+  "plan_ref": "plan:outputguard-jsonl:desktop-managed-01",
+  "brief_ref": "brief:outputguard-jsonl:core:01",
+  "lane_id": "core",
+  "status": "completed",
+  "summary": "Synthetic valid example only; no implementation claim.",
+  "task": {
+    "thread_id": "example-thread-not-a-real-run",
+    "project_id": "082eff70-1f80-4421-bb5b-d896d12961ff"
+  },
+  "workspace_state": {
+    "path": "D:\\Desktop\\Codex多任务工程系统实验场\\worktrees\\outputguard-team-core-01",
+    "branch": "codex/outputguard-team-core-01",
+    "base_revision": "d235f59dcb7eb853043117402d3a1c8ef267b9af",
+    "head_revision": "1111111111111111111111111111111111111111",
+    "tree": "2222222222222222222222222222222222222222",
+    "clean": true
+  },
+  "changed_files": ["outputguard/jsonl.py", "tests/test_jsonl.py"],
+  "commits": ["1111111111111111111111111111111111111111"],
+  "tests": [
+    {
+      "command": "python -B -m pytest -q -p no:cacheprovider tests/test_jsonl.py",
+      "exit_code": 0,
+      "outcome": "passed",
+      "duration_seconds": 1.25,
+      "evidence_path": "synthetic/core-targeted-tests.txt"
+    }
+  ],
+  "artifacts": [],
+  "risks": ["Synthetic schema example; Git identities and evidence are intentionally not real."],
+  "not_verified": ["CLI behavior", "integration suite", "sealed evaluator"],
+  "requested_action": "validate-and-integrate"
+}
