@@ -1,0 +1,457 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/schemas/team-plan-manifest.schema.json",
+  "title": "Codex team-plan run manifest v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "schema_version",
+    "kind",
+    "run_id",
+    "created_at",
+    "status",
+    "objective",
+    "decision",
+    "client_surface",
+    "base",
+    "task_project",
+    "runtime",
+    "workspace_policy",
+    "contract",
+    "lanes",
+    "integration_order",
+    "global_gates",
+    "global_stop_conditions"
+  ],
+  "properties": {
+    "profile": {
+      "const": "codex-multitask-team-plan"
+    },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "kind": {
+      "const": "run-manifest"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "active", "completed", "blocked", "cancelled"]
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision": {
+      "$ref": "#/$defs/decision"
+    },
+    "client_surface": {
+      "const": "codex_desktop"
+    },
+    "base": {
+      "$ref": "#/$defs/base"
+    },
+    "task_project": {
+      "$ref": "#/$defs/task_project"
+    },
+    "runtime": {
+      "$ref": "#/$defs/runtime"
+    },
+    "workspace_policy": {
+      "$ref": "#/$defs/workspace_policy"
+    },
+    "contract": {
+      "$ref": "#/$defs/contract"
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/lane"
+      }
+    },
+    "integration_order": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/lane_id"
+      }
+    },
+    "global_gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/gate"
+      }
+    },
+    "global_stop_conditions": {
+      "$ref": "#/$defs/nonempty_strings"
+    }
+  },
+  "$defs": {
+    "nonempty_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "nonempty_strings": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/nonempty_string"
+      }
+    },
+    "strings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nonempty_string"
+      }
+    },
+    "lane_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{40}$"
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\.\\.)(?!.*\\/$)(?!.*\\.$)(?!.*\\.lock$)(?!.*[\\s~^:?*\\[\\]\\\\]).+$"
+    },
+    "absolute_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?:[A-Za-z]:[\\\\/]|[\\\\/]).*$"
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\.?$)(?![A-Za-z]:)(?![\\\\/])(?!.*\\.\\.(?:[\\\\/]|$))(?:.*\\S.*)$"
+    },
+    "gate_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "reason", "parallel_groups"],
+      "properties": {
+        "mode": {
+          "const": "multi-task"
+        },
+        "reason": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "parallel_groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/lane_id"
+            }
+          }
+        }
+      }
+    },
+    "base": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "branch", "commit", "tree", "clean"],
+      "properties": {
+        "repository": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "branch": {
+          "$ref": "#/$defs/branch"
+        },
+        "commit": {
+          "$ref": "#/$defs/revision"
+        },
+        "tree": {
+          "$ref": "#/$defs/revision"
+        },
+        "clean": {
+          "type": "boolean"
+        }
+      }
+    },
+    "task_project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "path", "environment"],
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+        },
+        "path": {
+          "$ref": "#/$defs/absolute_path"
+        },
+        "environment": {
+          "const": "local"
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested_model", "requested_thinking", "effective_model", "effective_thinking"],
+      "properties": {
+        "requested_model": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "requested_thinking": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "effective_model": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "effective_thinking": {
+          "$ref": "#/$defs/nonempty_string"
+        }
+      }
+    },
+    "workspace_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experiment_root", "worktree_root", "require_clean_start"],
+      "properties": {
+        "experiment_root": {
+          "$ref": "#/$defs/absolute_path"
+        },
+        "worktree_root": {
+          "$ref": "#/$defs/absolute_path"
+        },
+        "require_clean_start": {
+          "type": "boolean"
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "source", "invariants", "forbidden_changes"],
+      "properties": {
+        "state": {
+          "const": "frozen"
+        },
+        "source": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "invariants": {
+          "$ref": "#/$defs/nonempty_strings"
+        },
+        "forbidden_changes": {
+          "$ref": "#/$defs/nonempty_strings"
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "branch", "base_revision", "clean_start_required"],
+      "properties": {
+        "mode": {
+          "enum": ["read-only", "permanent-worktree"]
+        },
+        "path": {
+          "$ref": "#/$defs/absolute_path"
+        },
+        "branch": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/branch"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "base_revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "clean_start_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["write_paths", "forbidden_paths"],
+      "properties": {
+        "write_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/relative_path"
+          }
+        },
+        "forbidden_paths": {
+          "$ref": "#/$defs/strings"
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "owner", "command", "evidence_required"],
+      "properties": {
+        "gate_id": {
+          "$ref": "#/$defs/gate_id"
+        },
+        "owner": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "command": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_required": {
+          "$ref": "#/$defs/nonempty_strings"
+        }
+      }
+    },
+    "lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_id",
+        "role",
+        "objective",
+        "depends_on",
+        "workspace",
+        "ownership",
+        "inputs",
+        "outputs",
+        "gates",
+        "stop_conditions"
+      ],
+      "properties": {
+        "lane_id": {
+          "$ref": "#/$defs/lane_id"
+        },
+        "role": {
+          "enum": ["implementer", "integrator", "reviewer"]
+        },
+        "objective": {
+          "$ref": "#/$defs/nonempty_string"
+        },
+        "depends_on": {
+          "$ref": "#/$defs/strings"
+        },
+        "workspace": {
+          "$ref": "#/$defs/workspace"
+        },
+        "ownership": {
+          "$ref": "#/$defs/ownership"
+        },
+        "inputs": {
+          "$ref": "#/$defs/strings"
+        },
+        "outputs": {
+          "$ref": "#/$defs/nonempty_strings"
+        },
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/gate"
+          }
+        },
+        "stop_conditions": {
+          "$ref": "#/$defs/nonempty_strings"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "reviewer"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "workspace": {
+                "properties": {
+                  "mode": {
+                    "const": "read-only"
+                  },
+                  "branch": {
+                    "type": "null"
+                  }
+                }
+              },
+              "ownership": {
+                "properties": {
+                  "write_paths": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "workspace": {
+                "properties": {
+                  "mode": {
+                    "const": "read-only"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "workspace": {
+                "properties": {
+                  "branch": {
+                    "type": "null"
+                  }
+                }
+              },
+              "ownership": {
+                "properties": {
+                  "write_paths": {
+                    "maxItems": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
