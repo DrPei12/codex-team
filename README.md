@@ -60,7 +60,9 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论�
 
 ## 当前阶段
 
-`M1.1 — Turn the accepted manual lineage into incubating skills`
+`M1.1 — team-plan accepted; team-run next`
+
+截至 2026-08-18，已确认的功能基线是 `17d71bc`：`team-plan` v0.1 已进入 `main`，但成熟度仍为 `incubating`。它完成的是“冻结并校验计划、生成绑定同一 manifest digest 的 task brief”，不是任务派发、状态追踪、集成或收尾。
 
 首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
 

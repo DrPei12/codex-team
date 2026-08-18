@@ -10,11 +10,19 @@
 - recovery 必须保留 predecessor status，只携带 exact candidate 和新事实；ordinary clean 与 ignored clean 必须分开。
 - 以上是一次 lineage 的观察，不是长期可靠性答案。详见 [OutputGuard 实录](research/outputguard-vertical-slice-2026-08-15.md)。
 
-## P0：首批 skills 实现前必须回答
+## `team-plan` v0.1 已经部分回答
 
-1. canonical run manifest v0.2 的最小字段是什么；session plan、roster、brief、preregistration、freeze、handoff、acceptance 中哪些字段必须机器派生，哪些允许人工叙述？
-2. manifest generator 如何冻结字节级 hash 算法、path order、编码和换行，并在创建 Desktop task 前验证所有 projection 一致？
-3. `team-plan` 用什么规则判断“可以并行”“必须串行”和“只适合 subagent”，并怎样明确拒绝错误 fan-out？
+- 规划阶段已有一个 canonical `run-manifest` v0.1；base identity、task project、workspace policy、frozen contract、lanes、parallel groups、integration order、Gate 和 stop condition 都由同一文档承载。
+- task brief 不再人工复制身份，而是由通过校验的 manifest 投影，并携带同一个 canonical SHA-256。
+- validator 已能拒绝未知依赖、DAG 环、并行写入重叠、workspace 逃逸/别名、错误 Reviewer 拓扑、非法 projection 和非 canonical Git/timestamp。
+- `team-plan` 成功后必须停止，不创建任务或 worktree；因此它只回答“计划是否结构上可执行”，没有回答真实 Desktop dispatch 是否成功。
+- no-skill baseline 读取了历史 solution refs，不能用于计算 skill 提升。详见 [`team-plan` v0.1 实录](research/team-plan-v0.1-2026-08-15.md)。
+
+## P0：继续实现剩余入口前必须回答
+
+1. `team-plan` 已冻结 manifest → brief 的最小字段；preregistration、freeze、handoff、Gate receipt 和 acceptance 中哪些字段继续由 manifest 派生，哪些允许人工叙述？
+2. manifest → brief 已冻结 UTF-8、sorted keys、无空白分隔和 SHA-256；后续 preregistration、Gate/recovery/cleanliness receipt 如何复用同一 canonical identity 和字节规则？
+3. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
 4. `team-run` 如何统一创建/验证 artifact、pytest、cache、dist root，并让 parent 与真实 Desktop task 分别完成 preflight？
 5. `team-status` 如何把 Desktop read/wait/message、artifact timeline 和 Git state 合并为事实视图，既不相信单一自报，也不无理由重复昂贵命令？
 6. `team-integrate` 如何生成可验证 Gate receipt；review、sealed authorization 和 public Gate 的责任边界怎样编码？

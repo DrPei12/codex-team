@@ -2,9 +2,10 @@
 
 ## Snapshot
 
-- 日期：2026-08-15
-- 阶段：`M1 — First Desktop recovery lineage accepted; skill incubation next`
-- 状态：OutputGuard Run02–Run10 已形成一条保留失败历史的 Desktop recovery lineage；最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed Gate。它不是无中断四任务 run，也没有 single/no-skill 对照；可安装 skills 仍未实现
+- 日期：2026-08-18
+- 阶段：`M1.1 — team-plan accepted; team-run next`
+- 状态：OutputGuard Run02–Run10 的 Desktop recovery lineage 已完成验收；首个可执行入口 `team-plan` v0.1 已进入 `main`，通过 19 项回归、独立审查和 fresh forward test，成熟度为 `incubating`。真实 dispatch、状态追踪、集成、收尾和公平 no-skill 对照仍未完成
+- 本次同步所依据的功能基线：commit `17d71bca7d237f5346f1e8370a4d318dd343dc0c` / tree `0a2bbebd433bcd25b186306e4b486093e345eb91`；同步开始时 `main` clean
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -72,7 +73,7 @@
 - [x] 实现首个 `incubating` `team-plan`：canonical manifest schema、标准库 validate/project helper、精炼 skill/reference 和 19 项回归
 - [x] 完成 `team-plan` RED/GREEN/REFACTOR：污染基线保留为失败语料，两次 forward test 一次 fail-closed、一次生成 4 份 digest-bound brief，四轮 fresh review 最终 approve
 
-## 明确未完成
+## 纵向切片清单（已完成与未完成）
 
 - [x] 在实现前完成 Desktop Git/public test/Ruff/mypy qualification；不接触 sealed evaluator
 - [x] 写出首个 task plan：共享 contract、DAG、4 条 worker lane、所有权、workspace 和集成顺序
@@ -139,4 +140,4 @@
 
 ## 完成 Phase 0 的判定
 
-项目目录、文档、模板和 Git 基线存在且通过链接/结构检查；绑定项目的 Codex 主任务已完成接管。第一轮 prior-art、项目定位和研究路线修订完成后，Phase 0 仍以“尚无稳定 skill”为边界，进入 M1 capability/vertical-slice 实验。
+Phase 0 已在根提交 `35bec95` 完成：项目目录、文档、模板和 Git 基线存在且通过链接/结构检查，绑定项目的 Codex 主任务完成接管，第一轮 prior-art、项目定位和研究路线完成。当前已经进入 M1.1；仍然没有 `stable` skill，但已有一个经过初步实测的 `incubating` `team-plan`，后续状态必须明确区分这两个成熟度。

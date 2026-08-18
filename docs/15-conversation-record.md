@@ -285,3 +285,17 @@ sealed 子进程同时在隔离 worktree 留下 29 个 ignored `.pyc`。普通 G
 用户要求继续推进并用人话汇报。项目据此把实战中最常见的控制面失败直接纳入架构：接受 D-027 的 canonical manifest 与机器派生 projection、D-028 的 append-only proof-carrying recovery、D-029 的 artifact-root 与 ordinary/ignored 分层 Gate。`team-recover` 因多次出现独立触发、输入和验收，从后续构想晋升为首批 incubating 候选。
 
 OutputGuard 自此主要作为 failure corpus 和回归任务，不再承担 skills 泛化价值的唯一证明。下一步先实现 schema/validator v0.2 与 deterministic helpers，再实现主线 skills；冻结后选择第二个未见 benchmark 做主要 no-skill 对照。OutputGuard single 若补做，必须使用不含 lane solution refs/objects 的独立 Git object store，并明确执行顺序已经带来污染风险。
+
+## 第十七阶段：`team-plan` v0.1 从计划变成可执行 skill
+
+用户要求后续实验必须直接围绕目标 skills 形态产生实质进展，并要求所有分配的 Desktop 任务请求 `gpt-5.6-luna` + `max`。主编排者在项目外实验场建立独立 feature worktree，采用 skill TDD：先运行没有 `team-plan` 的 RED 规划任务，再写失败测试、实现 schema/validator/projector，最后用 fresh task 和独立 Reviewer 反复验收。Desktop 没有暴露 effective model/thinking，因此记录只能证明 requested 配置，不能宣称运行时严格生效。
+
+RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了七条历史 solution refs 并使用其他 planning guidance，且只产出自然语言计划，没有 canonical manifest 和机器派生 brief。它因此被判为污染，只进入 failure corpus，不能计算 no-skill 对照收益。代码侧从 9 个预期失败测试起步；由于现有 Python 环境没有 pytest，测试改用标准库 runner，没有安装新依赖。
+
+首个 GREEN 实现随后接受了多轮 fresh review。Reviewer 没有因测试变绿而直接批准，而是依次发现 mutable workspace 指向控制 checkout、Reviewer 拓扑不安全、Windows ownership alias、projection 越界、symlink/祖先子孙重叠、worktree root 逃逸和 lane workspace 物理别名等七类 P1 边界。每个确认问题先加入失败测试再做最小修复，最终达到 19/19，终审对实现 commit `9254d1d` / tree `bd4eb2b` 给出 `approve`。
+
+两次 forward test 分别验证了失败与成功路径：第一次漏写 `objective`，validator 非零并在生成 brief/派发前停止；第二次首次 validate PASS，生成 Core、CLI、Integrator、Reviewer 四份 digest-bound brief。最终 manifest digest 为 `sha256:da72149fd716f7c2284064dda3cc6ff7dd2232a77bbc1fddb06542283a5b4261`，canonical bytes 为 13,511。整个演示没有创建实现 lane、访问 sealed evaluator 或修改 OutputGuard 功能。
+
+`team-plan` v0.1 与实验实录、机器 evidence 最终快进合并到 `main` 功能基线 `17d71bc` / tree `0a2bbebd`。合并后的主目录重新通过 19 项回归、skill validator、真实 forward manifest、三份 capability contract、五类 workflow artifact、负例拒绝、严格 UTF-8、JSON/YAML/schema 和 Markdown 本地链接检查。
+
+当前结论是：项目已经有第一个可执行但仅属 `incubating` 的 skill；它只负责冻结并验证计划，成功后停止，不派发任务。安装后的共享路径、隐式触发、Windows junction、真实 dispatch、第二个 blind benchmark 和公平 skill 边际效用仍未验证。下一入口固定为 `team-run` 的最小 Desktop dispatch/preflight 切片，而不是继续在 OutputGuard 上添加真实功能。

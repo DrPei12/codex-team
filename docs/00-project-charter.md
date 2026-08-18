@@ -67,4 +67,6 @@ Codex 中的长期任务已经更接近独立工程成员：它们有独立历�
 
 ## 当前阶段边界
 
-Phase 0 建立项目目录、Git 基线、文档体系、prior-art 调查、设计草案和后续主任务。M1 已冻结 OutputGuard JSONL streaming 作为首个真实功能；第一次 CLI 混合试跑因执行面与真实 worker preflight 失败而停止，不构成评测结果。后续 Desktop local 资格检查已覆盖只读身份、简单 Git index/ref 写入与清理、完整 public pytest、Ruff 和 mypy 外置缓存；四任务 DAG 与最小 workflow artifact schema v0.1 也已在实现前冻结。当前先补离线 package build 和 assigned permanent worktree 的最小 preflight，再开始 `team-plan -> team-run -> team-status -> team-integrate -> team-finish` 的真实实现 run。只有 workflow 依赖未知语义时才补最小 capability probe，未实测部分继续标为 unknown。
+Phase 0 已完成项目目录、Git 基线、文档体系、prior-art 调查和设计基线。M1 已用 OutputGuard Run02–Run10 建立一条保留失败历史的 Desktop recovery lineage，并通过 public、fresh review 和单次 sealed Gate；它不是一次无中断多任务成功，也没有证明多任务优于 single。
+
+截至 2026-08-18，项目进入 M1.1：首个可执行入口 `team-plan` v0.1 已合并到 `main`。它能冻结 canonical manifest、校验任务图/所有权/workspace/Reviewer 边界，并生成 digest-bound task brief；19 项回归和一次 fresh forward test 通过，成熟度为 `incubating`。下一步是 `team-run` 的最小 Desktop dispatch/preflight 切片，再依次推进 `team-status`、`team-integrate`、`team-finish` 和候选 `team-recover`。只有 workflow 依赖未知产品语义时才补最小 capability probe，未实测部分继续标为 `unknown`。

@@ -8,6 +8,8 @@
 
 Prior-art 调查进一步表明，skills 本身也必须作为 intervention 评测：目录更多、prompt 更长或流程更完整，不等于 pass rate 更高。每个可执行 skill 都应尽量有 no-skill baseline；每个多任务拓扑都应和能力相近的单任务/subagent baseline 比较。
 
+截至 2026-08-18，`team-plan` v0.1 的实现、19 项回归、独立审查和一次 fresh forward test 已完成；OutputGuard 无 skill baseline 因读取历史 solution refs 和其他 planning guidance 被判为污染，只保留作 failure corpus。因此当前只有“skill 可以 fail closed 并生成一致 brief”的证据，还没有公平的边际效用数字。
+
 ## 已完成的最小通信实验
 
 ### 实验内容
