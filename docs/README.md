@@ -2,7 +2,7 @@
 
 这套文档采用“先建立共同语言，再进入运行规则，最后进入实现与评测”的顺序。读者无需一次加载全部内容。
 
-最后同步：2026-08-24。`team-plan` 已在 `main`；`team-run` 非 live 准备层已在功能分支 commit `20604c2` 实现，下一步是审查该切片并实现 read-only `team-status`，真实 Desktop dispatch 仍需单独授权。
+最后同步：2026-08-24。`team-plan` 已在 `main`；`team-run` 非 live 准备层最终代码身份为功能分支 commit `c5ead87`，下一步是审查该切片并实现 read-only `team-status`，真实 Desktop dispatch 仍需单独授权。
 
 ## 第一层：五分钟了解项目
 

@@ -24,7 +24,7 @@
 - cache、dist、logs、pytest root 在 dispatch 前初始化为空并写入 preregistration；ordinary dirty 触发 parent/worker fail closed，ignored inventory 单独记录。
 - Prompt 已区分可信项目规则/brief/runtime binding 与不可信 Issue、评论和粘贴背景；bundle 不包含虚构的 thread/task ID。
 - 正确输入生成 `ready_for_authorized_dispatch` 后立即停止，不创建 Codex task/worktree/message；因此它仍没有回答真实 Desktop dispatch、worker runtime context 或 task binding 是否成功。
-- 10 项临时真实 Git/worktree 回归通过，但没有独立 fresh Reviewer、安装后运行、第二 blind benchmark 或公平 no-skill 对照。详见 [`team-run` v0.1 实录](research/team-run-v0.1-2026-08-24.md)。
+- 11 项临时真实 Git/worktree 回归通过，但没有独立 fresh Reviewer、安装后运行、第二 blind benchmark 或公平 no-skill 对照。详见 [`team-run` v0.1 实录](research/team-run-v0.1-2026-08-24.md)。
 
 ## P0：继续实现剩余入口前必须回答
 

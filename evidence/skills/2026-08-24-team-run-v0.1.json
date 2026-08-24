@@ -8,11 +8,11 @@
   "implementation": {
     "branch": "codex/team-run-v01",
     "base_commit": "db3b81001b970d0b0be00cd41eb75c805dfde629",
-    "commit": "20604c2fed0d06bf64e8a0955f04824651176057",
-    "tree": "9261a8cfd71c976d60179f79eb8d0ab51f73f2c0",
+    "commit": "c5ead87fd311d6223a9a10712fd6e1e3f357bd61",
+    "tree": "8589357fe8eb75d265c20b9c6af4f7f82633702b",
     "tests": {
       "command": "python -B tests/test_team_run.py",
-      "result": "10 passed, 0 failed"
+      "result": "11 passed, 0 failed"
     },
     "team_plan_regression": {
       "command": "python -B tests/test_team_plan.py",
@@ -37,6 +37,7 @@
   },
   "failure_boundaries": [
     "tampered or symlinked briefs fail before the run directory is created",
+    "global require_clean_start remains authoritative when a lane attempts to relax its local flag",
     "dirty workspace preserves a failed parent receipt and produces no dispatch bundle",
     "ignored files are inventoried separately from ordinary status",
     "wrong worker cwd produces a failed exclusive receipt",

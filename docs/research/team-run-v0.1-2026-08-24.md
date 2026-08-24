@@ -67,16 +67,17 @@ receipt 永不覆盖。
 
 ## 回归结果
 
-实现身份：commit `20604c2fed0d06bf64e8a0955f04824651176057` / tree
-`9261a8cfd71c976d60179f79eb8d0ab51f73f2c0`。
+最终代码身份：commit `c5ead87fd311d6223a9a10712fd6e1e3f357bd61` /
+tree `8589357fe8eb75d265c20b9c6af4f7f82633702b`。
 
 `tests/test_team_run.py` 使用标准库 runner，每个行为测试创建临时 Git
 repository、task project 和 Core/CLI/Integrator 三个真实 worktree；Reviewer
-复用 Integrator workspace。最终结果为 `10 passed, 0 failed`，覆盖：
+复用 Integrator workspace。最终结果为 `11 passed, 0 failed`，覆盖：
 
 - 正向准备及四类 schema artifact；
 - brief 内容篡改和 symlink 逃逸；
 - dirty workspace 阻塞和 ignored inventory 分层；
+- global `require_clean_start` 覆盖 lane 自己的宽松设置；
 - 已存在 run root 拒绝覆盖；
 - worker 正确/错误 cwd；
 - worker receipt 不覆盖。

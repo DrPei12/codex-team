@@ -25,7 +25,7 @@ D-023 再收紧了执行边界：这里的 “Codex session/task” 默认就是
 | `team-finish` | 形成里程碑结论，归档已接收的一次性任务，保留未获授权清理的 worktree，并写明恢复入口 |
 | `team-recover` | 从一个明确 blocked run 继续：绑定精确 candidate、旧证据、尚未建立的新事实和新预算；保持旧 run 不变，禁止无关重做 |
 
-截至 2026-08-24，`team-plan` v0.1 已达到 `incubating` 并进入 `main`；`team-run` v0.1 非 live 准备层已在功能分支 commit `20604c2` 实现。它验证 manifest/brief identity、初始化 run-local roots、记录 parent/worker Git preflight，并生成带可信 Brief 与不可信外部上下文边界的 Prompt/dispatch bundle；10 项回归通过。它没有创建 task/worktree/message，也未验证安装路径、真实 Desktop dispatch、独立 fresh review、第二 blind benchmark 或正向边际效用，因此仍只能标 `incubating`。其他入口仍是设计候选。
+截至 2026-08-24，`team-plan` v0.1 已达到 `incubating` 并进入 `main`；`team-run` v0.1 非 live 准备层最终代码身份为功能分支 commit `c5ead87`。它验证 manifest/brief identity、初始化 run-local roots、记录 parent/worker Git preflight，并生成带可信 Brief 与不可信外部上下文边界的 Prompt/dispatch bundle；11 项回归通过。它没有创建 task/worktree/message，也未验证安装路径、真实 Desktop dispatch、独立 fresh review、第二 blind benchmark 或正向边际效用，因此仍只能标 `incubating`。其他入口仍是设计候选。
 
 `team-review`、`team-benchmark` 和 capability audit 后续可以形成独立入口；第一版仍可作为 `team-integrate`、`team-status` 或项目开发工具的子流程。`team-recover` 的晋升来自重复实测：Run03、Run05、Run06、Run08、Run09、Run10 都需要“保留旧结论，只验证一个新事实”的恢复语义。入口 skill 是路由器和治理者，不应复制每个范式的完整说明。
 

@@ -4,8 +4,8 @@
 
 - 日期：2026-08-24
 - 阶段：`M1.2 — team-run preparation implemented; native dispatch/status next`
-- 状态：OutputGuard Desktop recovery lineage 和 `team-plan` v0.1 已完成既有验收；`team-run` v0.1 非 live 准备层已在功能分支实现，10 项回归与四类 artifact schema 校验通过，成熟度为 `incubating`。它没有创建真实 Codex task；实际 dispatch、事实派生状态、集成、收尾和公平 no-skill 对照仍未完成
-- 本次同步所依据的功能基线：branch `codex/team-run-v01`，implementation commit `20604c2fed0d06bf64e8a0955f04824651176057` / tree `9261a8cfd71c976d60179f79eb8d0ab51f73f2c0`；`main` 仍为 `db3b810`
+- 状态：OutputGuard Desktop recovery lineage 和 `team-plan` v0.1 已完成既有验收；`team-run` v0.1 非 live 准备层已在功能分支实现，11 项回归与四类 artifact schema 校验通过，成熟度为 `incubating`。它没有创建真实 Codex task；实际 dispatch、事实派生状态、集成、收尾和公平 no-skill 对照仍未完成
+- 本次同步所依据的功能基线：branch `codex/team-run-v01`，最终代码 commit `c5ead87fd311d6223a9a10712fd6e1e3f357bd61` / tree `8589357fe8eb75d265c20b9c6af4f7f82633702b`；`main` 仍为 `db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -73,7 +73,7 @@
 - [x] 实现首个 `incubating` `team-plan`：canonical manifest schema、标准库 validate/project helper、精炼 skill/reference 和 19 项回归
 - [x] 完成 `team-plan` RED/GREEN/REFACTOR：污染基线保留为失败语料，两次 forward test 一次 fail-closed、一次生成 4 份 digest-bound brief，四轮 fresh review 最终 approve
 - [x] 接受 D-031：`team-run` v0.1 采用非 live 准备层，不把继续推进解释为创建用户可见 task/worktree/message 的授权
-- [x] 实现 `team-run` schema/helper/skill：preregistration、runtime roots、parent/worker preflight、Prompt/dispatch bundle 和 10 项真实临时 Git/worktree 回归
+- [x] 实现 `team-run` schema/helper/skill：preregistration、runtime roots、parent/worker preflight、Prompt/dispatch bundle 和 11 项真实临时 Git/worktree 回归
 - [x] 接受 D-032：组合 CCPM、Agent Orchestrator、Gas Town、Parallel Code/Conductor 的突出机制，但所有执行仍使用 Codex 原生控制面
 
 ## 纵向切片清单（已完成与未完成）

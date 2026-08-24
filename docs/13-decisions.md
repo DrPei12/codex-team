@@ -233,7 +233,7 @@
 - 状态：Accepted
 - 用户选择：`team-run` v0.1 采用准备层范围，不创建真实 Codex task、worktree 或消息；真实 Desktop dispatch 必须作为后续单独授权阶段。
 - 决策：该入口只消费通过校验的 manifest 与机器 projection brief，生成 preregistration、run-local cache/dist/logs/pytest roots、parent preflight receipt、分层 Prompt、dispatch bundle 和未来 worker-preflight argv。输入 identity 错误在创建 output 前停止；Git/workspace 失败保留 failed receipt 且不生成 dispatch bundle；receipt 与失败 run 均不覆盖。
-- 证据：实现 commit `20604c2` / tree `9261a8c`；10 项标准库回归通过，包含真实临时 repository 和三个 worktree、Brief 篡改/symlink、dirty/ignored 分层、错误 cwd 与 receipt 不覆盖。四类生成 artifact 通过当前环境 Draft 2020-12 schema 校验，旧 `team-plan` 19 项回归保持通过。
+- 证据：最终代码 commit `c5ead87` / tree `8589357`；11 项标准库回归通过，包含真实临时 repository 和三个 worktree、Brief 篡改/symlink、global/lane clean policy、dirty/ignored 分层、错误 cwd 与 receipt 不覆盖。四类生成 artifact 通过当前环境 Draft 2020-12 schema 校验，旧 `team-plan` 19 项回归保持通过。
 - 限制：这不是 Codex Desktop create/message/wait/handoff 行为证据，没有真实 thread/project binding、live implementation、独立 fresh review、安装路径或第二 blind benchmark；成熟度只能是 `incubating`。
 
 ## D-032：复用外部系统的突出机制，不替换 Codex 原生控制面

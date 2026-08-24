@@ -308,8 +308,8 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 
 ## 第十九阶段：`team-run` v0.1 非 live 准备层
 
-用户选择 `team-run` 的 A 范围并明确禁止使用 Superpowers：本轮只能准备 dispatch，不得创建真实 Codex task、worktree、subagent 或消息。主任务在 clean `codex/team-run-v01` 分支上先写标准库行为回归，初始 `0 passed, 9 failed`；随后实现 schema/helper/skill，并增加 Brief symlink 逃逸负例，经历 `9 passed, 1 failed` 后修复到 `10 passed, 0 failed`。
+用户选择 `team-run` 的 A 范围并明确禁止使用 Superpowers：本轮只能准备 dispatch，不得创建真实 Codex task、worktree、subagent 或消息。主任务在 clean `codex/team-run-v01` 分支上先写标准库行为回归，初始 `0 passed, 9 failed`；随后实现 schema/helper/skill，并增加 Brief symlink 逃逸负例，经历 `9 passed, 1 failed` 后修复到 `10 passed, 0 failed`。最终自审又发现 global `require_clean_start=true` 未覆盖 lane 自己的 false；新增单测先失败，再修复到 `11 passed, 0 failed`。
 
-实现 commit `20604c2` / tree `9261a8c` 生成 preregistration、空的 cache/dist/logs/pytest roots、parent preflight receipt、每 lane 分层 prompt、dispatch bundle 和 worker-preflight receipt。Prompt 把 manifest/brief/runtime binding 作为可信控制信息，把 Issue、评论和粘贴文本标成不可信背景。输入或 symlink Brief 在 output 创建前失败；dirty workspace 保留 failed parent receipt但没有 dispatch；ignored inventory 与 ordinary status 分开；错误 worker cwd写 failed receipt；所有 run root 和 receipt 都不覆盖。
+最终代码 commit `c5ead87` / tree `8589357` 生成 preregistration、空的 cache/dist/logs/pytest roots、parent preflight receipt、每 lane 分层 prompt、dispatch bundle 和 worker-preflight receipt。Prompt 把 manifest/brief/runtime binding 作为可信控制信息，把 Issue、评论和粘贴文本标成不可信背景。输入或 symlink Brief 在 output 创建前失败；global/lane clean policy 统一收紧 dirty workspace；失败保留 parent receipt但没有 dispatch；ignored inventory 与 ordinary status 分开；错误 worker cwd写 failed receipt；所有 run root 和 receipt 都不覆盖。
 
 该切片没有调用 Desktop create/message/wait/handoff，也没有修改 OutputGuard。旧 `team-plan` 19 项、三份 capability snapshot、五类 workflow artifact、skill validator、JSON 和四类新 artifact schema 校验均通过。当前结论只是“非 live 准备层可执行且能 fail closed”，不是实际 dispatch 已完成；下一步先审查该功能分支并实现 read-only `team-status`，再由用户单独授权两条真正独立 lane 的 live pilot。

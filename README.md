@@ -48,7 +48,7 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orche
 - 已冻结并实际执行的 [OutputGuard 首个 Desktop 纵向切片计划](docs/19-outputguard-vertical-slice-plan.md)，以及 session plan、roster、task brief、worker report、integration queue 的最小 JSON Schema、样例和 fail-closed validator；
 - [Run02–Run10 全流程实录](docs/research/outputguard-vertical-slice-2026-08-15.md)：最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed evaluator `37/37`，同时保留每个 blocked run、一个 low finding 和 29 个 ignored bytecode 残留的限制。
 - 首个 `incubating` workflow skill：[`team-plan`](skills/team-plan/SKILL.md)、canonical manifest schema、标准库 validator/projector 和 19 项边界回归；一次 fresh forward test 生成 1 份 manifest 与 4 份 digest-bound task brief，详见 [team-plan v0.1 实录](docs/research/team-plan-v0.1-2026-08-15.md)。
-- 第二个 `incubating` workflow skill 候选：[`team-run`](skills/team-run/SKILL.md) 的非 live 准备层；它生成 preregistration、run-local roots、parent/worker preflight receipt、分层 prompt 和 dispatch bundle，10 项真实临时 Git/worktree 回归通过，但不创建 Codex task。详见 [team-run v0.1 实录](docs/research/team-run-v0.1-2026-08-24.md)。
+- 第二个 `incubating` workflow skill 候选：[`team-run`](skills/team-run/SKILL.md) 的非 live 准备层；它生成 preregistration、run-local roots、parent/worker preflight receipt、分层 prompt 和 dispatch bundle，11 项真实临时 Git/worktree 回归通过，但不创建 Codex task。详见 [team-run v0.1 实录](docs/research/team-run-v0.1-2026-08-24.md)。
 
 ## 从哪里开始读
 
@@ -63,7 +63,7 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orche
 
 `M1.2 — team-run preparation implemented; native dispatch/status next`
 
-截至 2026-08-24，`team-plan` v0.1 已在 `main`；`team-run` v0.1 准备层已在功能分支 commit `20604c2` 实现，成熟度为 `incubating`。它把同一 manifest/brief identity 延伸到 preregistration、Prompt/dispatch bundle 和 parent/worker preflight，但明确停在真实 Codex task 创建之前。
+截至 2026-08-24，`team-plan` v0.1 已在 `main`；`team-run` v0.1 准备层的最终代码身份为功能分支 commit `c5ead87`，成熟度为 `incubating`。它把同一 manifest/brief identity 延伸到 preregistration、Prompt/dispatch bundle 和 parent/worker preflight，但明确停在真实 Codex task 创建之前。
 
 首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
 
