@@ -257,11 +257,13 @@ def _parent_preflight(
 ) -> dict[str, Any]:
     errors: list[str] = []
     project_path = manifest["task_project"]["path"]
+    global_clean_required = manifest["workspace_policy"]["require_clean_start"]
+    project_clean_required = manifest["base"]["clean"] or global_clean_required
     try:
         project_observed = _observe_git(project_path)
         project_checks = {
             "branch_matches_base": project_observed["branch"] == manifest["base"]["branch"],
-            "clean_start": not project_observed["ordinary_status"] if manifest["base"]["clean"] else True,
+            "clean_start": not project_observed["ordinary_status"] if project_clean_required else True,
             "head_matches_base": project_observed["head"] == manifest["base"]["commit"],
             "path_matches_git_root": _normal_path(project_observed["top_level"])
             == _normal_path(project_observed["path"]),
@@ -284,7 +286,7 @@ def _parent_preflight(
     for lane in manifest["lanes"]:
         expected = {
             "branch": lane["workspace"]["branch"],
-            "clean_start_required": lane["workspace"]["clean_start_required"],
+            "clean_start_required": lane["workspace"]["clean_start_required"] or global_clean_required,
             "head": lane["workspace"]["base_revision"],
             "path": lane["workspace"]["path"],
         }
@@ -329,7 +331,7 @@ def _parent_preflight(
         "task_project": {
             "expected": {
                 "branch": manifest["base"]["branch"],
-                "clean_start_required": manifest["base"]["clean"],
+                "clean_start_required": project_clean_required,
                 "commit": manifest["base"]["commit"],
                 "path": project_path,
                 "tree": manifest["base"]["tree"],
@@ -589,7 +591,8 @@ def worker_preflight(manifest_value: str, brief_value: str, receipt_value: str) 
     receipt_path = _validate_receipt_path(manifest, receipt_value)
     expected = {
         "branch": lane["workspace"]["branch"],
-        "clean_start_required": lane["workspace"]["clean_start_required"],
+        "clean_start_required": lane["workspace"]["clean_start_required"]
+        or manifest["workspace_policy"]["require_clean_start"],
         "head": lane["workspace"]["base_revision"],
         "path": lane["workspace"]["path"],
     }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -331,6 +332,35 @@ def test_dirty_workspace_writes_failed_parent_receipt_only(tmp_path: Path) -> No
     assert not (run_root / "prompts").exists()
 
 
+def test_global_clean_policy_overrides_lane_relaxation(tmp_path: Path) -> None:
+    fixture = create_fixture(tmp_path)
+    manifest = fixture["manifest"]
+    assert isinstance(manifest, dict)
+    manifest["lanes"][0]["workspace"]["clean_start_required"] = False
+    Path(fixture["manifest_path"]).write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    shutil.rmtree(Path(fixture["briefs"]))
+    projection = run_command(
+        [
+            sys.executable,
+            str(TEAM_PLAN),
+            "project",
+            str(fixture["manifest_path"]),
+            "--out",
+            str(fixture["briefs"]),
+        ],
+        cwd=ROOT,
+    )
+    assert projection.returncode == 0, projection.stderr
+    (Path(fixture["core"]) / "dirty.txt").write_text("dirty\n", encoding="utf-8")
+    run_root = Path(fixture["artifact_root"]) / "run-global-clean"
+    result = run_prepare(fixture, run_root)
+    assert result.returncode == 1
+    receipt = read_json(run_root / "parent-preflight-receipt.json")
+    core = next(item for item in receipt["lanes"] if item["lane_id"] == "core")
+    assert core["expected"]["clean_start_required"] is True
+    assert core["checks"]["clean_start"] is False
+
+
 def test_ignored_inventory_is_recorded_without_failing(tmp_path: Path) -> None:
     fixture = create_fixture(tmp_path)
     (Path(fixture["core"]) / "cache.pyc").write_bytes(b"ignored")
@@ -442,6 +472,7 @@ def main() -> int:
         test_tampered_brief_is_rejected_before_output,
         test_brief_symlink_is_rejected_before_output,
         test_dirty_workspace_writes_failed_parent_receipt_only,
+        test_global_clean_policy_overrides_lane_relaxation,
         test_ignored_inventory_is_recorded_without_failing,
         test_prepare_refuses_existing_output,
         test_worker_preflight_passes_in_assigned_workspace,
