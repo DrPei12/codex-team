@@ -2,7 +2,7 @@
 
 这套文档采用“先建立共同语言，再进入运行规则，最后进入实现与评测”的顺序。读者无需一次加载全部内容。
 
-最后同步：2026-08-18。当前功能基线为 `17d71bc`，首个 `incubating` skill `team-plan` 已进入 `main`；下一实现入口是 `team-run`。
+最后同步：2026-08-24。`team-plan` 已在 `main`；`team-run` 非 live 准备层已在功能分支 commit `20604c2` 实现，下一步是审查该切片并实现 read-only `team-status`，真实 Desktop dispatch 仍需单独授权。
 
 ## 第一层：五分钟了解项目
 
@@ -42,6 +42,8 @@
 - [OutputGuard 纵向切片机器 evidence](../evidence/experiments/2026-08-15-outputguard-vertical-slice.json)
 - [2026-08-15 team-plan v0.1 实录](research/team-plan-v0.1-2026-08-15.md)
 - [team-plan v0.1 机器 evidence](../evidence/skills/2026-08-15-team-plan-v0.1.json)
+- [2026-08-24 team-run v0.1 准备层实录](research/team-run-v0.1-2026-08-24.md)
+- [team-run v0.1 机器 evidence](../evidence/skills/2026-08-24-team-run-v0.1.json)
 - [模板目录](templates/README.md)
 
 ## 文档状态标签

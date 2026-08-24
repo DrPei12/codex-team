@@ -226,3 +226,20 @@
 - 证据：19 项标准库回归通过；fresh forward test `01a005b5-5aa9-7581-918f-fd307003321a` 首次 validate PASS，生成 4 份 digest-bound brief；独立 reviewer 在四轮中先后发现 7 个 P1 边界缺陷，最终对 commit `9254d1d` / tree `bd4eb2b` 给出 `approve`。
 - 限制：no-skill 基线读取了 7 条历史 solution ref 并使用其他 planning skill，不能作为公平 A/B；当前只验证 repo-local 显式加载，未验证安装、隐式触发、Windows junction、实际 dispatch、第二 blind benchmark 或多任务收益。该 skill 只能标为 `incubating`。
 - 模型记录：本轮所有新建/续跑 Desktop 任务均按用户明确要求请求 `gpt-5.6-luna` + `max`；产品读取结果未暴露 effective 值，因此只记录 requested，不能宣称严格控制了 effective 配置。
+
+## D-031：`team-run` v0.1 先冻结为非 live 准备层
+
+- 日期：2026-08-24
+- 状态：Accepted
+- 用户选择：`team-run` v0.1 采用准备层范围，不创建真实 Codex task、worktree 或消息；真实 Desktop dispatch 必须作为后续单独授权阶段。
+- 决策：该入口只消费通过校验的 manifest 与机器 projection brief，生成 preregistration、run-local cache/dist/logs/pytest roots、parent preflight receipt、分层 Prompt、dispatch bundle 和未来 worker-preflight argv。输入 identity 错误在创建 output 前停止；Git/workspace 失败保留 failed receipt 且不生成 dispatch bundle；receipt 与失败 run 均不覆盖。
+- 证据：实现 commit `20604c2` / tree `9261a8c`；10 项标准库回归通过，包含真实临时 repository 和三个 worktree、Brief 篡改/symlink、dirty/ignored 分层、错误 cwd 与 receipt 不覆盖。四类生成 artifact 通过当前环境 Draft 2020-12 schema 校验，旧 `team-plan` 19 项回归保持通过。
+- 限制：这不是 Codex Desktop create/message/wait/handoff 行为证据，没有真实 thread/project binding、live implementation、独立 fresh review、安装路径或第二 blind benchmark；成熟度只能是 `incubating`。
+
+## D-032：复用外部系统的突出机制，不替换 Codex 原生控制面
+
+- 日期：2026-08-24
+- 状态：Accepted
+- 决策：任务拆分吸收 CCPM 的 PRD/Epic/依赖/冲突思想，但继续使用本项目唯一 manifest；状态层吸收 Agent Orchestrator 的“持久事实 → 派生显示状态”和 Prompt 分层；集成/恢复吸收 Gas Town 的状态机、失败分类和 append-only recovery；未来可视化参考 Parallel Code/Conductor 的一任务一 workspace 卡片。所有实际 task、worktree、message、wait 和 handoff 仍使用 Codex 原生入口。
+- 非目标：不引入外部 daemon、tmux、SQLite/CDC、Beads/Dolt、Agent adapter 或第二套 worktree/CLI launcher；不复制 CCPM 的共享 epic worktree，也不在证据不足时复制 Gas Town batch-then-bisect 自动合并。
+- 来源与许可：Gas Town、CCPM、Parallel Code 为 MIT，Agent Orchestrator 为 Apache-2.0；当前项目尚无 LICENSE，因此本轮只独立实现机制和契约，没有复制外部源码。任何后续源码复用必须先确定本项目 LICENSE/NOTICE 策略并固定来源 revision。

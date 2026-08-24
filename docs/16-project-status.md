@@ -2,10 +2,10 @@
 
 ## Snapshot
 
-- 日期：2026-08-18
-- 阶段：`M1.1 — team-plan accepted; team-run next`
-- 状态：OutputGuard Run02–Run10 的 Desktop recovery lineage 已完成验收；首个可执行入口 `team-plan` v0.1 已进入 `main`，通过 19 项回归、独立审查和 fresh forward test，成熟度为 `incubating`。真实 dispatch、状态追踪、集成、收尾和公平 no-skill 对照仍未完成
-- 本次同步所依据的功能基线：commit `17d71bca7d237f5346f1e8370a4d318dd343dc0c` / tree `0a2bbebd433bcd25b186306e4b486093e345eb91`；同步开始时 `main` clean
+- 日期：2026-08-24
+- 阶段：`M1.2 — team-run preparation implemented; native dispatch/status next`
+- 状态：OutputGuard Desktop recovery lineage 和 `team-plan` v0.1 已完成既有验收；`team-run` v0.1 非 live 准备层已在功能分支实现，10 项回归与四类 artifact schema 校验通过，成熟度为 `incubating`。它没有创建真实 Codex task；实际 dispatch、事实派生状态、集成、收尾和公平 no-skill 对照仍未完成
+- 本次同步所依据的功能基线：branch `codex/team-run-v01`，implementation commit `20604c2fed0d06bf64e8a0955f04824651176057` / tree `9261a8cfd71c976d60179f79eb8d0ab51f73f2c0`；`main` 仍为 `db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -23,7 +23,7 @@
 - [x] 大型多-skill 架构与渐进式披露方案
 - [x] 评测矩阵、决策日志、开放问题和讨论记录
 - [x] 结构化模板草案
-- [x] Codex/Claude 原生能力、oh-my-codex/gstack/Superpowers/Gas Town 和代表性研究的第一轮 prior-art 调查
+- [x] Codex/Claude 原生能力、oh-my-codex/gstack/Superpowers/Gas Town 和代表性研究的第一轮 prior-art 调查；补充核验 Agent Orchestrator、CCPM、Parallel Code/Conductor 并接受 Codex 原生组合边界
 - [x] Claim-level evidence ledger、能力层级、未补坑点、查询日志与代码 snapshot
 - [x] 社区开源研究定位、skills 成熟度和“pattern/role 不自动等于 skill”的架构修订
 - [x] 当前 Windows、Codex AppX `26.803.10989.0`、CLI `0.146.0`、相关 feature flag、Git 与 repo 静态 snapshot
@@ -72,6 +72,9 @@
 - [x] 完成 [OutputGuard 全流程实录](research/outputguard-vertical-slice-2026-08-15.md)和[机器 evidence](../evidence/experiments/2026-08-15-outputguard-vertical-slice.json)
 - [x] 实现首个 `incubating` `team-plan`：canonical manifest schema、标准库 validate/project helper、精炼 skill/reference 和 19 项回归
 - [x] 完成 `team-plan` RED/GREEN/REFACTOR：污染基线保留为失败语料，两次 forward test 一次 fail-closed、一次生成 4 份 digest-bound brief，四轮 fresh review 最终 approve
+- [x] 接受 D-031：`team-run` v0.1 采用非 live 准备层，不把继续推进解释为创建用户可见 task/worktree/message 的授权
+- [x] 实现 `team-run` schema/helper/skill：preregistration、runtime roots、parent/worker preflight、Prompt/dispatch bundle 和 10 项真实临时 Git/worktree 回归
+- [x] 接受 D-032：组合 CCPM、Agent Orchestrator、Gas Town、Parallel Code/Conductor 的突出机制，但所有执行仍使用 Codex 原生控制面
 
 ## 纵向切片清单（已完成与未完成）
 
@@ -81,9 +84,10 @@
 - [x] 资格化离线 package build 命令，并把 dist/cache 全部限制在 run artifact 目录
 - [x] 用真实 Desktop task 验证 saved project 控制入口与 assigned permanent worktree 写入边界
 - [x] 启动真实 Desktop lane，并通过多次 fail-closed successor run 形成可验收 recovery lineage；未得到“一次无中断四任务 run”证据
-- [x] 把 canonical manifest、机器派生 projection 和 artifact/worktree 安全边界固化为 `team-plan` v0.1 schema/validator；Gate/recovery/cleanliness receipts 仍待后续入口
+- [x] 把 canonical manifest、机器派生 projection 和 artifact/worktree 安全边界固化为 `team-plan` v0.1 schema/validator
 - [x] 实现并验证 `team-plan` v0.1；成熟度为 `incubating`
-- [ ] 实现 `team-run`、`team-status`、`team-integrate`、`team-finish`，并把 `team-recover` 纳入首批 incubating 候选
+- [x] 实现 `team-run` v0.1 非 live 准备层；真实 Desktop create/message/wait 与 thread/project binding 未验证
+- [ ] 实现 read-only `team-status`、`team-integrate`、`team-finish`，并把 `team-recover` 纳入首批 incubating 候选
 - [ ] 建立 Desktop-native 实验记录器，强制 client surface、task/project、Git identity、证据路径和可观察的 requested/effective model/thinking 取证
 - [x] 完成第一次 Desktop-native 多任务恢复链的 exact-tree public/review/sealed 验收
 - [ ] 在隔离 solution objects/refs 的新 Git object store 中补充 OutputGuard Desktop single；将其明确标为有顺序污染风险的补充对照
@@ -95,17 +99,18 @@
 
 ## 下一里程碑建议
 
-`M1.1 — Turn the accepted manual lineage into incubating skills`
+`M1.2 — Bind native Codex task facts to the prepared workflow`
 
 产物：
 
 1. 冻结 Run02–Run10 failure corpus 和 Run10 exact-tree acceptance evidence，不重跑 sealed、不清理隔离现场；
-2. 已完成 `team-plan` 范围的 canonical manifest 与 brief projection；下一步补 preregistration、Gate/recovery/cleanliness receipt；
-3. deterministic helpers：parent/worker preflight、artifact-root 初始化、Git/diff identity、Gate receipt、ordinary/untracked/ignored audit；
-4. `team-plan` 已完成；继续 `team-run -> team-status -> team-integrate -> team-finish` 的最小 incubating 实现；
-5. `team-recover` 的 incubating 实现：predecessor、exact candidate、已成立 proof、唯一新事实、预算和 stop rule；
-6. 用 OutputGuard 失败语料做已知回归，再冻结 skills；
-7. 选择第二个未见 benchmark，建立反 solution-ref 泄漏边界，完成主要 no-skill/native single/native multi-task/skill-assisted 对照。
+2. 已完成 `team-plan` canonical manifest/brief projection 与 `team-run` preregistration、runtime roots、Prompt/dispatch bundle、parent/worker preflight；
+3. 先审查并接收 `codex/team-run-v01`，再实现 read-only `team-status`：从 task/Git/artifact 持久事实派生显示状态，不把 worker 自报直接写成项目真相；
+4. 由用户单独授权一个两条真正独立 lane 的 Desktop live pilot，记录 create 返回的 thread/project/workspace binding，并让真实 worker 执行已生成的 preflight argv；
+5. 随后实现 `team-integrate -> team-finish` 的串行拓扑接收、Gate receipt 和 ordinary/untracked/ignored/operation-residue audit；
+6. `team-recover` 的 incubating 实现：predecessor、exact candidate、已成立 proof、唯一新事实、预算和 stop rule；
+7. 用 OutputGuard 失败语料做已知回归，再冻结 skills；
+8. 选择第二个未见 benchmark，建立反 solution-ref 泄漏边界，完成主要 no-skill/native single/native multi-task/skill-assisted 对照。
 
 已有 capability evidence 是安全输入，不再要求先补齐全部产品行为。纵向切片依赖某个 unknown 时才做对应 probe，并把未覆盖组合继续标为 unknown。
 
@@ -119,8 +124,10 @@
 - CLI 历史回合能读取 token usage，但 Desktop task/follow-up/fork 未保证暴露同等 usage；telemetry 仍不完整，不能混合统计；
 - 外部论文和社区仓库更新很快，数字和 HEAD 只能作为 2026-08-10 snapshot；
 - skill 可能无正向边际效用、与项目版本冲突或形成供应链/权限风险；
-- `team-plan` 当前通过 repo-local 绝对路径显式加载；作为可安装 skill 后能否稳定定位共享 schema/helper 尚未验证；
+- `team-plan` 与 `team-run` 当前通过 repo-local 路径显式加载；作为可安装 skill 后能否稳定定位共享 schema/helper 尚未验证；
 - `team-plan` 的 symlink 边界已实测，Windows junction 未现场实测；
+- `team-run` 已实测 Brief symlink、dirty/ignored、错误 cwd 和 receipt 不覆盖，但未覆盖 Windows junction、submodule/LFS、detached HEAD 或 Git operation residue；
+- 当前仓库没有 LICENSE；本轮只独立实现 prior-art 思想，没有复制外部源码。任何后续源码复用必须先决定 LICENSE/NOTICE；
 - 独立 cwd/worktree 仍会加载用户级 memory、skills、plugins、MCP 与 Git 配置；文件隔离不能当作上下文隔离；
 - 两个历史 CLI 会话并发启动时出现一次共享 system-skills 目录 access-denied；它是 Desktop preflight 的风险提示，不是 Desktop 已复现缺陷；
 - 第一组 minimal flags 已证明不安全且更贵，不能因名称是“minimal”就在后续 worker 中默认使用；
@@ -140,4 +147,4 @@
 
 ## 完成 Phase 0 的判定
 
-Phase 0 已在根提交 `35bec95` 完成：项目目录、文档、模板和 Git 基线存在且通过链接/结构检查，绑定项目的 Codex 主任务完成接管，第一轮 prior-art、项目定位和研究路线完成。当前已经进入 M1.1；仍然没有 `stable` skill，但已有一个经过初步实测的 `incubating` `team-plan`，后续状态必须明确区分这两个成熟度。
+Phase 0 已在根提交 `35bec95` 完成：项目目录、文档、模板和 Git 基线存在且通过链接/结构检查，绑定项目的 Codex 主任务完成接管，第一轮 prior-art、项目定位和研究路线完成。当前已经进入 M1.2；仍然没有 `stable` skill，但已有 `incubating` `team-plan` 与非 live `team-run` 准备层。后者尚未进入 `main`，也不能表述为真实 Desktop dispatch 已完成。

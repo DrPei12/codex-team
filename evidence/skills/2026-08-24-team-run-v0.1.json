@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-evaluation-evidence",
+  "skill": "team-run",
+  "maturity": "incubating",
+  "date": "2026-08-24",
+  "scope": "preparation-only; no live Codex task dispatch",
+  "implementation": {
+    "branch": "codex/team-run-v01",
+    "base_commit": "db3b81001b970d0b0be00cd41eb75c805dfde629",
+    "commit": "20604c2fed0d06bf64e8a0955f04824651176057",
+    "tree": "9261a8cfd71c976d60179f79eb8d0ab51f73f2c0",
+    "tests": {
+      "command": "python -B tests/test_team_run.py",
+      "result": "10 passed, 0 failed"
+    },
+    "team_plan_regression": {
+      "command": "python -B tests/test_team_plan.py",
+      "result": "19 passed, 0 failed"
+    },
+    "skill_validation": "Skill is valid!",
+    "generated_artifact_schema_check": "4 of 4 generated artifacts passed Draft 2020-12 validation"
+  },
+  "outputs": [
+    "preregistration",
+    "parent-preflight-receipt",
+    "dispatch-bundle",
+    "worker-preflight-receipt",
+    "per-lane prompt markdown",
+    "empty run-local cache/dist/logs/pytest roots"
+  ],
+  "authorization": {
+    "create_tasks": false,
+    "create_worktrees": false,
+    "send_messages": false,
+    "implement_target_code": false
+  },
+  "failure_boundaries": [
+    "tampered or symlinked briefs fail before the run directory is created",
+    "dirty workspace preserves a failed parent receipt and produces no dispatch bundle",
+    "ignored files are inventoried separately from ordinary status",
+    "wrong worker cwd produces a failed exclusive receipt",
+    "existing run roots and worker receipts are never overwritten"
+  ],
+  "prior_art_influence": {
+    "ccpm": "dependency and conflict vocabulary mapped to the existing manifest and ownership validator",
+    "agent_orchestrator": "trusted brief and runtime binding separated from untrusted external context",
+    "gas_town": "integration and recovery concepts deferred to their owning future workflows",
+    "parallel_code_conductor": "one-task-one-workspace display model deferred to team-status"
+  },
+  "known_limits": [
+    "No Codex Desktop task, thread, message, wait, handoff, archive, or implementation action was performed.",
+    "No installed-skill path, implicit trigger, Windows junction, submodule, LFS, detached-HEAD, or Git-operation-residue test was performed.",
+    "No independent fresh review, second blind benchmark, or fair no-skill marginal-utility result exists.",
+    "The repository has no LICENSE; no external source code was copied."
+  ]
+}

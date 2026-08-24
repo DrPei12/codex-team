@@ -26,6 +26,10 @@
 | Proof-carrying handoff | 携带可验证证据而非仅有自然语言声明的交接 |
 | Canonical run manifest | 一次 run 中 revision、tree、路径、hash、命令、预算和授权的单一机器事实源；其他 brief/preregistration/receipt 是它的 projection |
 | Projection | 从 canonical manifest 机器生成或验证的角色/阶段视图，不独立拥有重复身份事实 |
+| Preregistration | 在 dispatch 或实验前冻结 manifest/brief identity、输入 hash、runtime roots、授权与停止条件的机器记录；用于防止看到结果后移动条件 |
+| Dispatch bundle | `team-run` 准备的每 lane Brief/Prompt/workspace/runtime/preflight 绑定集合；不含尚未创建的 thread/task ID，也不等于已派发 |
+| Parent preflight receipt | 在创建真实 worker 前，由主编排者记录 task project 与计划 workspace Git 身份、cleanliness 和边界检查的机器回执 |
+| Worker preflight receipt | 由真实 worker 在 assigned workspace 内再次验证 cwd/common-dir/branch/HEAD/clean 与 Brief 后写出的独占回执 |
 | Recovery lineage | 多个 append-only run 通过 predecessor 与 exact candidate/evidence 连接的恢复链；后继成功不改写前驱失败 |
 | Gate receipt | 绑定 target identity、命令、环境、exit、摘要和 artifact hash 的机器可验收记录 |
 | Gate | 进入下一阶段前必须满足的机械或人工验收条件 |

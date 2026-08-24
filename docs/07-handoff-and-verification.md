@@ -139,4 +139,4 @@ Worker 回报应按这个顺序：
 
 ## 已观察与尚需实测
 
-OutputGuard recovery lineage 已观察到：exact identity 验证、affected/public Gate 分层、fresh review、单次 sealed authorization 和 append-only recovery 能在一个 Windows/Codex Desktop 案例中闭环。证据复用的正确率、测试选择算法、环境指纹粒度、flaky 处理、跨仓库泛化和重复可靠率仍需第二 benchmark 与多次对照；不能把一次观察写成通用缓存保证。
+OutputGuard recovery lineage 已观察到：exact identity 验证、affected/public Gate 分层、fresh review、单次 sealed authorization 和 append-only recovery 能在一个 Windows/Codex Desktop 案例中闭环。`team-run` v0.1 又在临时真实 Git/worktree fixture 上观察到：preregistration、parent/worker preflight、ordinary/ignored 分层与独占 receipt 可以在 dispatch 前 fail closed；这仍不是 Desktop task 创建或真实 worker 执行证据。证据复用的正确率、测试选择算法、环境指纹粒度、flaky 处理、跨仓库泛化和重复可靠率仍需第二 benchmark 与多次对照；不能把一次观察写成通用缓存保证。

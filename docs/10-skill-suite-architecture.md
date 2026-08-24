@@ -19,13 +19,13 @@ D-023 再收紧了执行边界：这里的 “Codex session/task” 默认就是
 | 候选名 | 责任 |
 |---|---|
 | `team-plan` | 读需求与仓库，先冻结共享契约，再输出任务图、session 数、文件所有权、依赖、worktree、Gate 和集成顺序 |
-| `team-run` | 按用户接受的计划通过 Desktop 创建/选择 task 与 workspace，派发 task brief，记录 task/project identity、起始 revision 和可观察的模型配置 |
+| `team-run` | 先从已接受 manifest/brief 生成 preregistration、runtime roots、preflight 与 Prompt/dispatch bundle；真实 task/workspace 创建和消息派发必须是后续单独授权阶段 |
 | `team-status` | 汇总 roster、依赖、阻塞、消息、证据和下一动作；必要时重派或收缩 scope |
 | `team-integrate` | 校验 worker report/commit/evidence，按依赖顺序接收，运行独立 review 与 affected/integration Gate |
 | `team-finish` | 形成里程碑结论，归档已接收的一次性任务，保留未获授权清理的 worktree，并写明恢复入口 |
 | `team-recover` | 从一个明确 blocked run 继续：绑定精确 candidate、旧证据、尚未建立的新事实和新预算；保持旧 run 不变，禁止无关重做 |
 
-截至 2026-08-18，`team-plan` v0.1 已达到 `incubating` 并进入 `main`（被同步的功能基线为 `17d71bc`）：它能生成并校验 canonical run manifest，再从同一 digest 派生 task briefs；它不会创建任务、消息、worktree 或实现代码。其运行时 validator 已覆盖 DAG、Windows ownership 别名、workspace/artifact real-path 边界、Reviewer 对 Integrator 目标树的只读依赖和 projection 覆盖保护。它尚未验证安装后的共享路径、隐式触发、Windows junction、第二个 blind benchmark 或真实 dispatch，因此不能标为 `stable`。其他入口仍是设计候选。
+截至 2026-08-24，`team-plan` v0.1 已达到 `incubating` 并进入 `main`；`team-run` v0.1 非 live 准备层已在功能分支 commit `20604c2` 实现。它验证 manifest/brief identity、初始化 run-local roots、记录 parent/worker Git preflight，并生成带可信 Brief 与不可信外部上下文边界的 Prompt/dispatch bundle；10 项回归通过。它没有创建 task/worktree/message，也未验证安装路径、真实 Desktop dispatch、独立 fresh review、第二 blind benchmark 或正向边际效用，因此仍只能标 `incubating`。其他入口仍是设计候选。
 
 `team-review`、`team-benchmark` 和 capability audit 后续可以形成独立入口；第一版仍可作为 `team-integrate`、`team-status` 或项目开发工具的子流程。`team-recover` 的晋升来自重复实测：Run03、Run05、Run06、Run08、Run09、Run10 都需要“保留旧结论，只验证一个新事实”的恢复语义。入口 skill 是路由器和治理者，不应复制每个范式的完整说明。
 
@@ -215,9 +215,9 @@ codex-multitask-engineering/
 
 长期范围可以超过 20 个 skills，但首批实现按证据风险排序，不按目录展示效果排序：
 
-1. 已完成第一小段共享 schema/validator：canonical run manifest、生成式 projection 和 artifact-root/worktree safety；Gate receipt、recovery link 和 ordinary/ignored cleanliness receipt 仍待后续入口；
+1. 已完成两段共享 schema/helper：canonical run manifest 与生成式 brief projection，以及 team-run preregistration、artifact-root 初始化、Prompt/dispatch bundle、parent/worker preflight 和 ordinary/ignored inventory；Gate receipt、recovery link 与 finish cleanliness receipt 仍待后续入口；
 2. 已实现 `team-plan` v0.1：仓库调查、contract freeze、DAG、所有权和集成计划，并生成 canonical manifest；当前成熟度为 `incubating`；
-3. `team-run`：从 manifest 派生 brief/preregistration，通过 Desktop 创建 3–5 条可观察的 worker task/workspace，先由 parent 和真实 task 分别通过机器 preflight；
+3. 已实现 `team-run` v0.1 非 live 准备层；下一步在用户单独授权后，用两条真正独立 lane 验证 Desktop task/workspace 创建与真实 worker preflight，不把 3–5 条写成未经测试的固定下限；
 4. `team-status`：等待、消息、阻塞、依赖解锁和 append-only timeline，不把 `DONE` 当作 `ACCEPTED`；
 5. `team-integrate`：单一 integrator 接收 commit/evidence，运行合并产生的新事实 Gate，并要求新 Reviewer；
 6. `team-finish`：状态收口、sealed authorization、ordinary/ignored audit、归档候选和 worktree 保留/清理边界；

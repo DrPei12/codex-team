@@ -68,6 +68,13 @@ Claude Code 不在实现和兼容范围，但其原生协作能力是重要 prio
 - [Superpowers @ 44c9b2d](https://github.com/obra/superpowers/tree/44c9b2d6e889982ac18c27d05a19fefe335194e1)：worktree、TDD、subagent-driven development、两阶段 review 和 skill 行为测试。
 - [Gas Town @ 649b832](https://github.com/gastownhall/gastown/tree/649b832b7672bc7a2dbef26f5983aba6198b819b)：git-backed ledger、mail、handoff、watchdog、merge queue、scheduler 和 telemetry。
 
+2026-08-21 又按用户提供的并行开发系统清单核验以下当前 HEAD，用于 D-032 的 Codex 原生组合设计：
+
+- [Agent Orchestrator @ 52fde02](https://github.com/Untrivial-ai/agent-orchestrator/tree/52fde027975fdeacd49b98d13c172ed30b79042e)：长期 orchestrator/worker、SQLite/CDC、持久事实派生状态、Prompt 分层、CI/review 反馈路由和一任务一 worktree；Apache-2.0。其 daemon 与 Agent adapter 不是本项目运行目标。
+- [CCPM @ 7d7e462](https://github.com/automazeio/ccpm/tree/7d7e4623bc6d4c0c9ba66ca6bfecd7e5261dc697)：PRD→Epic→Task、`depends_on`、`parallel`、`conflicts_with`、GitHub sync 与确定性状态脚本；MIT。Epic 内多个 stream 可共享 worktree，因此只复用规划语义。
+- [Parallel Code @ 9b47562](https://github.com/johannesjo/parallel-code/tree/9b47562c4ccf6c22680dda884935750c1d63d4de)：一任务一 branch/worktree、集中终端/diff/CI 和人工 merge/discard；MIT。它启动外部 Agent CLI，不替代 Codex Desktop 原生 task。
+- [Conductor worktree 文档](https://www.conductor.build/docs/concepts/git-worktrees)：workspace 绑定文件、branch、commands、chat 和 review flow 的界面参照；只学习交互模型。
+
 这些仓库是机制、规模与失败处理的参照，不是竞品，也不是兼容目标。文档或源码存在不能替代安装后的黑盒复现。
 
 ## 长时与多 Agent 能力研究

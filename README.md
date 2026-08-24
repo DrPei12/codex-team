@@ -26,7 +26,7 @@
 
 只面向 Codex。不会设计“平台无关核心”、adapter 层或 Claude Code 兼容预留。如果未来需要 Claude Code 版本，应作为独立项目重新设计。
 
-Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论文可以作为 prior art 与实验参照，但不是本项目要兼容的运行目标，也不是需要击败的竞争对象。项目规模可以随可靠能力累积而扩大；边界来自 Codex plugin/skills 能承载什么，而不是预先规定一个最小目录。
+Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orchestrator、CCPM、Parallel Code/Conductor 和相关论文可以作为 prior art 与实验参照，但不是本项目要兼容的运行目标，也不是需要击败的竞争对象。项目规模可以随可靠能力累积而扩大；边界来自 Codex plugin/skills 能承载什么，而不是预先规定一个最小目录。
 
 ## 当前成果
 
@@ -48,6 +48,7 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论�
 - 已冻结并实际执行的 [OutputGuard 首个 Desktop 纵向切片计划](docs/19-outputguard-vertical-slice-plan.md)，以及 session plan、roster、task brief、worker report、integration queue 的最小 JSON Schema、样例和 fail-closed validator；
 - [Run02–Run10 全流程实录](docs/research/outputguard-vertical-slice-2026-08-15.md)：最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed evaluator `37/37`，同时保留每个 blocked run、一个 low finding 和 29 个 ignored bytecode 残留的限制。
 - 首个 `incubating` workflow skill：[`team-plan`](skills/team-plan/SKILL.md)、canonical manifest schema、标准库 validator/projector 和 19 项边界回归；一次 fresh forward test 生成 1 份 manifest 与 4 份 digest-bound task brief，详见 [team-plan v0.1 实录](docs/research/team-plan-v0.1-2026-08-15.md)。
+- 第二个 `incubating` workflow skill 候选：[`team-run`](skills/team-run/SKILL.md) 的非 live 准备层；它生成 preregistration、run-local roots、parent/worker preflight receipt、分层 prompt 和 dispatch bundle，10 项真实临时 Git/worktree 回归通过，但不创建 Codex task。详见 [team-run v0.1 实录](docs/research/team-run-v0.1-2026-08-24.md)。
 
 ## 从哪里开始读
 
@@ -60,10 +61,10 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和相关论�
 
 ## 当前阶段
 
-`M1.1 — team-plan accepted; team-run next`
+`M1.2 — team-run preparation implemented; native dispatch/status next`
 
-截至 2026-08-18，已确认的功能基线是 `17d71bc`：`team-plan` v0.1 已进入 `main`，但成熟度仍为 `incubating`。它完成的是“冻结并校验计划、生成绑定同一 manifest digest 的 task brief”，不是任务派发、状态追踪、集成或收尾。
+截至 2026-08-24，`team-plan` v0.1 已在 `main`；`team-run` v0.1 准备层已在功能分支 commit `20604c2` 实现，成熟度为 `incubating`。它把同一 manifest/brief identity 延伸到 preregistration、Prompt/dispatch bundle 和 parent/worker preflight，但明确停在真实 Codex task 创建之前。
 
 首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
 
-Run02–Run10 暴露的 canonical identity、artifact root、所有权和 review target 约束，已经先进入 `team-plan` v0.1；但 Gate receipt、recovery link、cleanliness receipt、安装/隐式触发和实际 dispatch 仍未完成。下一步实现 `team-run` 的最小 Desktop dispatch/preflight 切片，再接 `team-status`、`team-integrate`、`team-finish` 与候选 `team-recover`。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。
+Run02–Run10 暴露的 canonical identity、artifact root、所有权和 review target 约束，已经进入 `team-plan` 与 `team-run` 准备层；实际 Desktop dispatch、事实派生 `team-status`、Gate/recovery/finish receipt、安装/隐式触发和公平对照仍未完成。下一步先审查并接收当前功能分支，再实现 read-only `team-status`，随后由用户单独授权一个两条真正独立 lane 的 Desktop live pilot。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。

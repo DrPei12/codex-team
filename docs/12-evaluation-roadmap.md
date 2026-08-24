@@ -8,7 +8,7 @@
 
 Prior-art 调查进一步表明，skills 本身也必须作为 intervention 评测：目录更多、prompt 更长或流程更完整，不等于 pass rate 更高。每个可执行 skill 都应尽量有 no-skill baseline；每个多任务拓扑都应和能力相近的单任务/subagent baseline 比较。
 
-截至 2026-08-18，`team-plan` v0.1 的实现、19 项回归、独立审查和一次 fresh forward test 已完成；OutputGuard 无 skill baseline 因读取历史 solution refs 和其他 planning guidance 被判为污染，只保留作 failure corpus。因此当前只有“skill 可以 fail closed 并生成一致 brief”的证据，还没有公平的边际效用数字。
+截至 2026-08-24，`team-plan` v0.1 的实现、19 项回归、独立审查和一次 fresh forward test 已完成；`team-run` v0.1 非 live 准备层又完成 10 项临时真实 Git/worktree 回归和四类生成 artifact schema 校验。当前证据只支持“两个 skill 可以在 repo-local 条件下 fail closed，并把 manifest identity 延伸到 brief/preflight/dispatch 准备”；没有真实 Desktop dispatch、独立 team-run review 或公平边际效用数字。OutputGuard 无 skill baseline 因读取历史 solution refs 和其他 planning guidance被判为污染，只保留作 failure corpus。
 
 ## 已完成的最小通信实验
 
@@ -50,7 +50,7 @@ fixture hex: 61-6C-70-68-61-0A-20-20-20-0A-CE-B2-65-74-61
 - Claude Agent Teams 官方说明、Anthropic C 编译器实验和多 Agent scaling 研究都把任务可分解性列为关键条件；本项目必须先描述任务拓扑，再评价并发。
 - 长时 harness 实践显示 progress artifact、context reset/handoff 和高质量 verifier 是持续运行条件；不能只测“Agent 是否一直在线”。
 - SWE-Skills-Bench 报告公开 skills 的平均边际收益很小且存在版本冲突退化；本项目不能跳过 paired evaluation。
-- Gas Town 等 runtime 展示了 ledger、watchdog、merge queue 和 recovery 的高水位，但本项目是 skills/plugin 工程，实验应区分“可由 skill 驱动的操作法”和“需要后台 runtime 的机制”。
+- Gas Town 等 runtime 展示了 ledger、watchdog、merge queue 和 recovery 的高水位；Agent Orchestrator 展示了持久事实、派生状态与 Prompt/反馈路由；CCPM 展示了 PRD/Epic/Task 分解；Parallel Code/Conductor 展示了一任务一 worktree 的可视化。本项目只复现可由 Codex 原生 task + skill/schema/helper 驱动的机制，不复制其 daemon、adapter 或第二套 workspace runtime。
 - gstack 源码显示其长处是阶段化 sprint，跨 session 并行主要交给 Conductor；Superpowers 把写入任务默认串行并逐任务审查，只并行真正独立的 domain；oh-my-codex 的耐久 Team 依赖 tmux/runtime。三者共同说明：第一实验应验证真实任务拆分和集成，不应继续把已知原语 smoke test 当主成果。
 - 详细来源、适用条件和反面证据见 [prior-art 与能力上限调查](research/prior-art-and-capability-limits.md)。
 - 针对大型工程方法的源码级提炼见 [大型 Skill 套件的工程方法提炼](research/large-skill-suite-engineering-methods.md)。
@@ -210,7 +210,7 @@ Active 基线以当前 Windows Codex Desktop 为准。既有 CLI 结果保留在
 2. **Native subagent**：一个主任务按当前原生能力使用 subagent。
 3. **Native multi-task**：多个用户可见 Codex 任务，在 same-directory 或 worktree 中工作，不加载本项目治理 skill。
 4. **Project workflow**：加载当前被评测的 skill、schema 与 helper。
-5. **External mechanism reproduction**：只复现 Claude Teams、oh-my-codex、gstack、Superpowers 或 Gas Town 的一个具体机制，不把整个外部系统当成可直接比较的参赛者。
+5. **External mechanism reproduction**：只复现 Claude Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orchestrator、CCPM 或 Parallel Code/Conductor 的一个具体机制，不把整个外部系统当成可直接比较的参赛者。
 
 Codex 官方文档提供测试用例 baseline，A2A 提供 task/message/artifact 语义 baseline，长上下文和多 Agent 研究提供风险假设。实际阈值必须用当前 Codex 模型和真实代码库重测，不能直接照搬论文、作者经验或产品推荐数字。
 
@@ -241,9 +241,10 @@ Codex 官方文档提供测试用例 baseline，A2A 提供 task/message/artifact
 6. 已完成：离线 package build qualification 和 assigned permanent worktree task preflight；两者均保留失败尝试、固定输入和父任务独立验收，且不接触 sealed evaluator。
 7. 已完成：Desktop 原生 task 形成 Run02–Run10 recovery lineage，最终 exact tree 通过 public Gate、fresh review 和单次 sealed Gate；失败 run 不翻案，CLI 不作 fallback。该事实不等于无中断四任务 run 或多任务优于 single。
 8. 部分完成：`team-plan` v0.1 已实现 canonical manifest、机器派生 projection、artifact/worktree real-path 边界和 19 项回归；Gate receipt、append-only recovery link、ordinary/ignored cleanliness receipt 仍待其他入口。
-9. 部分完成：`team-plan` 已作为首个 `incubating` skill 通过 fresh forward test；`team-run`、`team-status`、`team-integrate`、`team-finish` 和 `team-recover` 尚未实现。OutputGuard 只作为已知 failure corpus，不把本轮结果当 no-skill A/B。
-10. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
-11. skills 实现冻结后选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow。再注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
-12. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。
+9. 部分完成：`team-plan` 已作为首个 `incubating` skill 通过 fresh forward test；`team-run` v0.1 非 live 准备层已实现 preregistration、runtime roots、parent/worker preflight 与 Prompt/dispatch bundle，但真实 task 创建/消息/等待未运行。`team-status`、`team-integrate`、`team-finish` 和 `team-recover` 尚未实现。
+10. 下一步先实现 read-only `team-status` 的“持久事实 → 派生状态”最小投影，再由用户单独授权一个两条真正独立 lane 的 Desktop live pilot；不要为了展示并发固定创建 3–5 条任务。
+11. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
+12. skills 实现冻结后选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow。再注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
+13. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。
 
 这项顺序替代“先完成全部 capability contract 再开始纵向切片”的旧安排。已有 capability evidence 保留为安全输入，但不再是 M1 的主交付。

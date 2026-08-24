@@ -18,17 +18,26 @@
 - `team-plan` 成功后必须停止，不创建任务或 worktree；因此它只回答“计划是否结构上可执行”，没有回答真实 Desktop dispatch 是否成功。
 - no-skill baseline 读取了历史 solution refs，不能用于计算 skill 提升。详见 [`team-plan` v0.1 实录](research/team-plan-v0.1-2026-08-15.md)。
 
+## `team-run` v0.1 准备层已经部分回答
+
+- preregistration、parent/worker preflight、Prompt/dispatch bundle 继续引用同一 manifest digest；brief 还绑定自身 raw SHA-256，不产生第二份任务真相。
+- cache、dist、logs、pytest root 在 dispatch 前初始化为空并写入 preregistration；ordinary dirty 触发 parent/worker fail closed，ignored inventory 单独记录。
+- Prompt 已区分可信项目规则/brief/runtime binding 与不可信 Issue、评论和粘贴背景；bundle 不包含虚构的 thread/task ID。
+- 正确输入生成 `ready_for_authorized_dispatch` 后立即停止，不创建 Codex task/worktree/message；因此它仍没有回答真实 Desktop dispatch、worker runtime context 或 task binding 是否成功。
+- 10 项临时真实 Git/worktree 回归通过，但没有独立 fresh Reviewer、安装后运行、第二 blind benchmark 或公平 no-skill 对照。详见 [`team-run` v0.1 实录](research/team-run-v0.1-2026-08-24.md)。
+
 ## P0：继续实现剩余入口前必须回答
 
-1. `team-plan` 已冻结 manifest → brief 的最小字段；preregistration、freeze、handoff、Gate receipt 和 acceptance 中哪些字段继续由 manifest 派生，哪些允许人工叙述？
-2. manifest → brief 已冻结 UTF-8、sorted keys、无空白分隔和 SHA-256；后续 preregistration、Gate/recovery/cleanliness receipt 如何复用同一 canonical identity 和字节规则？
+1. manifest → brief → preregistration/dispatch 已冻结同一 canonical digest；handoff、Gate receipt、recovery、acceptance 和 finish 中哪些字段继续机器派生，哪些允许人工叙述？
+2. 后续 Gate/recovery/cleanliness receipt 如何复用同一 canonical identity、brief raw hash 和字节规则，同时只添加本阶段真实新事实？
 3. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
-4. `team-run` 如何统一创建/验证 artifact、pytest、cache、dist root，并让 parent 与真实 Desktop task 分别完成 preflight？
+4. `team-run` 准备层已完成 root 初始化与 parent/worker helper；真实 Desktop task 如何消费 dispatch bundle、写入 thread/project binding，并在真实回合运行同一 worker preflight？
 5. `team-status` 如何把 Desktop read/wait/message、artifact timeline 和 Git state 合并为事实视图，既不相信单一自报，也不无理由重复昂贵命令？
 6. `team-integrate` 如何生成可验证 Gate receipt；review、sealed authorization 和 public Gate 的责任边界怎样编码？
 7. `team-recover` 如何约束 predecessor、candidate、旧 proof、唯一新事实和预算，防止恢复任务顺手扩大 scope？
 8. 第一批 skills 如何打包共享 schema/scripts，才能在安装后保持相对路径稳定又不复制大量资源？
 9. Desktop 未显式暴露 effective model/thinking 或 token 时，run artifact 应怎样保留 `unknown` 并维持可解释的对照？
+10. 项目应采用什么 LICENSE 与 NOTICE 策略，才能在未来确有必要时合规复用 MIT/Apache-2.0 prior-art 源码，同时保持来源 revision 与本地改写可追溯？
 
 ## P1：第二个 blind 纵向切片中回答
 

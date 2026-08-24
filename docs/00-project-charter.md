@@ -8,7 +8,7 @@
 
 ## 背景
 
-Codex 中的长期任务已经更接近独立工程成员：它们有独立历史，可以在独立 worktree 中工作，可以收发任务消息，也能在内部调用 subagent。官方产品、Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town 和长时 Agent 实验已经分别展示了这些机制的不同组合，但没有替代针对当前 Codex 环境的系统复现与边界研究。
+Codex 中的长期任务已经更接近独立工程成员：它们有独立历史，可以在独立 worktree 中工作，可以收发任务消息，也能在内部调用 subagent。官方产品、Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orchestrator、CCPM、Parallel Code/Conductor 和长时 Agent 实验已经分别展示了这些机制的不同组合，但没有替代针对当前 Codex 环境的系统复现与边界研究。
 
 但“任务数量翻倍”不等于“产出翻倍”。没有系统治理时，并发会带来新的损失：重复探索、契约漂移、同文件冲突、合并失败、重复测试、上下文老化、消息噪声、无人回收的任务和无法审计的完成声明。
 
@@ -69,4 +69,4 @@ Codex 中的长期任务已经更接近独立工程成员：它们有独立历�
 
 Phase 0 已完成项目目录、Git 基线、文档体系、prior-art 调查和设计基线。M1 已用 OutputGuard Run02–Run10 建立一条保留失败历史的 Desktop recovery lineage，并通过 public、fresh review 和单次 sealed Gate；它不是一次无中断多任务成功，也没有证明多任务优于 single。
 
-截至 2026-08-18，项目进入 M1.1：首个可执行入口 `team-plan` v0.1 已合并到 `main`。它能冻结 canonical manifest、校验任务图/所有权/workspace/Reviewer 边界，并生成 digest-bound task brief；19 项回归和一次 fresh forward test 通过，成熟度为 `incubating`。下一步是 `team-run` 的最小 Desktop dispatch/preflight 切片，再依次推进 `team-status`、`team-integrate`、`team-finish` 和候选 `team-recover`。只有 workflow 依赖未知产品语义时才补最小 capability probe，未实测部分继续标为 `unknown`。
+截至 2026-08-24，项目进入 M1.2：`team-plan` v0.1 已在 `main`；`team-run` v0.1 非 live 准备层已在功能分支 commit `20604c2` 实现。后者能生成 preregistration、run-local roots、parent/worker preflight、分层 prompt 和 dispatch bundle，但不创建真实 Codex task。下一步是审查/接收该切片并实现 read-only `team-status`，再由用户单独授权一个最小 Desktop live pilot；`team-integrate`、`team-finish` 与 `team-recover` 仍待实现。只有 workflow 依赖未知产品语义时才补最小 capability probe，未实测部分继续标为 `unknown`。

@@ -46,7 +46,7 @@ Agent 消息也不应成为不可读的纯 JSON 垃圾。推荐“短人类摘�
 - exact command、环境、artifact-root 初始状态、次数预算和 stop rule；
 - task、review、sealed 与 cleanup 的授权边界。
 
-Session plan、roster、task brief、preregistration、freeze 和 receipt 是 manifest 的角色/阶段 projection。它们可以增加本角色的叙述，但不能成为重复 identity 的第二事实源。
+Session plan、roster、task brief、preregistration、Prompt/dispatch bundle、freeze 和 receipt 是 manifest 的角色/阶段 projection。它们可以增加本角色或运行阶段的叙述与新观察事实，但不能成为重复 identity 的第二事实源。`team-run` v0.1 已把 manifest digest、brief file hash、workspace/runtime binding 和 worker-preflight argv 机器关联起来；真实 task/thread ID 只能在后续获授权创建成功后作为新事实写入 roster，不能提前伪造。
 
 ### Worker Card
 

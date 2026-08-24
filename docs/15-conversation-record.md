@@ -299,3 +299,17 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 `team-plan` v0.1 与实验实录、机器 evidence 最终快进合并到 `main` 功能基线 `17d71bc` / tree `0a2bbebd`。合并后的主目录重新通过 19 项回归、skill validator、真实 forward manifest、三份 capability contract、五类 workflow artifact、负例拒绝、严格 UTF-8、JSON/YAML/schema 和 Markdown 本地链接检查。
 
 当前结论是：项目已经有第一个可执行但仅属 `incubating` 的 skill；它只负责冻结并验证计划，成功后停止，不派发任务。安装后的共享路径、隐式触发、Windows junction、真实 dispatch、第二个 blind benchmark 和公平 skill 边际效用仍未验证。下一入口固定为 `team-run` 的最小 Desktop dispatch/preflight 切片，而不是继续在 OutputGuard 上添加真实功能。
+
+## 第十八阶段：吸收近邻项目的优势并冻结 Codex 原生组合
+
+用户提供一份对 Gas Town、Agent Orchestrator、CCPM、Parallel Code/Conductor、Claude `/batch` 等系统的检索结果，并要求判断哪些机制可以融入“创建多个 Codex 原生线程、统一管理和分发 Prompt”的场景。主任务重新核验官方仓库与文档后纠正了一个范围风险：AO 和 Gas Town 都是带 daemon/adapter/workspace 管理的独立 runtime，直接套在本项目上会形成第二控制面；CCPM 的 Epic 内多个 stream 还可能共享一个 worktree，弱于本项目的写入隔离政策。
+
+用户接受的组合是：任务拆分学习 CCPM，但继续由 canonical manifest 做唯一真相；状态和 Prompt 学习 AO 的持久事实、派生显示状态和可信/不可信分层；集成与恢复学习 Gas Town 的状态机和失败分类，但第一版不复制 batch-then-bisect 自动合并；未来任务可视化学习 Parallel Code/Conductor 的一任务一 workspace 卡片。所有 task、worktree、message、wait 和 handoff 仍使用 Codex 原生入口，不引入外部 Agent CLI launcher、tmux、Beads/Dolt、SQLite/CDC 或跨平台 adapter。该决定记录为 D-032。
+
+## 第十九阶段：`team-run` v0.1 非 live 准备层
+
+用户选择 `team-run` 的 A 范围并明确禁止使用 Superpowers：本轮只能准备 dispatch，不得创建真实 Codex task、worktree、subagent 或消息。主任务在 clean `codex/team-run-v01` 分支上先写标准库行为回归，初始 `0 passed, 9 failed`；随后实现 schema/helper/skill，并增加 Brief symlink 逃逸负例，经历 `9 passed, 1 failed` 后修复到 `10 passed, 0 failed`。
+
+实现 commit `20604c2` / tree `9261a8c` 生成 preregistration、空的 cache/dist/logs/pytest roots、parent preflight receipt、每 lane 分层 prompt、dispatch bundle 和 worker-preflight receipt。Prompt 把 manifest/brief/runtime binding 作为可信控制信息，把 Issue、评论和粘贴文本标成不可信背景。输入或 symlink Brief 在 output 创建前失败；dirty workspace 保留 failed parent receipt但没有 dispatch；ignored inventory 与 ordinary status 分开；错误 worker cwd写 failed receipt；所有 run root 和 receipt 都不覆盖。
+
+该切片没有调用 Desktop create/message/wait/handoff，也没有修改 OutputGuard。旧 `team-plan` 19 项、三份 capability snapshot、五类 workflow artifact、skill validator、JSON 和四类新 artifact schema 校验均通过。当前结论只是“非 live 准备层可执行且能 fail closed”，不是实际 dispatch 已完成；下一步先审查该功能分支并实现 read-only `team-status`，再由用户单独授权两条真正独立 lane 的 live pilot。
