@@ -1,0 +1,371 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask/team-run-artifacts.schema.json",
+  "title": "Codex team-run preparation artifacts v0.1",
+  "oneOf": [
+    {"$ref": "#/$defs/preregistration"},
+    {"$ref": "#/$defs/parent_preflight_receipt"},
+    {"$ref": "#/$defs/worker_preflight_receipt"},
+    {"$ref": "#/$defs/dispatch_bundle"}
+  ],
+  "$defs": {
+    "nonempty_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "sha256"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "brief_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "path", "sha256"],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "header": {
+      "type": "object",
+      "required": ["profile", "schema_version", "kind", "manifest_ref", "recorded_at"],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-run"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"$ref": "#/$defs/nonempty_string"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["create_tasks", "create_worktrees", "implement_code", "send_messages"],
+      "properties": {
+        "create_tasks": {"const": false},
+        "create_worktrees": {"const": false},
+        "implement_code": {"const": false},
+        "send_messages": {"const": false}
+      }
+    },
+    "runtime_roots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cache", "dist", "logs", "pytest"],
+      "properties": {
+        "cache": {"$ref": "#/$defs/nonempty_string"},
+        "dist": {"$ref": "#/$defs/nonempty_string"},
+        "logs": {"$ref": "#/$defs/nonempty_string"},
+        "pytest": {"$ref": "#/$defs/nonempty_string"}
+      }
+    },
+    "manifest_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "raw_sha256", "canonical_sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "raw_sha256": {"$ref": "#/$defs/sha256"},
+        "canonical_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "expected_workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "clean_start_required", "head", "path"],
+      "properties": {
+        "branch": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty_string"},
+            {"type": "null"}
+          ]
+        },
+        "clean_start_required": {"type": "boolean"},
+        "head": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "path": {"$ref": "#/$defs/nonempty_string"}
+      }
+    },
+    "git_observation": {
+      "type": "object",
+      "required": [
+        "path",
+        "top_level",
+        "common_dir",
+        "branch",
+        "head",
+        "tree",
+        "ordinary_status",
+        "ignored_files"
+      ],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "top_level": {"type": ["string", "null"]},
+        "common_dir": {"type": ["string", "null"]},
+        "branch": {"type": ["string", "null"]},
+        "head": {"type": ["string", "null"]},
+        "tree": {"type": ["string", "null"]},
+        "ordinary_status": {"type": "array", "items": {"type": "string"}},
+        "ignored_files": {"type": "array", "items": {"type": "string"}},
+        "error": {"$ref": "#/$defs/nonempty_string"}
+      },
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "boolean"}
+    },
+    "lane_preflight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "expected", "observed", "checks"],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "expected": {"$ref": "#/$defs/expected_workspace"},
+        "observed": {"$ref": "#/$defs/git_observation"},
+        "checks": {"$ref": "#/$defs/checks"}
+      }
+    },
+    "preregistration": {
+      "allOf": [
+        {"$ref": "#/$defs/header"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "schema_version",
+            "kind",
+            "manifest_ref",
+            "recorded_at",
+            "objective",
+            "authorization",
+            "inputs",
+            "runtime_roots",
+            "planned_lanes",
+            "stop_conditions"
+          ],
+          "properties": {
+            "profile": {"const": "codex-multitask-team-run"},
+            "schema_version": {"const": "0.1"},
+            "kind": {"const": "preregistration"},
+            "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+            "recorded_at": {"$ref": "#/$defs/timestamp"},
+            "objective": {"$ref": "#/$defs/nonempty_string"},
+            "authorization": {"$ref": "#/$defs/authorization"},
+            "inputs": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["manifest", "briefs"],
+              "properties": {
+                "manifest": {"$ref": "#/$defs/manifest_input"},
+                "briefs": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {"$ref": "#/$defs/brief_ref"}
+                }
+              }
+            },
+            "runtime_roots": {"$ref": "#/$defs/runtime_roots"},
+            "planned_lanes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/nonempty_string"},
+              "uniqueItems": true
+            },
+            "stop_conditions": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/nonempty_string"}
+            }
+          }
+        }
+      ]
+    },
+    "parent_preflight_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/header"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "schema_version",
+            "kind",
+            "manifest_ref",
+            "recorded_at",
+            "status",
+            "task_project",
+            "lanes",
+            "errors"
+          ],
+          "properties": {
+            "profile": {"const": "codex-multitask-team-run"},
+            "schema_version": {"const": "0.1"},
+            "kind": {"const": "parent-preflight-receipt"},
+            "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+            "recorded_at": {"$ref": "#/$defs/timestamp"},
+            "status": {"enum": ["passed", "failed"]},
+            "task_project": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["expected", "observed", "checks"],
+              "properties": {
+                "expected": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["branch", "clean_start_required", "commit", "path", "tree"],
+                  "properties": {
+                    "branch": {"$ref": "#/$defs/nonempty_string"},
+                    "clean_start_required": {"type": "boolean"},
+                    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+                    "path": {"$ref": "#/$defs/nonempty_string"},
+                    "tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+                  }
+                },
+                "observed": {"$ref": "#/$defs/git_observation"},
+                "checks": {"$ref": "#/$defs/checks"}
+              }
+            },
+            "lanes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/lane_preflight"}
+            },
+            "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
+          }
+        }
+      ]
+    },
+    "worker_preflight_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/header"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "schema_version",
+            "kind",
+            "manifest_ref",
+            "brief_ref",
+            "recorded_at",
+            "lane_id",
+            "status",
+            "expected",
+            "observed",
+            "checks",
+            "errors"
+          ],
+          "properties": {
+            "profile": {"const": "codex-multitask-team-run"},
+            "schema_version": {"const": "0.1"},
+            "kind": {"const": "worker-preflight-receipt"},
+            "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+            "brief_ref": {"$ref": "#/$defs/brief_ref"},
+            "recorded_at": {"$ref": "#/$defs/timestamp"},
+            "lane_id": {"$ref": "#/$defs/nonempty_string"},
+            "status": {"enum": ["passed", "failed"]},
+            "expected": {"$ref": "#/$defs/expected_workspace"},
+            "observed": {"$ref": "#/$defs/git_observation"},
+            "checks": {"$ref": "#/$defs/checks"},
+            "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
+          }
+        }
+      ]
+    },
+    "dispatch_lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_id",
+        "role",
+        "depends_on",
+        "task_project",
+        "workspace",
+        "runtime",
+        "brief_ref",
+        "prompt_ref",
+        "worker_preflight_argv",
+        "external_context_policy"
+      ],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "role": {"enum": ["implementer", "integrator", "reviewer"]},
+        "depends_on": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
+        "task_project": {"type": "object"},
+        "workspace": {"type": "object"},
+        "runtime": {"type": "object"},
+        "brief_ref": {"$ref": "#/$defs/brief_ref"},
+        "prompt_ref": {"$ref": "#/$defs/file_ref"},
+        "worker_preflight_argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "external_context_policy": {"const": "untrusted-background-only"}
+      }
+    },
+    "dispatch_bundle": {
+      "allOf": [
+        {"$ref": "#/$defs/header"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "schema_version",
+            "kind",
+            "manifest_ref",
+            "recorded_at",
+            "status",
+            "authorization_required",
+            "lanes"
+          ],
+          "properties": {
+            "profile": {"const": "codex-multitask-team-run"},
+            "schema_version": {"const": "0.1"},
+            "kind": {"const": "dispatch-bundle"},
+            "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+            "recorded_at": {"$ref": "#/$defs/timestamp"},
+            "status": {"const": "ready_for_authorized_dispatch"},
+            "authorization_required": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/nonempty_string"}
+            },
+            "lanes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"$ref": "#/$defs/dispatch_lane"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

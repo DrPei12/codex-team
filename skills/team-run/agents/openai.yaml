@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team Run"
+  short_description: "Prepare verified Codex task dispatch bundles"
+  default_prompt: "Use $team-run to prepare preflight receipts and a dispatch bundle from an accepted team-plan manifest without creating tasks."
