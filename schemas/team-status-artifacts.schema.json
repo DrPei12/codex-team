@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask/team-status-artifacts.schema.json",
+  "title": "Codex team-status facts and snapshots v0.1",
+  "oneOf": [
+    {"$ref": "#/$defs/status_facts"},
+    {"$ref": "#/$defs/status_snapshot"}
+  ],
+  "$defs": {
+    "nonempty_string": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "nullable_timestamp": {
+      "oneOf": [
+        {"$ref": "#/$defs/timestamp"},
+        {"type": "null"}
+      ]
+    },
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "sha256"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "task_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["thread_id", "project_id", "state", "last_event_at"],
+      "properties": {
+        "thread_id": {"type": ["string", "null"], "minLength": 1},
+        "project_id": {"type": ["string", "null"], "minLength": 1},
+        "state": {
+          "enum": [
+            "not-created",
+            "active",
+            "idle",
+            "waiting-input",
+            "completed",
+            "failed",
+            "canceled",
+            "archived",
+            "unknown"
+          ]
+        },
+        "last_event_at": {"$ref": "#/$defs/nullable_timestamp"}
+      }
+    },
+    "workspace_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "head", "ordinary_status", "observed_at"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "head": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+        "ordinary_status": {"type": "array", "items": {"type": "string"}},
+        "observed_at": {"$ref": "#/$defs/nullable_timestamp"}
+      }
+    },
+    "report_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "path", "sha256"],
+      "properties": {
+        "status": {"enum": ["absent", "partial", "completed", "blocked"]},
+        "path": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty_string"},
+            {"type": "null"}
+          ]
+        },
+        "sha256": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "evidence_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "path", "sha256"],
+      "properties": {
+        "state": {"enum": ["not-checked", "missing", "valid", "invalid"]},
+        "path": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty_string"},
+            {"type": "null"}
+          ]
+        },
+        "sha256": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "lane_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_id",
+        "task",
+        "workspace",
+        "worker_report",
+        "evidence",
+        "acceptance_state",
+        "integration_state",
+        "review_state",
+        "blocked_reason",
+        "archived"
+      ],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "task": {"$ref": "#/$defs/task_fact"},
+        "workspace": {"$ref": "#/$defs/workspace_fact"},
+        "worker_report": {"$ref": "#/$defs/report_fact"},
+        "evidence": {"$ref": "#/$defs/evidence_fact"},
+        "acceptance_state": {"enum": ["pending", "accepted", "rejected"]},
+        "integration_state": {"enum": ["not-started", "pending", "integrated", "blocked"]},
+        "review_state": {"enum": ["not-requested", "pending", "approved", "changes-requested"]},
+        "blocked_reason": {"type": ["string", "null"], "minLength": 1},
+        "archived": {"type": "boolean"}
+      }
+    },
+    "status_facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "observed_at",
+        "source",
+        "lanes"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-status"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "status-facts"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "observed_at": {"$ref": "#/$defs/timestamp"},
+        "source": {"$ref": "#/$defs/nonempty_string"},
+        "lanes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/lane_fact"}
+        }
+      }
+    },
+    "derived_lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane_id",
+        "role",
+        "status",
+        "reason",
+        "depends_on",
+        "blocking_dependencies",
+        "task",
+        "workspace",
+        "worker_receipt_ref",
+        "next_action"
+      ],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "role": {"enum": ["implementer", "integrator", "reviewer"]},
+        "status": {
+          "enum": [
+            "planned",
+            "preparation-failed",
+            "waiting-dependency",
+            "ready-for-dispatch",
+            "preflight",
+            "preflight-failed",
+            "working",
+            "no-signal",
+            "needs-input",
+            "needs-evidence",
+            "handoff-ready",
+            "accepted",
+            "integrating",
+            "integrated",
+            "review-pending",
+            "reviewed",
+            "changes-requested",
+            "blocked",
+            "archived"
+          ]
+        },
+        "reason": {"$ref": "#/$defs/nonempty_string"},
+        "depends_on": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
+        "blocking_dependencies": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
+        "task": {"$ref": "#/$defs/task_fact"},
+        "workspace": {"$ref": "#/$defs/workspace_fact"},
+        "worker_receipt_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/file_ref"},
+            {"type": "null"}
+          ]
+        },
+        "next_action": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty_string"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "status_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "generated_at",
+        "facts_ref",
+        "run_status",
+        "counts",
+        "lanes",
+        "next_actions"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-status"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "status-snapshot"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "generated_at": {"$ref": "#/$defs/timestamp"},
+        "facts_ref": {"$ref": "#/$defs/file_ref"},
+        "run_status": {
+          "enum": [
+            "planned",
+            "preparation-failed",
+            "waiting-dependency",
+            "ready-for-dispatch",
+            "working",
+            "needs-input",
+            "receiving",
+            "reviewed",
+            "blocked"
+          ]
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 1}
+        },
+        "lanes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/derived_lane"}
+        },
+        "next_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["lane_id", "action"],
+            "properties": {
+              "lane_id": {"$ref": "#/$defs/nonempty_string"},
+              "action": {"$ref": "#/$defs/nonempty_string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
