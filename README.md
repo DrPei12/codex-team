@@ -49,6 +49,7 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orche
 - [Run02–Run10 全流程实录](docs/research/outputguard-vertical-slice-2026-08-15.md)：最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed evaluator `37/37`，同时保留每个 blocked run、一个 low finding 和 29 个 ignored bytecode 残留的限制。
 - 首个 `incubating` workflow skill：[`team-plan`](skills/team-plan/SKILL.md)、canonical manifest schema、标准库 validator/projector 和 19 项边界回归；一次 fresh forward test 生成 1 份 manifest 与 4 份 digest-bound task brief，详见 [team-plan v0.1 实录](docs/research/team-plan-v0.1-2026-08-15.md)。
 - 第二个 `incubating` workflow skill 候选：[`team-run`](skills/team-run/SKILL.md) 的非 live 准备层；它生成 preregistration、run-local roots、parent/worker preflight receipt、分层 prompt 和 dispatch bundle，11 项真实临时 Git/worktree 回归通过，但不创建 Codex task。详见 [team-run v0.1 实录](docs/research/team-run-v0.1-2026-08-24.md)。
+- 第三个 `incubating` workflow skill 候选：[`team-status`](skills/team-status/SKILL.md) 的只读派生层；它从 manifest-bound facts/receipts/report/evidence 计算 lane 状态、依赖阻塞和下一动作，18 项回归通过，但不读取 live Codex task。详见 [team-status v0.1 实录](docs/research/team-status-v0.1-2026-08-24.md)。
 
 ## 从哪里开始读
 
@@ -61,10 +62,10 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orche
 
 ## 当前阶段
 
-`M1.2 — team-run preparation implemented; native dispatch/status next`
+`M1.3 — team-status renderer implemented; native observer/live pilot next`
 
-截至 2026-08-24，`team-plan` v0.1 已在 `main`；`team-run` v0.1 准备层的最终代码身份为功能分支 commit `c5ead87`，成熟度为 `incubating`。它把同一 manifest/brief identity 延伸到 preregistration、Prompt/dispatch bundle 和 parent/worker preflight，但明确停在真实 Codex task 创建之前。
+截至 2026-08-24，`team-plan` v0.1 已在 `main`；stacked feature branches 已实现 `team-run` 非 live 准备层（commit `c5ead87`）和 `team-status` 只读派生层（commit `08892eb`），成熟度均为 `incubating`。前者停在真实 Codex task 创建之前；后者停在 live list/read/wait 观察之前。
 
 首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
 
-Run02–Run10 暴露的 canonical identity、artifact root、所有权和 review target 约束，已经进入 `team-plan` 与 `team-run` 准备层；实际 Desktop dispatch、事实派生 `team-status`、Gate/recovery/finish receipt、安装/隐式触发和公平对照仍未完成。下一步先审查并接收当前功能分支，再实现 read-only `team-status`，随后由用户单独授权一个两条真正独立 lane 的 Desktop live pilot。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。
+Run02–Run10 暴露的 canonical identity、artifact root、所有权、状态和 review target 约束，已经进入 `team-plan`、`team-run` 与 `team-status`；实际 Desktop dispatch、live facts collector、Gate/recovery/finish receipt、安装/隐式触发和公平对照仍未完成。下一步先审查并接收 stacked branches，再实现只读 Codex-native observation adapter，随后由用户单独授权一个两条真正独立 lane 的 Desktop live pilot。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。

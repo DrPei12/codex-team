@@ -313,3 +313,13 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 最终代码 commit `c5ead87` / tree `8589357` 生成 preregistration、空的 cache/dist/logs/pytest roots、parent preflight receipt、每 lane 分层 prompt、dispatch bundle 和 worker-preflight receipt。Prompt 把 manifest/brief/runtime binding 作为可信控制信息，把 Issue、评论和粘贴文本标成不可信背景。输入或 symlink Brief 在 output 创建前失败；global/lane clean policy 统一收紧 dirty workspace；失败保留 parent receipt但没有 dispatch；ignored inventory 与 ordinary status 分开；错误 worker cwd写 failed receipt；所有 run root 和 receipt 都不覆盖。
 
 该切片没有调用 Desktop create/message/wait/handoff，也没有修改 OutputGuard。旧 `team-plan` 19 项、三份 capability snapshot、五类 workflow artifact、skill validator、JSON 和四类新 artifact schema 校验均通过。当前结论只是“非 live 准备层可执行且能 fail closed”，不是实际 dispatch 已完成；下一步先审查该功能分支并实现 read-only `team-status`，再由用户单独授权两条真正独立 lane 的 live pilot。
+
+## 第二十阶段：`team-status` v0.1 只读事实派生
+
+用户继续授权沿 Codex 原生组合方向推进，但没有授权 merge main 或创建真实 task。主任务因此从 clean `codex/team-run-v01@79d8934` 建立 stacked branch `codex/team-status-v01`，只实现 artifact-to-status renderer，不调用 list/read/wait/message，也不修改 Git workspace。
+
+代码先以 11 个缺失入口 RED 开始，随后实现 `status-facts` / `status-snapshot` schema、`init-facts`、`render` 和 skill/reference。自审继续加入 parent preparation failure、facts 路径逃逸、完成时 dirty workspace、dispatch binding 篡改、accepted/archive 依赖语义、矛盾 integration facts与跨-run report/evidence 等负例，最终达到 `18 passed, 0 failed`。
+
+最终规则记录为 D-033：持久 facts 与显示状态严格分离；依赖只认 `acceptance_state=accepted`，不认 `archived` 或 worker 自报；高风险事实优先于 active/idle；Manifest、dispatch、Prompt、Brief、receipt、facts、report/evidence 的 identity/hash 在派生前闭合；当前 run 外的 handoff 文件不能复用。实现 commit `08892eb` / tree `5de613b`。
+
+该结果仍不证明 live task 状态准确。下一步是独立的 Codex-native observation adapter：只读取 list/read/wait 与 Git/artifact并写新 facts，不发送消息。完成后才考虑用户单独授权的两 lane live pilot。

@@ -26,13 +26,20 @@
 - 正确输入生成 `ready_for_authorized_dispatch` 后立即停止，不创建 Codex task/worktree/message；因此它仍没有回答真实 Desktop dispatch、worker runtime context 或 task binding 是否成功。
 - 11 项临时真实 Git/worktree 回归通过，但没有独立 fresh Reviewer、安装后运行、第二 blind benchmark 或公平 no-skill 对照。详见 [`team-run` v0.1 实录](research/team-run-v0.1-2026-08-24.md)。
 
+## `team-status` v0.1 只读派生层已经部分回答
+
+- facts 与 display status 已分离；snapshot 可重建，不把 `DONE`、消息或 UI 标签写回项目真相。
+- 初始 Core/CLI 可显示 `ready-for-dispatch`，依赖它们的 Integrator/Reviewer 显示 `waiting-dependency`；依赖只由 `acceptance_state=accepted` 解锁。
+- parent/worker preflight、Manifest/dispatch/Prompt/Brief、task binding、report/evidence 和 current-run path/hash 均在派生前交叉验证；dirty handoff、跨-run evidence、矛盾 integration facts 与 identity 漂移 fail closed。
+- 当前 facts 仍由文件输入模拟；没有 Codex list/read/wait collector、消息送达、cursor 或长期状态准确率证据。详见 [`team-status` v0.1 实录](research/team-status-v0.1-2026-08-24.md)。
+
 ## P0：继续实现剩余入口前必须回答
 
 1. manifest → brief → preregistration/dispatch 已冻结同一 canonical digest；handoff、Gate receipt、recovery、acceptance 和 finish 中哪些字段继续机器派生，哪些允许人工叙述？
 2. 后续 Gate/recovery/cleanliness receipt 如何复用同一 canonical identity、brief raw hash 和字节规则，同时只添加本阶段真实新事实？
 3. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
 4. `team-run` 准备层已完成 root 初始化与 parent/worker helper；真实 Desktop task 如何消费 dispatch bundle、写入 thread/project binding，并在真实回合运行同一 worker preflight？
-5. `team-status` 如何把 Desktop read/wait/message、artifact timeline 和 Git state 合并为事实视图，既不相信单一自报，也不无理由重复昂贵命令？
+5. `team-status` renderer 已完成；Codex-native observation adapter 如何把 Desktop list/read/wait、Git state 和 artifact timeline 写成新的 immutable facts，处理重复/延迟/cursor，同时不发送消息或无理由重复昂贵命令？
 6. `team-integrate` 如何生成可验证 Gate receipt；review、sealed authorization 和 public Gate 的责任边界怎样编码？
 7. `team-recover` 如何约束 predecessor、candidate、旧 proof、唯一新事实和预算，防止恢复任务顺手扩大 scope？
 8. 第一批 skills 如何打包共享 schema/scripts，才能在安装后保持相对路径稳定又不复制大量资源？

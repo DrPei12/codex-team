@@ -25,6 +25,8 @@
 
 这些是项目控制平面状态，不替代 A2A Task 的规范状态。
 
+`team-status` v0.1 进一步把“持久事实”和“显示状态”分开：facts 记录 task identity/state、workspace、report/evidence、acceptance、integration、review、blocker 和 archive；`working`、`needs-evidence`、`ready-for-dispatch` 等显示状态在读取时派生，不持久化回 facts。`archived` 只影响活跃 roster，本身不证明依赖已验收。
+
 ## 默认保留策略
 
 ### 应保留

@@ -69,4 +69,4 @@ Codex 中的长期任务已经更接近独立工程成员：它们有独立历�
 
 Phase 0 已完成项目目录、Git 基线、文档体系、prior-art 调查和设计基线。M1 已用 OutputGuard Run02–Run10 建立一条保留失败历史的 Desktop recovery lineage，并通过 public、fresh review 和单次 sealed Gate；它不是一次无中断多任务成功，也没有证明多任务优于 single。
 
-截至 2026-08-24，项目进入 M1.2：`team-plan` v0.1 已在 `main`；`team-run` v0.1 非 live 准备层最终代码身份为功能分支 commit `c5ead87`。后者能生成 preregistration、run-local roots、parent/worker preflight、分层 prompt 和 dispatch bundle，但不创建真实 Codex task。下一步是审查/接收该切片并实现 read-only `team-status`，再由用户单独授权一个最小 Desktop live pilot；`team-integrate`、`team-finish` 与 `team-recover` 仍待实现。只有 workflow 依赖未知产品语义时才补最小 capability probe，未实测部分继续标为 `unknown`。
+截至 2026-08-24，项目进入 M1.3：`team-plan` v0.1 已在 `main`；stacked feature branches 已实现 `team-run` v0.1 非 live 准备层和 `team-status` v0.1 只读派生层。前者生成 preregistration、runtime roots、preflight、Prompt/dispatch bundle但不创建 task；后者从 durable facts 派生状态但不读取 live task。下一步是审查/接收两层并实现 Codex-native 只读 observation adapter，再由用户单独授权最小 Desktop live pilot；`team-integrate`、`team-finish` 与 `team-recover` 仍待实现。只有 workflow 依赖未知产品语义时才补最小 capability probe，未实测部分继续标为 `unknown`。

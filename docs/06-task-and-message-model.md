@@ -146,6 +146,7 @@ Requested action: integrator validate evidence key, merge, then run affected-con
 - `failed` 要区分产品缺陷、环境失败、权限失败和任务定义失败。
 - run-level `blocked` 是 append-only 结论；后继 recovery 的成功通过 predecessor link 表达，不覆盖旧状态。
 - 状态消息到达不等于磁盘状态或 revision 已被验收。
+- `team-status` v0.1 的 `status-facts` 只保存 task/workspace/report/evidence/acceptance/integration/review 等观察；`status-snapshot` 是可重建 projection。显示状态不得回写成新事实，依赖解锁只认 `acceptance_state=accepted`，不认 worker 自报或 `archived` 标签。
 
 ## 可靠性原则
 

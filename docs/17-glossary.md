@@ -30,6 +30,9 @@
 | Dispatch bundle | `team-run` 准备的每 lane Brief/Prompt/workspace/runtime/preflight 绑定集合；不含尚未创建的 thread/task ID，也不等于已派发 |
 | Parent preflight receipt | 在创建真实 worker 前，由主编排者记录 task project 与计划 workspace Git 身份、cleanliness 和边界检查的机器回执 |
 | Worker preflight receipt | 由真实 worker 在 assigned workspace 内再次验证 cwd/common-dir/branch/HEAD/clean 与 Brief 后写出的独占回执 |
+| Status facts | manifest-bound 的持久观察：task/workspace/report/evidence/acceptance/integration/review/blocker/archive；不保存派生 UI 状态 |
+| Status snapshot | 从一份 status facts 和当前 run receipts 确定性生成的可重建状态视图，包含 lane/run status、reason、blocking dependencies 和 next action |
+| Derived status | 根据持久事实按风险优先级计算的显示状态；不能反向当作新事实或依赖完成证明 |
 | Recovery lineage | 多个 append-only run 通过 predecessor 与 exact candidate/evidence 连接的恢复链；后继成功不改写前驱失败 |
 | Gate receipt | 绑定 target identity、命令、环境、exit、摘要和 artifact hash 的机器可验收记录 |
 | Gate | 进入下一阶段前必须满足的机械或人工验收条件 |

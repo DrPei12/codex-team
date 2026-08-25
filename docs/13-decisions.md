@@ -243,3 +243,13 @@
 - 决策：任务拆分吸收 CCPM 的 PRD/Epic/依赖/冲突思想，但继续使用本项目唯一 manifest；状态层吸收 Agent Orchestrator 的“持久事实 → 派生显示状态”和 Prompt 分层；集成/恢复吸收 Gas Town 的状态机、失败分类和 append-only recovery；未来可视化参考 Parallel Code/Conductor 的一任务一 workspace 卡片。所有实际 task、worktree、message、wait 和 handoff 仍使用 Codex 原生入口。
 - 非目标：不引入外部 daemon、tmux、SQLite/CDC、Beads/Dolt、Agent adapter 或第二套 worktree/CLI launcher；不复制 CCPM 的共享 epic worktree，也不在证据不足时复制 Gas Town batch-then-bisect 自动合并。
 - 来源与许可：Gas Town、CCPM、Parallel Code 为 MIT，Agent Orchestrator 为 Apache-2.0；当前项目尚无 LICENSE，因此本轮只独立实现机制和契约，没有复制外部源码。任何后续源码复用必须先确定本项目 LICENSE/NOTICE 策略并固定来源 revision。
+
+## D-033：`team-status` 保存持久事实，显示状态只做可重建派生
+
+- 日期：2026-08-24
+- 状态：Accepted
+- 决策：`status-facts` 只保存 manifest-bound task identity/state、workspace observation、worker report/evidence 引用、acceptance、integration、review、blocker 与 archive 事实；`status-snapshot` 在读取时派生 lane/run 状态、reason、blocking dependencies 和 next action，不回写 facts。
+- 依赖规则：lane 只有在所有前驱的 durable `acceptance_state=accepted` 后才可显示 `ready-for-dispatch`。`archived`、worker `completed`、聊天消息或其他显示标签都不能单独满足依赖；已 accepted 的前驱后续 archive 仍保持依赖满足。
+- 安全边界：renderer 不调用 Codex list/read/wait/message，不运行 Git mutation。Manifest/preregistration/dispatch/Prompt/Brief/receipt/facts/report/evidence identity 与 hash 必须闭合；report/evidence 必须位于当前 run directory；完成边界 ordinary dirty 不能成为 `handoff-ready`；矛盾 integration/review facts fail closed。
+- 证据：实现 commit `08892eb` / tree `5de613b`；18 项标准库回归通过，四份初始/handoff status artifacts 通过 Draft 2020-12 schema 校验；`team-run` 11 项和 `team-plan` 19 项回归保持通过。
+- 限制：没有 live Codex task observation、真实 thread/project identity、消息/等待、长期时序或自动重派；成熟度为 `incubating`。

@@ -1,0 +1,70 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-evaluation-evidence",
+  "skill": "team-status",
+  "maturity": "incubating",
+  "date": "2026-08-24",
+  "scope": "read-only artifact fact validation and status derivation; no live Codex observation",
+  "implementation": {
+    "branch": "codex/team-status-v01",
+    "base_commit": "79d893414945994769e3cb30e7ece59aee74f35c",
+    "commit": "08892eb628aeaaeb473d5d9f14af44fdf2083e43",
+    "tree": "5de613b4a7f4bb2ae47dc1ec5c8fea832beb2266",
+    "tests": {
+      "command": "python -B tests/test_team_status.py",
+      "result": "18 passed, 0 failed"
+    },
+    "team_run_regression": "11 passed, 0 failed",
+    "team_plan_regression": "19 passed, 0 failed",
+    "skill_validation": "Skill is valid!",
+    "generated_artifact_schema_check": "4 of 4 initial and handoff status artifacts passed Draft 2020-12 validation"
+  },
+  "outputs": [
+    "immutable status-facts initialization",
+    "derived status-snapshot",
+    "per-lane reason, dependency blockers, durable task/workspace facts, and next action",
+    "run-level status and status counts"
+  ],
+  "derived_statuses": [
+    "planned",
+    "preparation-failed",
+    "waiting-dependency",
+    "ready-for-dispatch",
+    "preflight",
+    "preflight-failed",
+    "working",
+    "no-signal",
+    "needs-input",
+    "needs-evidence",
+    "handoff-ready",
+    "accepted",
+    "integrating",
+    "integrated",
+    "review-pending",
+    "reviewed",
+    "changes-requested",
+    "blocked",
+    "archived"
+  ],
+  "safety_boundaries": [
+    "display status is never written back into durable facts",
+    "dependencies unlock only from acceptance_state=accepted, never from archived display state",
+    "tampered manifest, dispatch, facts, prompt, brief, report, evidence, and receipt identities fail closed",
+    "completed dirty workspaces cannot become handoff-ready",
+    "report and evidence references must remain inside the current run directory",
+    "facts and snapshots are exclusive files inside the current run directory"
+  ],
+  "authorization": {
+    "create_tasks": false,
+    "read_live_tasks": false,
+    "wait_live_tasks": false,
+    "send_messages": false,
+    "modify_workspaces": false,
+    "merge_or_archive": false
+  },
+  "known_limits": [
+    "No live Codex list/read/wait call or real thread/project identity was used.",
+    "No live observation adapter, message routing, handoff, archive, integration, or recovery action exists.",
+    "No independent fresh review, installed-skill test, second blind benchmark, or fair no-skill effect estimate exists."
+  ]
+}
