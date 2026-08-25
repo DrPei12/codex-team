@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team Recover"
+  short_description: "Freeze evidence and prepare one bounded retry"
+  default_prompt: "Use $team-recover to preserve a blocked predecessor, freeze an exact candidate, and prepare one non-live successor brief with a new fact and bounded budget."

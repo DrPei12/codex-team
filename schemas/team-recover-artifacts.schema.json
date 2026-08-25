@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask/team-recover-artifacts.schema.json",
+  "title": "Codex team-recover artifacts v0.1",
+  "oneOf": [
+    {"$ref": "#/$defs/recovery_candidate"},
+    {"$ref": "#/$defs/recovery_plan"},
+    {"$ref": "#/$defs/recovery_brief"}
+  ],
+  "$defs": {
+    "nonempty_string": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "git_hash": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "sha256"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "branch", "base_commit", "base_tree"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "branch": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty_string"},
+            {"type": "null"}
+          ]
+        },
+        "base_commit": {"$ref": "#/$defs/git_hash"},
+        "base_tree": {"$ref": "#/$defs/git_hash"}
+      }
+    },
+    "recovery_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "created_at",
+        "lane_id",
+        "mode",
+        "workspace",
+        "commit",
+        "tree",
+        "git_status",
+        "changed_files",
+        "patch_ref",
+        "snapshot_ref"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-recover"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "recovery-candidate"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "created_at": {"$ref": "#/$defs/timestamp"},
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "mode": {"enum": ["git-commit", "dirty-files"]},
+        "workspace": {"$ref": "#/$defs/workspace"},
+        "commit": {
+          "oneOf": [
+            {"$ref": "#/$defs/git_hash"},
+            {"type": "null"}
+          ]
+        },
+        "tree": {
+          "oneOf": [
+            {"$ref": "#/$defs/git_hash"},
+            {"type": "null"}
+          ]
+        },
+        "git_status": {"type": "array", "items": {"type": "string"}},
+        "changed_files": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "patch_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/file_ref"},
+            {"type": "null"}
+          ]
+        },
+        "snapshot_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/file_ref"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "git-commit"}}},
+          "then": {
+            "properties": {
+              "commit": {"$ref": "#/$defs/git_hash"},
+              "tree": {"$ref": "#/$defs/git_hash"},
+              "patch_ref": {"type": "null"},
+              "snapshot_ref": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"mode": {"const": "dirty-files"}}},
+          "then": {
+            "properties": {
+              "commit": {"type": "null"},
+              "tree": {"type": "null"},
+              "patch_ref": {"$ref": "#/$defs/file_ref"},
+              "snapshot_ref": {"$ref": "#/$defs/file_ref"}
+            }
+          }
+        }
+      ]
+    },
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status", "result_ref", "immutable"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/nonempty_string"},
+        "status": {"enum": ["failed", "blocked", "changes-requested", "preparation-failed", "preflight-failed"]},
+        "result_ref": {"$ref": "#/$defs/file_ref"},
+        "immutable": {"const": true}
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_commands", "commands_used"],
+      "properties": {
+        "max_commands": {"type": "integer", "minimum": 1},
+        "commands_used": {"const": 0}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_creation", "workspace_mutation", "command_execution"],
+      "properties": {
+        "task_creation": {"const": false},
+        "workspace_mutation": {"const": false},
+        "command_execution": {"const": false}
+      }
+    },
+    "recovery_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "created_at",
+        "status",
+        "successor_run_id",
+        "predecessor",
+        "candidate_ref",
+        "candidate_mode",
+        "candidate_lane_id",
+        "reused_proofs",
+        "new_fact",
+        "allowed_commands",
+        "allowed_paths",
+        "budget",
+        "stop_conditions",
+        "authorization"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-recover"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "recovery-plan"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "created_at": {"$ref": "#/$defs/timestamp"},
+        "status": {"const": "prepared-not-dispatched"},
+        "successor_run_id": {"$ref": "#/$defs/nonempty_string"},
+        "predecessor": {"$ref": "#/$defs/predecessor"},
+        "candidate_ref": {"$ref": "#/$defs/file_ref"},
+        "candidate_mode": {"enum": ["git-commit", "dirty-files"]},
+        "candidate_lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "reused_proofs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/file_ref"}
+        },
+        "new_fact": {"$ref": "#/$defs/nonempty_string"},
+        "allowed_commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "allowed_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "budget": {"$ref": "#/$defs/budget"},
+        "stop_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "authorization": {"$ref": "#/$defs/authorization"}
+      }
+    },
+    "recovery_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "created_at",
+        "plan_ref",
+        "successor_run_id",
+        "predecessor",
+        "candidate_ref",
+        "candidate_mode",
+        "candidate_lane_id",
+        "reused_proofs",
+        "new_fact",
+        "allowed_commands",
+        "allowed_paths",
+        "budget",
+        "stop_conditions",
+        "task_creation_authorized"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-recover"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "recovery-brief"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "created_at": {"$ref": "#/$defs/timestamp"},
+        "plan_ref": {"$ref": "#/$defs/file_ref"},
+        "successor_run_id": {"$ref": "#/$defs/nonempty_string"},
+        "predecessor": {"$ref": "#/$defs/predecessor"},
+        "candidate_ref": {"$ref": "#/$defs/file_ref"},
+        "candidate_mode": {"enum": ["git-commit", "dirty-files"]},
+        "candidate_lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "reused_proofs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/file_ref"}
+        },
+        "new_fact": {"$ref": "#/$defs/nonempty_string"},
+        "allowed_commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "allowed_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "budget": {"$ref": "#/$defs/budget"},
+        "stop_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "task_creation_authorized": {"const": false}
+      }
+    }
+  }
+}
