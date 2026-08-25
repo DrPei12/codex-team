@@ -33,8 +33,18 @@
 | Status facts | manifest-bound 的持久观察：task/workspace/report/evidence/acceptance/integration/review/blocker/archive；不保存派生 UI 状态 |
 | Status snapshot | 从一份 status facts 和当前 run receipts 确定性生成的可重建状态视图，包含 lane/run status、reason、blocking dependencies 和 next action |
 | Derived status | 根据持久事实按风险优先级计算的显示状态；不能反向当作新事实或依赖完成证明 |
+| Integration candidate | 一条 lane 的 exact 集成候选；绑定 manifest、worker receipt、report/evidence hash、workspace base/HEAD/tree、ordinary status 和 ownership 内 changed files |
+| Integration plan | 按 canonical manifest 顺序排列已验证 candidates 的非 mutation 计划；本身不授权 Git 合并或 Gate 命令 |
+| Integration apply receipt | 记录指定 plan 在 integrator workspace 的 before/after commit/tree、每个 merge 结果和错误的回执 |
 | Recovery lineage | 多个 append-only run 通过 predecessor 与 exact candidate/evidence 连接的恢复链；后继成功不改写前驱失败 |
+| Recovery candidate | 用 clean descendant commit/tree 或 dirty patch + deterministic snapshot 冻结的 exact 恢复输入 |
+| Recovery plan | 绑定 immutable predecessor、candidate、复用 proof、一个新事实、allowed commands/paths、命令预算和 stop rule 的非 live successor 计划 |
+| Recovery brief | 对 recovery plan 的非 live 投影；不含 thread ID，不授权创建 task、修改 workspace 或执行命令 |
 | Gate receipt | 绑定 target identity、命令、环境、exit、摘要和 artifact hash 的机器可验收记录 |
+| Review receipt | 将 reviewer lane、decision、findings bytes 和 passed Gate exact target 绑定的审查事实 |
+| Finish audit | 在 milestone 前重验 Gate/review target，并分开记录 ordinary、ignored、Git operation residue 和 run inventory 的审计 |
+| Milestone result | 对 passed Gate、approved review 和 ready audit 的非破坏性收尾结论；只列出 archive/cleanup 候选，不执行它们 |
+| Team route | 统一 `team` 入口从 canonical run artifact 派生的下一 phase 建议；包含证据 hash 和授权提示，但不是执行授权 |
 | Gate | 进入下一阶段前必须满足的机械或人工验收条件 |
 | Affected Gate | 只覆盖某次组合变更所引入新风险的测试/检查 |
 | Active roster | 当前活跃任务、角色、workspace、状态和唤醒条件清单 |

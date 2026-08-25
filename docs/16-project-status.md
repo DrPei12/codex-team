@@ -2,10 +2,10 @@
 
 ## Snapshot
 
-- 日期：2026-08-24
-- 阶段：`M1.3 — team-status renderer implemented; native observer/live pilot next`
-- 状态：OutputGuard recovery lineage 与 `team-plan` 已完成既有验收；stacked branches 已实现 `team-run` 非 live 准备层（11 项）和 `team-status` 只读派生层（18 项），成熟度均为 `incubating`。没有创建或读取真实 Codex task；实际 dispatch/live observation、集成、收尾和公平 no-skill 对照仍未完成
-- 本次同步所依据的功能基线：branch `codex/team-status-v01`，team-status implementation commit `08892eb628aeaaeb473d5d9f14af44fdf2083e43` / tree `5de613b4a7f4bb2ae47dc1ec5c8fea832beb2266`；stacked parent `codex/team-run-v01@79d8934`，`main` 仍为 `db3b810`
+- 日期：2026-08-25
+- 阶段：`M1.4 — Team v0.1 offline workflow implemented; install/live validation next`
+- 状态：Team v0.1 repo-local 离线工作流已闭环：`team-plan -> team-run -> team-status -> team-integrate -> team-finish`，失败转 `team-recover`，统一 `team` 只读路由。八组共 90 项回归和 16 份端到端 schema artifact 通过；7 个 skill 仍为 `incubating`。没有调用真实 Codex task 生命周期，没有合并 `main`，安装/live observation/公平 no-skill 对照仍未完成
+- 本次同步所依据的功能基线：branch `codex/team-v01`，commit `e497188d27b5531aeb553d852d0a80a546e3bbdd` / tree `9930abfce6d637167f8dc907df1cd9d58ace94f0`；module commits `93a6d4d` / `95b8567` / `32927d0`；`main` 仍为 `db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -77,6 +77,12 @@
 - [x] 接受 D-032：组合 CCPM、Agent Orchestrator、Gas Town、Parallel Code/Conductor 的突出机制，但所有执行仍使用 Codex 原生控制面
 - [x] 接受 D-033：`team-status` 保存 durable facts，显示状态只做可重建派生；依赖只认 accepted fact
 - [x] 实现 `team-status` schema/helper/skill：facts 初始化、identity/hash validation、dependency/status derivation 和 18 项回归
+- [x] 接受 D-034 并实现 `team-integrate` v0.1：exact candidate、manifest-order plan、显式授权 Git apply、exact-target Gate receipt 和 first-nonzero stop，12 项回归
+- [x] 接受 D-035 并实现 `team-finish` v0.1：Gate/review binding、ordinary/ignored/operation-residue audit、run inventory 和非破坏性 milestone result，11 项回归
+- [x] 接受 D-036 并实现 `team-recover` v0.1：clean commit 与 dirty patch/ZIP candidate、immutable predecessor、proof/new-fact/budget binding 和非 live recovery brief，10 项回归
+- [x] 接受 D-037 并实现统一 `team` 只读路由：只读 canonical run artifact，选择下一 phase，不授权 task/Git/command/cleanup，8 项回归
+- [x] 完成 Team v0.1 离线端到端主链：临时 Git/worktree 中从 prepare 走到 milestone completion，16 份产物通过 Draft 2020-12 schema
+- [x] Team v0.1 全量验收：8 组 90 项回归、7/7 skill validator、9/9 schema meta-validation、3 份 capability contract 和 5 类旧 workflow artifact 通过
 
 ## 纵向切片清单（已完成与未完成）
 
@@ -90,7 +96,7 @@
 - [x] 实现并验证 `team-plan` v0.1；成熟度为 `incubating`
 - [x] 实现 `team-run` v0.1 非 live 准备层；真实 Desktop create/message/wait 与 thread/project binding 未验证
 - [x] 实现 read-only `team-status` v0.1 renderer；live Codex observation adapter 未实现
-- [ ] 实现 `team-integrate`、`team-finish`，并把 `team-recover` 纳入首批 incubating 候选
+- [x] 实现 `team-integrate`、`team-finish`、`team-recover` 与统一 `team` 路由，并完成离线端到端验收；仍属 `incubating`
 - [ ] 建立 Desktop-native 实验记录器，强制 client surface、task/project、Git identity、证据路径和可观察的 requested/effective model/thinking 取证
 - [x] 完成第一次 Desktop-native 多任务恢复链的 exact-tree public/review/sealed 验收
 - [ ] 在隔离 solution objects/refs 的新 Git object store 中补充 OutputGuard Desktop single；将其明确标为有顺序污染风险的补充对照
@@ -102,19 +108,18 @@
 
 ## 下一里程碑建议
 
-`M1.3 — Observe native Codex task facts without mutating them`
+`M1.4 — Validate installation and observe native Codex task facts without mutating them`
 
 产物：
 
 1. 冻结 Run02–Run10 failure corpus 和 Run10 exact-tree acceptance evidence，不重跑 sealed、不清理隔离现场；
-2. 已完成 `team-plan` canonical manifest/brief projection 与 `team-run` preregistration、runtime roots、Prompt/dispatch bundle、parent/worker preflight；
-3. 先审查并接收 `codex/team-run-v01` 与 stacked `codex/team-status-v01`；
-4. 实现独立 Codex-native observation adapter：只读取 list/read/wait、Git 与 artifact，写新的 immutable facts，不发送消息；
-5. 由用户单独授权一个两条真正独立 lane 的 Desktop live pilot，记录 create 返回的 thread/project/workspace binding，并让真实 worker 执行已生成的 preflight argv；
-6. 随后实现 `team-integrate -> team-finish` 的串行拓扑接收、Gate receipt 和 ordinary/untracked/ignored/operation-residue audit；
-7. `team-recover` 的 incubating 实现：predecessor、exact candidate、已成立 proof、唯一新事实、预算和 stop rule；
-8. 用 OutputGuard 失败语料做已知回归，再冻结 skills；
-9. 选择第二个未见 benchmark，建立反 solution-ref 泄漏边界，完成主要 no-skill/native single/native multi-task/skill-assisted 对照。
+2. 审查 `codex/team-v01` 的 Team v0.1 完整 stacked history；未获单独授权时不合并 `main`；
+3. 验证七个 skill 安装后的触发/非触发、helper/schema 路径、共享资源和 Windows 执行入口；
+4. 实现独立 Codex-native observation adapter：只读 list/read/wait、Git 与 artifact，写新 immutable facts，不发送消息；
+5. 对 duplicate/delayed message、cursor、task 不存在、task/project 错配和中途归档做 fail-closed 测试；
+6. 只在用户单独授权后运行最小 Desktop live pilot，记录 create 返回的 thread/project/workspace binding 和真实 worker preflight；
+7. 将 OutputGuard 保留为失败回归语料，选择第二个未见 benchmark，建立反 solution-ref 泄漏边界，完成主要 no-skill/native single/native multi-task/skill-assisted 对照；
+8. 依据安装、live pilot 和第二 benchmark 证据，逐 skill 决定保持 `incubating`、晋升或降级。
 
 已有 capability evidence 是安全输入，不再要求先补齐全部产品行为。纵向切片依赖某个 unknown 时才做对应 probe，并把未覆盖组合继续标为 unknown。
 
@@ -128,10 +133,14 @@
 - CLI 历史回合能读取 token usage，但 Desktop task/follow-up/fork 未保证暴露同等 usage；telemetry 仍不完整，不能混合统计；
 - 外部论文和社区仓库更新很快，数字和 HEAD 只能作为 2026-08-10 snapshot；
 - skill 可能无正向边际效用、与项目版本冲突或形成供应链/权限风险；
-- `team-plan` 与 `team-run` 当前通过 repo-local 路径显式加载；作为可安装 skill 后能否稳定定位共享 schema/helper 尚未验证；
+- Team v0.1 七个 skill 当前通过 repo-local 路径显式加载；作为可安装 skill 后能否稳定定位共享 schema/helper 和正确隐式触发尚未验证；
 - `team-plan` 的 symlink 边界已实测，Windows junction 未现场实测；
 - `team-run` 已实测 Brief symlink、dirty/ignored、错误 cwd 和 receipt 不覆盖，但未覆盖 Windows junction、submodule/LFS、detached HEAD 或 Git operation residue；
 - `team-status` 已实测 identity/hash、依赖解锁、dirty handoff、跨-run evidence 和矛盾 facts，但没有 live Codex observer、消息/cursor 时序或长期准确率；
+- `team-integrate` 的 Git apply/Gate 只在临时 fixture 中实测；没有真实 task handoff、submodule/LFS、长队列、push 或 sealed 执行证据；
+- `team-finish` 只生成 archive/cleanup 建议；没有验证 Codex archive/handoff 或实际 worktree/cache 清理；
+- `team-recover` 没有创建真实 successor task；“一个新事实”的实质性仍需人工审查，dirty snapshot 对 symlink/submodule/LFS/大文件的政策尚未完整；
+- 统一 `team` 路由依赖 canonical 文件名；当历史产物不在 canonical 名称时，仍需明确接收/提升步骤，不能由路由器猜测“最新”；
 - 当前仓库没有 LICENSE；本轮只独立实现 prior-art 思想，没有复制外部源码。任何后续源码复用必须先决定 LICENSE/NOTICE；
 - 独立 cwd/worktree 仍会加载用户级 memory、skills、plugins、MCP 与 Git 配置；文件隔离不能当作上下文隔离；
 - 两个历史 CLI 会话并发启动时出现一次共享 system-skills 目录 access-denied；它是 Desktop preflight 的风险提示，不是 Desktop 已复现缺陷；
@@ -152,4 +161,4 @@
 
 ## 完成 Phase 0 的判定
 
-Phase 0 已在根提交 `35bec95` 完成。当前已经进入 M1.3；仍然没有 `stable` skill，但已有 `incubating` `team-plan`、非 live `team-run` 准备层和只读 `team-status` 派生层。后两者位于 stacked branches，尚未进入 `main`，也不能表述为真实 Desktop dispatch/live observation 已完成。
+Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.4；仍然没有 `stable` skill，但已有七个 `incubating` Team v0.1 skill 和离线主链验收。`team-plan` 已在 `main`，其余套件基线位于 `codex/team-v01`，尚未合并 `main`；不能表述为安装后或真实 Desktop dispatch/live observation/handoff/archive 已完成。

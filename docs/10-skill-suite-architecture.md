@@ -21,15 +21,15 @@ D-023 再收紧了执行边界：这里的 “Codex session/task” 默认就是
 | `team-plan` | 读需求与仓库，先冻结共享契约，再输出任务图、session 数、文件所有权、依赖、worktree、Gate 和集成顺序 |
 | `team-run` | 先从已接受 manifest/brief 生成 preregistration、runtime roots、preflight 与 Prompt/dispatch bundle；真实 task/workspace 创建和消息派发必须是后续单独授权阶段 |
 | `team-status` | 校验 manifest-bound task/workspace/report/evidence 等持久事实，派生 lane/run 显示状态、依赖阻塞与下一动作；live observation 与消息动作分离 |
-| `team-integrate` | 校验 worker report/commit/evidence，按依赖顺序接收，运行独立 review 与 affected/integration Gate |
-| `team-finish` | 形成里程碑结论，归档已接收的一次性任务，保留未获授权清理的 worktree，并写明恢复入口 |
+| `team-integrate` | 校验 worker report/commit/evidence，按 manifest 顺序接收，将 Git apply 和 affected/integration Gate 分开授权并产生 exact-target receipt |
+| `team-finish` | 形成里程碑结论，列出归档和 workspace 处置建议，但不自动归档 task 或清理 worktree |
 | `team-recover` | 从一个明确 blocked run 继续：绑定精确 candidate、旧证据、尚未建立的新事实和新预算；保持旧 run 不变，禁止无关重做 |
 
-截至 2026-08-24，`team-plan` v0.1 已达到 `incubating` 并进入 `main`；stacked branches 已实现 `team-run` v0.1 非 live 准备层 commit `c5ead87` 和 `team-status` v0.1 只读派生层 commit `08892eb`。`team-status` 以 acceptance fact 解锁依赖，验证当前 run 内 report/evidence hash，并拒绝 dirty handoff、identity 漂移和矛盾 integration facts；18 项回归通过。两层均未验证真实 Desktop dispatch/live observation、安装路径、独立 fresh review、第二 blind benchmark 或正向边际效用，因此仍只能标 `incubating`。其他入口仍是设计候选。
+截至 2026-08-25，上述六个 phase skill 都有 repo-local v0.1 实现；外层另有统一 `$team` 只读路由，从 canonical run artifact 选择下一 phase，但不给予 task/Git/command/cleanup 授权。`team-plan` 已在 `main`，其余实现位于 `codex/team-v01` stacked branch。八组共 90 项回归通过，但真实 Desktop dispatch/live observation/handoff/archive、安装路径、第二 blind benchmark 和正向边际效用均未验证，因此整套仍只能标 `incubating`。
 
 `team-review`、`team-benchmark` 和 capability audit 后续可以形成独立入口；第一版仍可作为 `team-integrate`、`team-status` 或项目开发工具的子流程。`team-recover` 的晋升来自重复实测：Run03、Run05、Run06、Run08、Run09、Run10 都需要“保留旧结论，只验证一个新事实”的恢复语义。入口 skill 是路由器和治理者，不应复制每个范式的完整说明。
 
-这五个入口分别对应用户可说出的独立意图。Capability matrix、worker profile 和 pattern catalog 是它们按需读取的支撑资源，不为目录对称强行包装成用户入口。
+这六个 phase 入口分别对应用户可说出的独立意图；`team` 是只读总入口。Capability matrix、worker profile 和 pattern catalog 是它们按需读取的支撑资源，不为目录对称强行包装成用户入口。
 
 ### B. Execution skills 与 pattern profiles
 
@@ -160,7 +160,7 @@ Codex 只看到 skill 名称和一两句触发描述。例如用户说“把这�
 
 ## 候选目录结构
 
-这是设计草案，不代表 Phase 0 已创建这些 skills：
+这是第一版实现后保留的目标打包草案。七个 `skills/` 入口已在 repo-local 存在；顶层 `agents/shared/evaluations` 的可安装布局仍待验证：
 
 ```text
 codex-multitask-engineering/
@@ -173,7 +173,8 @@ codex-multitask-engineering/
 │   ├── team-status/
 │   ├── team-integrate/
 │   ├── team-finish/
-│   └── team-recover/
+│   ├── team-recover/
+│   └── team/
 ├── agents/
 │   ├── implementer.toml
 │   ├── reviewer.toml
@@ -194,7 +195,7 @@ codex-multitask-engineering/
 └── docs/
 ```
 
-后续通过实战证明独立触发价值后，再加入 `team-review`、`team-benchmark`、`skill-evaluate` 等目录。`team-recover` 已由 OutputGuard 的多次 fail-closed recovery 获得首批候选资格，但仍需实现和跨 benchmark 评测，成熟度只能是 `incubating`。
+后续通过实战证明独立触发价值后，再加入 `team-review`、`team-benchmark`、`skill-evaluate` 等目录。`team-recover` 已由 OutputGuard 的多次 fail-closed recovery 获得候选资格，并在 2026-08-25 完成 repo-local v0.1；跨 benchmark 评测仍未完成，成熟度保持 `incubating`。
 
 在真正落地前要验证：安装后各 skill 是否能可靠定位 shared 资源；如果不能，则改为生成时注入、专门的 core skill，或最小重复的版本化 schema。不要为结构美观牺牲可运行性。
 
@@ -215,14 +216,15 @@ codex-multitask-engineering/
 
 长期范围可以超过 20 个 skills，但首批实现按证据风险排序，不按目录展示效果排序：
 
-1. 已完成两段共享 schema/helper：canonical run manifest 与生成式 brief projection，以及 team-run preregistration、artifact-root 初始化、Prompt/dispatch bundle、parent/worker preflight 和 ordinary/ignored inventory；Gate receipt、recovery link 与 finish cleanliness receipt 仍待后续入口；
+1. 已完成 canonical manifest/brief、run preparation、status facts/snapshot、integration candidate/plan/apply/Gate、review/audit/milestone、recovery candidate/plan/brief 和 team-route 的共享 schema/helper；
 2. 已实现 `team-plan` v0.1：仓库调查、contract freeze、DAG、所有权和集成计划，并生成 canonical manifest；当前成熟度为 `incubating`；
 3. 已实现 `team-run` v0.1 非 live 准备层；下一步在用户单独授权后，用两条真正独立 lane 验证 Desktop task/workspace 创建与真实 worker preflight，不把 3–5 条写成未经测试的固定下限；
 4. 已实现 `team-status` v0.1 的 facts validator 与 read-only renderer；下一步新增独立 Codex-native observation adapter，读取 task/Git/artifact 后写新 facts，仍不发送消息；
-5. `team-integrate`：单一 integrator 接收 commit/evidence，运行合并产生的新事实 Gate，并要求新 Reviewer；
-6. `team-finish`：状态收口、sealed authorization、ordinary/ignored audit、归档候选和 worktree 保留/清理边界；
-7. `team-recover`：只携带精确 candidate 和旧 proof，声明唯一新增事实，创建 successor run，不重写旧 run；
-8. 提供 contract-parallel reference，以及 implementer、reviewer、integrator profiles，并把 OutputGuard Run02–Run10 收入 failure corpus。
+5. 已实现 `team-integrate` v0.1：单一 integrator 按 manifest 顺序接收 exact candidate，Git 变更与 Gate 命令各需显式授权；
+6. 已实现 `team-finish` v0.1：绑定独立 review，分层审计 ordinary/ignored/operation residue，只生成归档/清理建议；
+7. 已实现 `team-recover` v0.1：冻结 exact commit 或 dirty candidate，携带旧 proof、一个新事实和预算，但不创建 successor task；
+8. 已实现统一 `team` 只读路由和离线端到端验收；下一步是安装面、只读 live observer 和需单独授权的最小 Desktop pilot；
+9. 提供 contract-parallel reference，以及 implementer、reviewer、integrator profiles，并把 OutputGuard Run02–Run10 收入 failure corpus。
 
 OutputGuard 已经验证了手工流程可以恢复到公开、审查和 sealed Gate 全部通过，但它不是 skills 边际效用证据。实现冻结后应换一个未见过的第二 benchmark 做 no-skill/native single 与 skill-assisted 对照；OutputGuard 主要用于回归这些已知失败模式。`pattern-contract-parallel` 和 worker role 在产生独立触发证据前仍不必单独包装成 skill。
 

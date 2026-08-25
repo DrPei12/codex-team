@@ -111,6 +111,23 @@ Session plan、roster、task brief、preregistration、Prompt/dispatch bundle、
 
 Recovery handoff 还要引用不可变 predecessor result，区分 `proof_reused`、`proof_invalidated` 和 `new_fact_required`。它产生新的 run ID，不能把旧 `failed/blocked` 原地改成继续执行。
 
+### Team v0.1 phase artifacts
+
+截至 2026-08-25，第一版已将上述对象落成下列 repo-local 产物：
+
+- `integration-candidate`：将 lane、report/evidence、worker receipt、commit/tree、
+  ordinary status 和 changed files 绑在一起；
+- `integration-plan` / `integration-apply-receipt` / `gate-receipt`：分别记录
+  有序接收意图、实际 Git 变化和 exact target 上的命令结果；
+- `review-receipt` / `finish-audit` / `milestone-result`：分别记录独立审查、
+  多层 cleanliness/run inventory 和非破坏性里程碑结论；
+- `recovery-candidate` / `recovery-plan` / `recovery-brief`：冻结 exact candidate，
+  绑定 immutable predecessor、proof、一个新事实、允许路径/命令和预算；
+- `team-route`：只读 canonical artifact 后给出下一个 phase，它是建议而不是授权。
+
+这些文件的 `manifest_ref` 是身份键，文件 SHA-256 是具体证据键。
+任务 ID、消息、归档状态和产物内容不能互相代替。
+
 ## 消息的五种用途
 
 第一版只规范以下意图，不创造新的网络 method：

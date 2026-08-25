@@ -111,6 +111,10 @@
 
 OutputGuard Run02–Run10 已在一个案例中观察到这种 append-only lineage 能最终通过公开、审查和 sealed Gate；它尚未证明自动 recovery、长期 lease 或跨机器恢复。
 
+`team-recover` v0.1 已实现非 live 的 candidate/plan/brief 三段；它会重验
+predecessor、candidate 和 proof bytes，但只为 future successor 准备材料，不创建
+task 或执行命令。因此 `recovery-prepared` 不能解释为“已经重试”。
+
 ## Worktree 生命周期
 
 任务归档不自动等于可以删除 worktree。删除前必须确认：
@@ -122,6 +126,10 @@ OutputGuard Run02–Run10 已在一个案例中观察到这种 append-only linea
 - 删除符合用户授权和 Codex 当前产品规则。
 
 第一版 skills 应建议或标记清理候选，不在无法证明安全时递归删除目录。
+
+`team-finish` v0.1 遵守这一边界：milestone result 列出 archive candidates 和
+workspace actions，但每个 action 都是 `retain` 且 `authorized=false`。一个里程碑
+显示 completed，不会自动使 task 归档或 worktree 可删。
 
 ## UI 冗繁的解决方式
 

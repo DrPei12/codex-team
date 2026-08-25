@@ -323,3 +323,15 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 最终规则记录为 D-033：持久 facts 与显示状态严格分离；依赖只认 `acceptance_state=accepted`，不认 `archived` 或 worker 自报；高风险事实优先于 active/idle；Manifest、dispatch、Prompt、Brief、receipt、facts、report/evidence 的 identity/hash 在派生前闭合；当前 run 外的 handoff 文件不能复用。实现 commit `08892eb` / tree `5de613b`。
 
 该结果仍不证明 live task 状态准确。下一步是独立的 Codex-native observation adapter：只读取 list/read/wait 与 Git/artifact并写新 facts，不发送消息。完成后才考虑用户单独授权的两 lane live pilot。
+
+## 第二十一阶段：Team v0.1 离线完整工作流
+
+用户要求“持续推进，完成第一版整个 team”，同时既有边界仍然有效：禁止使用 Superpowers，不为并行而并行，“继续”不自动授权创建真实 Desktop task/worktree/message，也不授权合并 `main`。主任务因此在 stacked `codex/team-v01` 分支上串行完成剩余 workflow，没有创建 subagent 或用户可见任务。
+
+`team-integrate` 首先实现 exact candidate、manifest-order plan、显式授权 Git apply 和显式授权 Gate receipt；自审将 plan/candidate 篡改、所有权、dirty target 和 first-nonzero stop 变成 12 项回归。`team-finish` 把 Gate、review、ordinary/ignored/operation residue、run inventory 和 milestone result 分开，对 archive/cleanup 只输出 `authorized=false` 建议，11 项回归通过。
+
+`team-recover` 实现 clean descendant commit 和 dirty patch + deterministic ZIP 两种 candidate，绑定 immutable predecessor、proof hashes、一个新事实、allowed paths/commands 和命令预算。首轮测试因 argparse 的 subcommand `command` 与 `--command` 目的字段冲突为 3/8；修正后加入候选篡改和越权无半成品回归，最终 10/10。恢复产物始终不创建 successor task 或执行命令。
+
+最后增加统一 `$team` 只读入口。它只读 run 中的 canonical artifact 名称，返回 `next_skill/next_action`、证据 SHA-256 和是否仍需单独授权，所有 task/Git/command/cleanup 授权字段恒为 false。一条临时 Git/worktree 端到端测试从 run preparation 走到 candidate、真实临时合并、离线 Gate、review、audit 和 milestone completion；模拟 thread ID 只是 facts 测试数据，没有调用 Desktop task 工具。
+
+最终八组共 `90 passed, 0 failed`，16 份端到端产物通过 Draft 2020-12 schema，7 个 skill validator、9 份 schema meta-validation、3 份 capability contract 和 5 类历史 workflow artifact 全部通过。代码基线为 `codex/team-v01@e497188` / tree `9930abf`；`main` 仍为 `db3b810`。项目因此可以声称“Team v0.1 repo-local 离线工作流已完成”，但不能声称“真实 Codex 多任务已由套件自动运行”或“已 stable”。下一阶段是安装面、只读 live observer、需用户单独授权的最小 pilot 和第二 blind benchmark。

@@ -33,22 +33,27 @@
 - parent/worker preflight、Manifest/dispatch/Prompt/Brief、task binding、report/evidence 和 current-run path/hash 均在派生前交叉验证；dirty handoff、跨-run evidence、矛盾 integration facts 与 identity 漂移 fail closed。
 - 当前 facts 仍由文件输入模拟；没有 Codex list/read/wait collector、消息送达、cursor 或长期状态准确率证据。详见 [`team-status` v0.1 实录](research/team-status-v0.1-2026-08-24.md)。
 
-## P0：继续实现剩余入口前必须回答
+## Team v0.1 离线闭环已经部分回答
 
-1. manifest → brief → preregistration/dispatch 已冻结同一 canonical digest；handoff、Gate receipt、recovery、acceptance 和 finish 中哪些字段继续机器派生，哪些允许人工叙述？
-2. 后续 Gate/recovery/cleanliness receipt 如何复用同一 canonical identity、brief raw hash 和字节规则，同时只添加本阶段真实新事实？
-3. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
-4. `team-run` 准备层已完成 root 初始化与 parent/worker helper；真实 Desktop task 如何消费 dispatch bundle、写入 thread/project binding，并在真实回合运行同一 worker preflight？
-5. `team-status` renderer 已完成；Codex-native observation adapter 如何把 Desktop list/read/wait、Git state 和 artifact timeline 写成新的 immutable facts，处理重复/延迟/cursor，同时不发送消息或无理由重复昂贵命令？
-6. `team-integrate` 如何生成可验证 Gate receipt；review、sealed authorization 和 public Gate 的责任边界怎样编码？
-7. `team-recover` 如何约束 predecessor、candidate、旧 proof、唯一新事实和预算，防止恢复任务顺手扩大 scope？
-8. 第一批 skills 如何打包共享 schema/scripts，才能在安装后保持相对路径稳定又不复制大量资源？
-9. Desktop 未显式暴露 effective model/thinking 或 token 时，run artifact 应怎样保留 `unknown` 并维持可解释的对照？
-10. 项目应采用什么 LICENSE 与 NOTICE 策略，才能在未来确有必要时合规复用 MIT/Apache-2.0 prior-art 源码，同时保持来源 revision 与本地改写可追溯？
+- `team-integrate` 已把 report/evidence/receipt/commit/tree/changed files 绑成 candidate，按 manifest 顺序生成 plan；Git mutation 和 Gate command 分别需显式旗标，非零 Gate 立即停止。
+- `team-finish` 已把 approved review、exact Gate target、ordinary/ignored/operation residue、run inventory 和 milestone result 分开；不自动 archive/cleanup。
+- `team-recover` 已约束 immutable predecessor、exact commit/dirty candidate、same-manifest proofs、一个新事实和命令/路径/预算；不创建 successor task。
+- 统一 `team` 路由只读 canonical artifact 名称，不从多个同类历史文件猜测权威版本，也不把路由建议当成授权。
+- 八组共 90 项回归与 16 份端到端 schema artifact 通过；仍没有安装后或 live Codex 生命周期证据。详见 [Team v0.1 验收](research/team-v0.1-2026-08-25.md)。
+
+## P0：进入安装/live 验证前必须回答
+
+1. 第一批 skills 如何打包共享 schema/scripts，才能在安装后保持路径稳定又不复制大量资源？
+2. 统一 `team` 的隐式触发、phase 路由和 canonical 文件命名在安装后是否仍可靠？非 canonical 历史产物如何显式“提升”而不覆盖？
+3. `team-run` 准备层已完成 root 初始化与 parent/worker helper；真实 Desktop task 如何消费 dispatch bundle、写入 thread/project binding，并在真实回合运行同一 worker preflight？
+4. `team-status` renderer 已完成；Codex-native observation adapter 如何把 Desktop list/read/wait、Git state 和 artifact timeline 写成新 immutable facts，处理重复/延迟/cursor，同时不发送消息或无理由重复昂贵命令？
+5. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
+6. Desktop 未显式暴露 effective model/thinking 或 token 时，run artifact 应怎样保留 `unknown` 并维持可解释的对照？
+7. 项目应采用什么 LICENSE 与 NOTICE 策略，才能在未来确有必要时合规复用 MIT/Apache-2.0 prior-art 源码，同时保持来源 revision 与本地改写可追溯？
 
 ## P1：第二个 blind 纵向切片中回答
 
-1. 第一轮 3–5 条 worker session 中，真正同时 ready 的 lane 有多少，多少 worker 会因为依赖而空等？
+1. 第一轮经用户单独授权的最小 live pilot 中，真正同时 ready 的 lane 有多少，多少 worker 会因为依赖而空等？
 2. 在相同 Desktop 任务拓扑下，不同 model/thinking 在 planner、implementer、reviewer、integrator 上分别出现什么失败；提高 thinking 是否比重派/重切任务更有效？
 3. 何种结构化 brief 能让 worker 不读完整项目历史仍正确使用共享 contract？
 4. Worker `DONE`、主编排者 `ACCEPTED` 与 Git `INTEGRATED` 怎样分别取证？

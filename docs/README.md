@@ -2,7 +2,7 @@
 
 这套文档采用“先建立共同语言，再进入运行规则，最后进入实现与评测”的顺序。读者无需一次加载全部内容。
 
-最后同步：2026-08-24。`team-plan` 已在 `main`；stacked branches 已实现 `team-run` 非 live 准备层 commit `c5ead87` 和 `team-status` 只读派生层 commit `08892eb`。下一步是审查这两层并实现 Codex-native 只读 observation adapter；真实 Desktop dispatch 仍需单独授权。
+最后同步：2026-08-25。`team-plan` 已在 `main`；`codex/team-v01` stacked branch 已实现离线 Team v0.1：`team-run -> team-status -> team-integrate -> team-finish`，失败转 `team-recover`，统一 `team` 只读路由。90 项回归通过；没有真实 Desktop task 操作，也没有合并 `main`。
 
 ## 第一层：五分钟了解项目
 
@@ -46,6 +46,14 @@
 - [team-run v0.1 机器 evidence](../evidence/skills/2026-08-24-team-run-v0.1.json)
 - [2026-08-24 team-status v0.1 只读派生层实录](research/team-status-v0.1-2026-08-24.md)
 - [team-status v0.1 机器 evidence](../evidence/skills/2026-08-24-team-status-v0.1.json)
+- [2026-08-25 team-integrate v0.1 有序集成实录](research/team-integrate-v0.1-2026-08-25.md)
+- [team-integrate v0.1 机器 evidence](../evidence/skills/2026-08-25-team-integrate-v0.1.json)
+- [2026-08-25 team-finish v0.1 非破坏性收尾实录](research/team-finish-v0.1-2026-08-25.md)
+- [team-finish v0.1 机器 evidence](../evidence/skills/2026-08-25-team-finish-v0.1.json)
+- [2026-08-25 team-recover v0.1 有界恢复实录](research/team-recover-v0.1-2026-08-25.md)
+- [team-recover v0.1 机器 evidence](../evidence/skills/2026-08-25-team-recover-v0.1.json)
+- [2026-08-25 Team v0.1 离线完整工作流验收](research/team-v0.1-2026-08-25.md)
+- [Team v0.1 套件 evidence](../evidence/skills/2026-08-25-team-v0.1.json)
 - [模板目录](templates/README.md)
 
 ## 文档状态标签

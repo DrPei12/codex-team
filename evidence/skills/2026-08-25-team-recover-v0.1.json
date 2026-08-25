@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-evaluation-evidence",
+  "skill": "team-recover",
+  "maturity": "incubating",
+  "date": "2026-08-25",
+  "scope": "freeze exact commit or dirty candidate and prepare one bounded non-live successor",
+  "implementation": {
+    "branch": "codex/team-v01",
+    "base_commit": "95b8567ccaa4716cffe76b97c4b5ae64e30dc583",
+    "commit": "32927d0983df5fe74909cce56feb939f90681097",
+    "tree": "ee2b0e93972f3abc7378a77644afa1f6d6995896",
+    "tests": {"command": "python -B tests/test_team_recover.py", "result": "10 passed, 0 failed"},
+    "generated_artifact_schema_check": "3 generated artifacts passed Draft 2020-12 validation"
+  },
+  "authorization": {"create_successor_task": false, "modify_predecessor": false, "modify_workspace": false, "execute_commands": false},
+  "failure_boundaries": [
+    "only failed or blocked predecessor statuses are accepted",
+    "commit candidates must be clean descendants; dirty candidates freeze patch and deterministic snapshot",
+    "ownership violations fail before partial candidate artifacts are written",
+    "proofs must bind the same manifest",
+    "projection rechecks predecessor, candidate, and proof hashes"
+  ],
+  "known_limits": [
+    "No live successor task or recovery command was executed.",
+    "One-new-fact quality still requires human review.",
+    "Symlink, submodule, LFS, large-file, and complex rename policies are incomplete."
+  ]
+}

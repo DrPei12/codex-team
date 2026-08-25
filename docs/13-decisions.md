@@ -253,3 +253,39 @@
 - 安全边界：renderer 不调用 Codex list/read/wait/message，不运行 Git mutation。Manifest/preregistration/dispatch/Prompt/Brief/receipt/facts/report/evidence identity 与 hash 必须闭合；report/evidence 必须位于当前 run directory；完成边界 ordinary dirty 不能成为 `handoff-ready`；矛盾 integration/review facts fail closed。
 - 证据：实现 commit `08892eb` / tree `5de613b`；18 项标准库回归通过，四份初始/handoff status artifacts 通过 Draft 2020-12 schema 校验；`team-run` 11 项和 `team-plan` 19 项回归保持通过。
 - 限制：没有 live Codex task observation、真实 thread/project identity、消息/等待、长期时序或自动重派；成熟度为 `incubating`。
+
+## D-034：`team-integrate` 把变更候选、Git mutation 和 Gate execution 分开授权
+
+- 日期：2026-08-25
+- 状态：Accepted
+- 决策：Integration candidate 必须绑定 lane、worker receipt、report/evidence hash、base/HEAD/tree、ordinary status 和 ownership 内 changed files。Integration plan 按 canonical manifest `integration_order` 排序，拒绝跨 lane 同文件重叠。真实 Git apply 与 Gate command 执行分别需显式旗标；计划成功不等于获得两类授权。
+- Gate：只在 exact applied target 上执行 manifest 声明命令，每条保存 log hash/exit，第一个非零立即停止。不由该 skill 调用 sealed evaluator、push 或归档。
+- 证据：implementation commit `93a6d4d` / tree `d83dca9`；12 项回归和 5 份生成 artifact schema 校验通过。
+- 限制：只验证临时 Git/worktree fixture，没有真实 Codex handoff 或长合并队列证据。
+
+## D-035：`team-finish` 只记录里程碑和处置建议，不自动 archive/cleanup
+
+- 日期：2026-08-25
+- 状态：Accepted
+- 决策：收尾必须先有 passed Gate target 与 independent review receipt，再审计 ordinary tracked/untracked、ignored files、Git operation residue 和 run inventory。ordinary 或 operation residue 阻断；ignored residue 可产生 `completed-with-ignored-residue`，但不能声称 residue-free。
+- 生命周期边界：milestone result 仅列出 archive candidates 和 `retain` workspace action，所有 action `authorized=false`。任务归档、worktree 移除、ignored 清理和 sealed evaluation 均需外部单独授权。
+- 证据：implementation commit `95b8567` / tree `94562bc`；11 项回归和 3 份生成 artifact schema 校验通过。
+- 限制：没有真实 Codex archive/handoff 或 cleanup 执行证据。
+
+## D-036：`team-recover` 冻结 exact candidate，但只准备非 live successor
+
+- 日期：2026-08-25
+- 状态：Accepted
+- 决策：恢复只接受 blocked/failed 类 predecessor，支持两类 exact candidate：ordinary-clean descendant commit，或 ownership 内 dirty files 的 binary patch + deterministic ZIP snapshot。越权在写入任何候选文件前停止。
+- Successor 边界：plan 绑定 immutable predecessor、same-manifest proof hashes、一个新事实、allowed commands/paths、max command budget 和 first-nonzero stop。Projection 会重验 predecessor/candidate/proof bytes。输出不创建 task、不修改 workspace、不执行命令。
+- 证据：implementation commit `32927d0` / tree `ee2b0e9`；10 项回归和 3 份生成 artifact schema 校验通过。
+- 限制：“一个新事实”的实质性仍需人工审查；没有真实 successor task 证据。
+
+## D-037：统一 `team` 只读 canonical artifact 路由，不建立第二套项目真相
+
+- 日期：2026-08-25
+- 状态：Accepted
+- 决策：总入口只从一个 run directory 的 canonical 文件名读取 manifest-bound artifact，选择 `team-run/status/integrate/finish/recover` 中的一个下一 phase。路由结果携带证据 hash 和单独授权提示，但 task/Git/command/cleanup 权限恒为 false。
+- Canonical 规则：路由器不从多个同类历史产物猜测“最新”；需要自动路由时，接收方将选定产物提升为 canonical 名称，历史文件仍 append-only 保留。各 phase helper 仍必须做自己的 hash/identity/ownership/precondition 校验。
+- 证据：router/e2e commit `e497188` / tree `9930abf`；8 项路由回归和 1 项离线端到端用例通过。全套八组共 90 项回归和 16 份端到端 schema artifact 通过。
+- 限制：没有安装后路径/隐式触发、live Codex task 生命周期或第二 blind benchmark 证据；七个 skill 均保持 `incubating`。

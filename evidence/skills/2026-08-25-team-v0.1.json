@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-suite-evaluation-evidence",
+  "suite": "team-v0.1",
+  "maturity": "incubating",
+  "date": "2026-08-25",
+  "scope": "repo-local offline Codex-only workflow suite; no live task lifecycle actions",
+  "implementation": {
+    "branch": "codex/team-v01",
+    "base_commit": "5c07f1b188608a75a6f2a35fff607eca71aa658a",
+    "commit": "e497188d27b5531aeb553d852d0a80a546e3bbdd",
+    "tree": "9930abfce6d637167f8dc907df1cd9d58ace94f0",
+    "main_at_validation": "db3b81001b970d0b0be00cd41eb75c805dfde629",
+    "tests": {
+      "command": "python -B tests/test_team_plan.py; python -B tests/test_team_run.py; python -B tests/test_team_status.py; python -B tests/test_team_integrate.py; python -B tests/test_team_finish.py; python -B tests/test_team_recover.py; python -B tests/test_team_router.py; python -B tests/test_team_v01.py",
+      "result": "90 passed, 0 failed"
+    },
+    "end_to_end_schema_check": "16 mainline artifacts passed their Draft 2020-12 schemas",
+    "skill_validation": "7 of 7 skills valid",
+    "schema_meta_validation": "9 of 9 schemas valid",
+    "legacy_contract_regression": "3 capability contracts and 5 workflow artifacts passed"
+  },
+  "workflow": ["team-plan", "team-run", "team-status", "team-integrate", "team-finish"],
+  "recovery": "team-recover freezes an immutable predecessor lineage and prepares one bounded successor",
+  "router": "team selects the next phase from canonical artifact names and grants no authority",
+  "authorization": {"create_tasks": false, "send_messages": false, "wait_or_handoff": false, "archive": false, "merge_main": false, "cleanup": false},
+  "known_limits": [
+    "No real Codex Desktop task was created, read, messaged, waited, handed off, or archived by this suite run.",
+    "The implementation remains on the stacked codex/team-v01 branch and was not merged to main.",
+    "Installed-skill resource lookup and implicit triggering are unverified.",
+    "No second blind benchmark or fair no-skill marginal-utility comparison exists."
+  ]
+}

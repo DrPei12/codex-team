@@ -240,12 +240,13 @@ Codex 官方文档提供测试用例 baseline，A2A 提供 task/message/artifact
 5. 已完成：冻结该闭环需要的 session plan、roster、task brief、worker report、integration queue schema v0.1、正向样例、缺 proof 负对照和 validator；五个主线入口当时尚未实现。
 6. 已完成：离线 package build qualification 和 assigned permanent worktree task preflight；两者均保留失败尝试、固定输入和父任务独立验收，且不接触 sealed evaluator。
 7. 已完成：Desktop 原生 task 形成 Run02–Run10 recovery lineage，最终 exact tree 通过 public Gate、fresh review 和单次 sealed Gate；失败 run 不翻案，CLI 不作 fallback。该事实不等于无中断四任务 run 或多任务优于 single。
-8. 部分完成：`team-plan` v0.1 已实现 canonical manifest、机器派生 projection、artifact/worktree real-path 边界和 19 项回归；Gate receipt、append-only recovery link、ordinary/ignored cleanliness receipt 仍待其他入口。
-9. 部分完成：`team-plan` 已作为首个 `incubating` skill 通过 fresh forward test；`team-run` v0.1 非 live 准备层已实现 preregistration、runtime roots、parent/worker preflight 与 Prompt/dispatch bundle，但真实 task 创建/消息/等待未运行。`team-integrate`、`team-finish` 和 `team-recover` 尚未实现。
-10. 已完成：read-only `team-status` 的 facts validator 与 derived renderer；未调用 live Codex task 工具。
-11. 下一步实现独立的 Codex-native observation adapter，只读取 list/read/wait、Git 和 artifact，写新的 immutable facts；随后由用户单独授权一个两条真正独立 lane 的 Desktop live pilot，不为了展示并发固定创建 3–5 条任务。
-12. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
-13. skills 实现冻结后选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow。再注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
-14. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。
+8. 已完成：`team-plan` v0.1 的 canonical manifest、机器派生 projection、artifact/worktree real-path 边界和 19 项回归。
+9. 已完成：`team-run` 非 live 准备层与 `team-status` 只读 facts/derived renderer；真实 task 创建/消息/等待仍未运行。
+10. 已完成：`team-integrate`、`team-finish`、`team-recover` 和统一 `team` 只读路由的 repo-local v0.1；Gate receipt、append-only recovery link 和 ordinary/ignored/operation-residue receipt 已落地。
+11. 已完成：八组共 90 项回归通过，一条临时 Git/worktree 主链从 run preparation 走到 milestone completion，16 份产物通过 schema。该结果只是离线 workflow 证据。
+12. 下一步先验证安装后 helper/schema 定位与隐式触发，再实现独立 Codex-native observation adapter，只读 list/read/wait、Git 和 artifact，写新 immutable facts；随后由用户单独授权最小 Desktop live pilot，不为展示并发固定创建 3–5 条任务。
+13. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
+14. Team v0.1 安装/live 边界冻结后选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow；注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
+15. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。
 
 这项顺序替代“先完成全部 capability contract 再开始纵向切片”的旧安排。已有 capability evidence 保留为安全输入，但不再是 M1 的主交付。

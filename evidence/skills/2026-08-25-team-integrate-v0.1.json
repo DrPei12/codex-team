@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-evaluation-evidence",
+  "skill": "team-integrate",
+  "maturity": "incubating",
+  "date": "2026-08-25",
+  "scope": "exact candidate validation, ordered Git integration, and authorized offline Gates",
+  "implementation": {
+    "branch": "codex/team-v01",
+    "base_commit": "5c07f1b188608a75a6f2a35fff607eca71aa658a",
+    "commit": "93a6d4d5d99d626779e6a7f4fd6146d8e042e8c8",
+    "tree": "d83dca9a7b152cfeee69afe60b31a13eb37ed74f",
+    "tests": {"command": "python -B tests/test_team_integrate.py", "result": "12 passed, 0 failed"},
+    "generated_artifact_schema_check": "5 generated artifacts passed Draft 2020-12 validation"
+  },
+  "authorization": {"create_tasks": false, "git_mutation_by_default": false, "command_execution_by_default": false, "push": false, "sealed_evaluation": false},
+  "failure_boundaries": [
+    "dirty or ownership-violating candidates fail closed",
+    "candidate, plan, report, evidence, and receipt identities are revalidated before mutation",
+    "integration follows manifest order in the declared integrator workspace",
+    "Git mutation and Gate commands require separate explicit flags",
+    "Gate execution stops on the first nonzero command"
+  ],
+  "known_limits": [
+    "No live Codex handoff or message was consumed.",
+    "No push, sealed evaluator, submodule, LFS, or long integration queue was tested.",
+    "No comparative automation benefit has been established."
+  ]
+}
