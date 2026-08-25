@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team Integrate"
+  short_description: "Validate and apply ordered team integration"
+  default_prompt: "Use $team-integrate to validate handoff candidates and prepare ordered integration; stop before Git or Gate execution unless explicitly authorized."
