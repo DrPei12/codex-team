@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask/team-finish-artifacts.schema.json",
+  "title": "Codex team-finish artifacts v0.1",
+  "oneOf": [
+    {"$ref": "#/$defs/review_receipt"},
+    {"$ref": "#/$defs/finish_audit"},
+    {"$ref": "#/$defs/milestone_result"}
+  ],
+  "$defs": {
+    "nonempty_string": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "git_hash": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "sha256"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree"],
+      "properties": {
+        "commit": {"$ref": "#/$defs/git_hash"},
+        "tree": {"$ref": "#/$defs/git_hash"}
+      }
+    },
+    "review_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "recorded_at",
+        "reviewer_lane_id",
+        "decision",
+        "target",
+        "gate_receipt_ref",
+        "findings_ref",
+        "finding_count"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-finish"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "review-receipt"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"},
+        "reviewer_lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "decision": {"enum": ["approved", "changes-requested", "rejected"]},
+        "target": {"$ref": "#/$defs/target"},
+        "gate_receipt_ref": {"$ref": "#/$defs/file_ref"},
+        "findings_ref": {"$ref": "#/$defs/file_ref"},
+        "finding_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "cleanliness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinary_status", "ignored_files", "operation_residue", "residue_free_checkout"],
+      "properties": {
+        "ordinary_status": {"type": "array", "items": {"type": "string"}},
+        "ignored_files": {"type": "array", "items": {"type": "string"}},
+        "operation_residue": {"type": "array", "items": {"type": "string"}},
+        "residue_free_checkout": {"type": "boolean"}
+      }
+    },
+    "inventory_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "kind", "size", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "kind": {"enum": ["file", "directory", "symlink"]},
+        "size": {"type": ["integer", "null"], "minimum": 0},
+        "sha256": {
+          "oneOf": [
+            {"$ref": "#/$defs/sha256"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "finish_audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "recorded_at",
+        "status",
+        "target",
+        "gate_receipt_ref",
+        "review_receipt_ref",
+        "cleanliness",
+        "run_inventory",
+        "cleanup_performed",
+        "errors"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-finish"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "finish-audit"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"},
+        "status": {"enum": ["ready-to-finish", "blocked"]},
+        "target": {"$ref": "#/$defs/target"},
+        "gate_receipt_ref": {"$ref": "#/$defs/file_ref"},
+        "review_receipt_ref": {"$ref": "#/$defs/file_ref"},
+        "cleanliness": {"$ref": "#/$defs/cleanliness"},
+        "run_inventory": {"type": "array", "items": {"$ref": "#/$defs/inventory_item"}},
+        "cleanup_performed": {"const": false},
+        "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
+      }
+    },
+    "workspace_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "lanes", "recommended_action", "authorized"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "lanes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "recommended_action": {"const": "retain"},
+        "authorized": {"const": false}
+      }
+    },
+    "milestone_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "recorded_at",
+        "status",
+        "target",
+        "gate_receipt_ref",
+        "review_receipt_ref",
+        "audit_ref",
+        "archive_candidates",
+        "workspace_actions",
+        "ignored_residue",
+        "cleanup_performed",
+        "residual_risks"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-finish"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "milestone-result"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"},
+        "status": {"enum": ["completed", "completed-with-ignored-residue"]},
+        "target": {"$ref": "#/$defs/target"},
+        "gate_receipt_ref": {"$ref": "#/$defs/file_ref"},
+        "review_receipt_ref": {"$ref": "#/$defs/file_ref"},
+        "audit_ref": {"$ref": "#/$defs/file_ref"},
+        "archive_candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "workspace_actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/workspace_action"}
+        },
+        "ignored_residue": {"type": "array", "items": {"type": "string"}},
+        "cleanup_performed": {"const": false},
+        "residual_risks": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
+      }
+    }
+  }
+}
