@@ -8,6 +8,7 @@ tmp/
 coverage/
 dist/
 build/
+plugins/codex-team/
 artifacts/runtime/
 *.log
 __pycache__/

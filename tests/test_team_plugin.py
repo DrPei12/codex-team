@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "scripts" / "build-team-plugin.py"
+MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 PLUGIN_NAME = "codex-team"
 SKILLS = {
     "team",
@@ -69,6 +70,21 @@ def runtime(plugin: Path, name: str) -> Path:
 
 def test_entrypoint_exists() -> None:
     assert BUILDER.is_file()
+
+
+def test_repo_marketplace_contract() -> None:
+    marketplace = read_json(MARKETPLACE)
+    assert marketplace["name"] == "codex-team-local"
+    assert marketplace["interface"]["displayName"] == "Codex Team Local"
+    assert marketplace["plugins"] == [
+        {
+            "category": "Productivity",
+            "name": PLUGIN_NAME,
+            "policy": {"authentication": "ON_INSTALL", "installation": "AVAILABLE"},
+            "source": {"path": "./plugins/codex-team", "source": "local"},
+        }
+    ]
+    assert "plugins/codex-team/" in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
 
 
 def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
@@ -423,7 +439,7 @@ def test_packaged_recovery_runtime(tmp_path: Path) -> None:
 
 def main() -> int:
     failures = 0
-    tests_without_tmp = [test_entrypoint_exists]
+    tests_without_tmp = [test_entrypoint_exists, test_repo_marketplace_contract]
     tests_with_tmp = [
         test_build_creates_valid_relocatable_layout,
         test_build_is_byte_deterministic,
