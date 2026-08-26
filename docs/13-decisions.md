@@ -300,3 +300,16 @@
 - 证据：implementation commit `e4fa221` / tree `62c2820`；plugin tests `8 passed, 0 failed`，与原有套件合计 `98 passed, 0 failed`。临时生成包通过官方 `plugin-creator` validator、7/7 packaged skill validator 和 37-file/7-entrypoint self-check；在源码仓库外实际运行全部 phase。
 - 授权边界：本决策只授权在临时目录构建/验证，不授权写 personal/repo marketplace、全局 skills、Codex 安装/刷新、新会话测试或 live task 操作。
 - 限制：真实 marketplace/UI 安装、新会话 discovery、显式/隐式/非触发、升级、重装、禁用和卸载仍未验证。项目无 LICENSE，生成 manifest 不声称 license。
+
+## D-039：真实安装采用 repo marketplace，测试后回滚全局状态
+
+- 日期：2026-08-26
+- 状态：Accepted
+- 用户授权：允许创建 repo-scoped local marketplace、实际安装/refresh `codex-team`、创建新任务测试 7-skill discovery、显式/隐式/非触发，并做卸载 rollback。该授权不包含 `main` 合并、真实工程 lane 实现、push 或 Superpowers。
+- 决策：仓库保留 `.agents/plugins/marketplace.json`，marketplace name `codex-team-local`，source `./plugins/codex-team`；生成 plugin 目录 Git-ignored。安装前确认目标 marketplace/plugin 不存在，预注册 rollback 为 plugin-remove 后 marketplace-remove。
+- 安装观察：Windows / Codex CLI `0.146.0` 中，两次 marketplace add 均 `alreadyAdded=false`，plugin `0.1.0` 均显示 `installed, enabled`；安装缓存与 repo source 38 文件 SHA-256 一致。新任务无需重启当前 Desktop 进程即能拾取 plugin，但不外推到其他版本。
+- 触发观察：新任务发现 7 个 `codex-team:*` 名称；一条纯显式总入口和一条 7-skill 显式加载矩阵均通过；一条高匹配未点名 prompt 隐式选择 `codex-team:team` 并路由到 `team-plan`。README 标题请求行为与不触发相符，但无直接 invocation telemetry，只作有限负证据。
+- Rollback：两个周期的 plugin/remove 和 marketplace/remove 均通过；两条卸载后 projectless 新任务均返回 `ABSENT`。最终 configured marketplace/plugin 无目标，版本缓存不存在，marketplace cache 父目录为空。
+- 任务治理：6 条可读测试任务保留为 idle，未获单独 archive 授权。一条 worktree create 只返回 client ID、未得 thread ID，不计入验收。本轮 managed worktree 已移出 Git registry，容器目录仍存在但为空，不手工删除。
+- 证据：repo marketplace commit `19c8152` / tree `a548cc3`；plugin tests `9 passed, 0 failed`，与先前 90 项 Team 回归合计 99 项。详细 thread IDs、CLI 返回和残留边界见安装实录与机器 evidence。
+- 限制：无长期触发准确率、多 skill 冲突、旧任务热刷新、版本升级/cachebuster、禁用或真实 worker dispatch/handoff/archive 证据；成熟度保持 `incubating`。

@@ -69,4 +69,4 @@ Codex 中的长期任务已经更接近独立工程成员：它们有独立历�
 
 Phase 0 已完成项目目录、Git 基线、文档体系、prior-art 调查和设计基线。M1 已用 OutputGuard Run02–Run10 建立一条保留失败历史的 Desktop recovery lineage，并通过 public、fresh review 和单次 sealed Gate；它不是一次无中断多任务成功，也没有证明多任务优于 single。
 
-截至 2026-08-25，项目进入 M1.4：`team-plan` v0.1 已在 `main`；`codex/team-v01` stacked branch 已实现离线 Team v0.1 与确定性 skills-only plugin builder。九组共 98 项回归通过；生成包在源码仓库外的临时目录运行全部 runtime 入口，通过官方 plugin validator、7/7 skill validator 和 37 文件 bundle self-check。这仍不是真实 Codex 安装或 task 生命周期证据；本轮没有写 marketplace/全局 skills，没有安装/刷新 Codex，没有创建、读取、发消息、等待、handoff 或归档 task，也没有合并 `main`。下一阶段是需用户单独授权的实际安装/新会话触发验证、只读 Codex-native observation adapter 和最小 live pilot。
+截至 2026-08-26，项目进入 M1.4：`team-plan` v0.1 已在 `main`；`codex/team-v01` stacked branch 已实现离线 Team v0.1、确定性 skills-only plugin builder 和 repo marketplace contract。九组测试结果为 99 项；生成包通过官方 validator 和仓库外全 runtime 运行。在用户明确授权后，`codex-team@codex-team-local` 又完成两次真实安装/重安/卸载；新任务发现并显式加载全部 7 个 skill，一条高匹配请求隐式选中总入口，两条卸载后新任务均返回 `ABSENT`。最终全局 plugin/marketplace 已回滚，repo source/marketplace 保留；`main` 未合并。下一阶段是只读 Codex-native observation adapter、真实 worker preflight/dispatch 最小 pilot、版本升级语义和第二 blind benchmark。

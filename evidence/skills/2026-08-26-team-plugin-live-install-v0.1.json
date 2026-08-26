@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-live-install-evaluation-evidence",
+  "plugin": "codex-team",
+  "version": "0.1.0",
+  "maturity": "incubating",
+  "date": "2026-08-26",
+  "environment": {
+    "os": "Windows",
+    "codex_cli": "0.146.0",
+    "repository": "D:/Desktop/Codex多任务工程系统",
+    "branch": "codex/team-v01",
+    "marketplace": "codex-team-local"
+  },
+  "official_basis": [
+    "https://developers.openai.com/plugins/build/plugins",
+    "https://learn.chatgpt.com/docs/build-plugins"
+  ],
+  "repo_contract": {
+    "commit": "19c81520560e44deba5ca768d63de0553967956c",
+    "tree": "a548cc34b9d4ec9d238a27c8376ebc991f0f3cf2",
+    "marketplace_path": ".agents/plugins/marketplace.json",
+    "source_path": "./plugins/codex-team",
+    "plugin_tests": "9 passed, 0 failed",
+    "suite_total": "99 tests when combined with the previously rerun 90 Team tests"
+  },
+  "preflight": {
+    "target_marketplace_existed": false,
+    "target_plugin_source_existed": false,
+    "target_plugin_was_installed": false,
+    "ordinary_git_status": "clean"
+  },
+  "install_cycles": [
+    {
+      "marketplace_add": "success; alreadyAdded=false",
+      "plugin_add": "success; version=0.1.0; installed, enabled",
+      "installed_path": "C:/Users/lenovo/.codex/plugins/cache/codex-team-local/codex-team/0.1.0",
+      "source_vs_installed": "38 files matched by relative path and SHA-256",
+      "bundle_self_check": "PASS: 37 bundle files and 7 runtime entrypoints",
+      "plugin_remove": "success",
+      "marketplace_remove": "success",
+      "post_remove_catalog": "ABSENT"
+    },
+    {
+      "marketplace_add": "success; alreadyAdded=false",
+      "plugin_add": "success; version=0.1.0; installed, enabled",
+      "purpose": "seven-skill explicit invocation matrix",
+      "plugin_remove": "success",
+      "marketplace_remove": "success",
+      "post_remove_catalog": "ABSENT"
+    }
+  ],
+  "threads": [
+    {
+      "thread_id": "01a03c22-5838-76c3-8e74-1ee6c9666de0",
+      "case": "discovery and explicit umbrella invocation",
+      "result": "found seven codex-team-prefixed skills; installed bundle self-check passed; Git clean before and after"
+    },
+    {
+      "thread_id": "01a03c22-58e9-75b0-aba6-0b15bb0b1694",
+      "case": "implicit routing",
+      "result": "selected codex-team:team without a named skill and routed missing canonical run facts to planning/team-plan; self-check passed; Git clean"
+    },
+    {
+      "thread_id": "01a03c22-58db-7311-81c4-27ba1cc399ab",
+      "case": "negative trigger",
+      "result": "returned only README heading and clean Git states with no bundle-check output",
+      "evidence_limit": "thread reader exposes no direct skill-invocation telemetry"
+    },
+    {
+      "thread_id": "01a03c2a-77c8-7552-905e-cbc14c39b855",
+      "case": "post-first-uninstall new projectless catalog",
+      "result": "ABSENT"
+    },
+    {
+      "thread_id": "01a03c2b-cc74-7a53-b374-9107a629d755",
+      "case": "all seven skills explicitly loaded",
+      "result": "returned a distinctive loaded command or boundary for every skill and one 37-file/7-entrypoint self-check PASS"
+    },
+    {
+      "thread_id": "01a03c2d-a3ea-7a80-ba20-d6c3842400aa",
+      "case": "final post-uninstall new projectless catalog",
+      "result": "ABSENT"
+    }
+  ],
+  "queued_without_thread_identity": {
+    "client_thread_id": "client-new-thread:89d96e50-0fd3-45e8-abe9-f54b26864d36",
+    "worktree_container": "C:/Users/lenovo/.codex/worktrees/6387",
+    "result": "no thread ID appeared within the observation window; not counted as a catalog result"
+  },
+  "final_rollback": {
+    "configured_marketplace_present": false,
+    "installed_plugin_present": false,
+    "version_cache_present": false,
+    "marketplace_cache_root": "present but empty",
+    "repo_plugin_source": "present as ignored generated output",
+    "repo_marketplace_file": "present but not globally configured",
+    "managed_test_worktrees_in_git_registry": false,
+    "managed_worktree_container_directories": "4d8c, 551e, fdba, and 6387 remain but each contains zero items",
+    "test_threads_archived": false
+  },
+  "claims_supported": [
+    "repo marketplace registration, same-version reinstall, plugin removal, and marketplace removal worked in the recorded environment",
+    "new tasks discovered all seven installed skills",
+    "all seven skills could be explicitly loaded from the installed cache",
+    "one high-match request implicitly selected codex-team:team",
+    "two post-uninstall projectless tasks reported the codex-team skill prefix absent"
+  ],
+  "known_limits": [
+    "No direct skill-invocation telemetry was available for the negative-trigger task.",
+    "No statistical trigger reliability or ambiguous multi-skill routing evaluation exists.",
+    "No old-thread hot refresh behavior was tested.",
+    "No version upgrade, cachebuster, or different-version reinstall was tested.",
+    "No real worker dispatch, message, wait, handoff, archive, or benchmark comparison was performed."
+  ]
+}

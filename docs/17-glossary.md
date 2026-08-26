@@ -46,6 +46,10 @@
 | Milestone result | 对 passed Gate、approved review 和 ready audit 的非破坏性收尾结论；只列出 archive/cleanup 候选，不执行它们 |
 | Team route | 统一 `team` 入口从 canonical run artifact 派生的下一 phase 建议；包含证据 hash 和授权提示，但不是执行授权 |
 | Skills-only plugin | 只打包一组 related skills 及其 instructions/scripts/references/assets，不包含无需 MCP server 的 Codex/ChatGPT plugin |
+| Repo marketplace | 位于仓库 `.agents/plugins/marketplace.json` 的本地 plugin 目录；用相对于 marketplace root 的 source path 声明可安装 plugin |
+| Installed plugin cache | Codex 安装 local plugin 后生成的版本化运行快照；新任务加载该快照，不应假定直接读开发源目录 |
+| Explicit skill invocation | Prompt 直接指定 `$plugin:skill` 名称并要求加载对应 SKILL.md；与只列出 catalog 名称不同 |
+| Implicit skill invocation | Prompt 未指定 skill 名称，Codex 根据 skill description 与任务意图自动选择；单次成功不等于统计可靠率 |
 | Team skill directory | 生成 `codex-team` plugin 中包含 `team/SKILL.md`、共享 runtime 和 runtime schemas 的绝对目录；packaged SKILL.md 以 `<TEAM_SKILL_DIR>` 占位符指示 Codex 在执行前解析它 |
 | Bundle manifest | 生成 plugin 内的精确文件 inventory 和 SHA-256 绑定；可检出普通篡改，不是签名或公证机制 |
 | Gate | 进入下一阶段前必须满足的机械或人工验收条件 |

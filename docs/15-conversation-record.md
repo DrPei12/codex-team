@@ -349,3 +349,21 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 一次检查命令误将构建输出放到 `D:\Desktop\codex-team`，超出了承诺的临时目录范围。主任务立即报告，核对绝对路径和 plugin manifest 后删除该纯生成目录，确认路径不存在。没有 marketplace、全局 skill 或 Codex 配置被改动，但该事故保留为 scope-discipline 记录。
 
 当前结论是“plugin package 可移动且 runtime 可运行”，不是“Codex 已安装并可触发”。实际 marketplace/UI 安装、新会话 discovery、显式/隐式/非触发、升级/卸载和 live task 仍需用户单独授权。
+
+## 第二十三阶段：真实安装、新任务触发与 rollback
+
+用户明确授权创建 repo-scoped marketplace、实际安装/refresh `codex-team`、创建新任务测试 7 个 skill 的发现、显式/隐式/非触发，并卸载回滚。主任务重新核对 OpenAI 官方 plugin 文档和 `plugin-creator` 安装/更新规则，然后记录安装前快照：Codex CLI `0.146.0`，目标 marketplace/source/plugin 不存在，现有 marketplace 只有 primary/curated/chatcut，Git ordinary clean。
+
+仓库新增 `.agents/plugins/marketplace.json` 和 `.gitignore` 生成包规则，marketplace name `codex-team-local`，source `./plugins/codex-team`。该 contract 与第 9 项 plugin test 提交为 `19c8152` / tree `a548cc3`。生成包再次通过 official plugin validator、marketplace-name validator 和 37-file/7-entrypoint self-check。
+
+第一个安装周期中，`codex plugin marketplace add . --json` 返回 `alreadyAdded=false`，`codex plugin add codex-team@codex-team-local --json` 将 `0.1.0` 安装到用户 plugin cache，CLI 显示 `installed, enabled`。安装缓存与 repo source 的 38 份文件 SHA-256 一致，缓存内 self-check 37/7 PASS。本轮未重启 Desktop 进程；新任务已直接拾取 plugin，因此只记录“当前环境新任务边界可拾取”，不声称所有版本无需重启。
+
+三条 managed-worktree 新任务并行执行只读验证。显式任务 `01a03c22-5838-76c3-8e74-1ee6c9666de0` 发现 7 个 `codex-team:*` 名称，显式加载总入口，从安装 cache 运行 self-check，Git 前后 clean。隐式任务 `01a03c22-58e9-75b0-aba6-0b15bb0b1694` 的 prompt 未点名 skill，它选择 `codex-team:team`，因 checkout 无 canonical run artifact 而路由到 planning / `team-plan`，self-check/Git clean 通过。负触发任务 `01a03c22-58db-7311-81c4-27ba1cc399ab` 只返回 README 标题与 clean status，无 bundle output；由于 thread reader 无 skill invocation telemetry，该结果只记为行为相符，不写成内部绝对未加载。
+
+第一次 remove plugin/marketplace 后，版本 cache 消失，projectless thread `01a03c2a-77c8-7552-905e-cbc14c39b855` 从新 skill catalog 返回 `ABSENT`。一条 worktree post-uninstall create 只返回 client ID `89d96e50...`，建立 root `6387`但未在等待窗口得到 thread ID，不计入证据。
+
+为覆盖全部 7 个 phase skill 的显式加载，主任务运行第二个同版重安周期。Projectless thread `01a03c2b-cc74-7a53-b374-9107a629d755` 在一个回合显式读取 7 个 installed SKILL.md，逐个返回独有命令/边界，只运行一次共享 self-check。再次 remove plugin/marketplace 后，最终 projectless thread `01a03c2d-a3ea-7a80-ba20-d6c3842400aa` 再次返回 `ABSENT`。
+
+最终 configured marketplace/plugin 无目标，版本 cache 不存在，`codex-team-local` cache 父目录存在但为空。Repo marketplace 文件和 ignored 生成 source 保留。本轮 6 条可读测试任务保留 idle，没有 archive 授权。`git worktree list` 已无本轮 4 个 managed worktree，但 `4d8c/551e/fdba/6387` 容器目录仍存在且为空，本轮不手工删除。
+
+项目因此接受 D-039：当前环境中 repo marketplace 注册、同版重安、新任务 7-skill discovery/显式加载、单次隐式路由和卸载后不发现均已观察。长期触发准确率、旧任务热刷新、版本升级/cachebuster、真实 worker dispatch/handoff/archive 和第二 benchmark 仍未完成，成熟度不晋升。

@@ -2,7 +2,7 @@
 
 一个面向 Codex 的社区开源研究与 skills 工程：调查多任务、subagent、Git worktree、直接任务通信、验收证据与生命周期治理已经能做到什么，再把可复现的方法、失败边界和工具化实践分享出来。
 
-它不是商业产品，也不以“发明新范式”作为成立条件。项目可以广泛吸收、复现和组合已有实践，但只有经过当前 Codex 环境实测的能力才会晋升为稳定 skill。当前已实现 Team v0.1 离线完整工作流，并能确定构建为独立可移动的 skills-only plugin；七个 skill 仍属 `incubating`，真实 Codex 安装/触发与任务生命周期尚未验证。
+它不是商业产品，也不以“发明新范式”作为成立条件。项目可以广泛吸收、复现和组合已有实践，但只有经过当前 Codex 环境实测的能力才会晋升为稳定 skill。当前已实现 Team v0.1 离线完整工作流和可移动 skills-only plugin；在记录环境中完成两次真实安装/重装/卸载，新任务发现并显式加载 7 个 skill，且一条高匹配请求隐式选中总入口。长期触发准确率、版本升级和真实 worker 生命周期仍未验证，七个 skill 保持 `incubating`。
 
 ## 项目要解决什么
 
@@ -55,6 +55,7 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orche
 - [`team-recover`](skills/team-recover/SKILL.md) 的 exact commit/dirty candidate、immutable predecessor、proof 复用、单一新事实和有界 successor brief，10 项回归通过；详见 [team-recover v0.1 实录](docs/research/team-recover-v0.1-2026-08-25.md)。
 - 统一 [`team`](skills/team/SKILL.md) 只读路由入口与一条离线端到端主链；八组共 90 项回归和 16 份端到端 schema artifact 全部通过。详见 [Team v0.1 验收](docs/research/team-v0.1-2026-08-25.md)。
 - 确定性 [`codex-team` plugin builder](scripts/build-team-plugin.py)：将 7 个 skill、7 个 runtime 入口和 7 份 runtime schema 构建为可移动 skills-only plugin；8 项打包/隔离运行测试与原有 90 项一起得到 `98 passed, 0 failed`。详见 [plugin packaging v0.1 验收](docs/research/team-plugin-packaging-v0.1-2026-08-25.md)。
+- Repo marketplace 与真实安装验收：`codex-team@codex-team-local` 在 Codex CLI `0.146.0` 中两次安装/enabled 并成功回滚；新任务发现 7 个 skill，7-skill 显式调用矩阵和一条隐式路由通过，两条卸载后新任务均返回 `ABSENT`。详见 [真实安装与触发验收](docs/research/team-plugin-live-install-v0.1-2026-08-26.md)。
 
 ## 从哪里开始读
 
@@ -67,10 +68,10 @@ Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orche
 
 ## 当前阶段
 
-`M1.4 — relocatable Team plugin validated; actual install/live observation next`
+`M1.4 — Team plugin install/trigger observed; live task observation next`
 
-截至 2026-08-25，`team-plan` v0.1 已在 `main`；`codex/team-v01` stacked branch 已实现 `team-run -> team-status -> team-integrate -> team-finish`、失败时的 `team-recover` 以及统一只读 `team` 路由。当前打包代码基线为 `e4fa221` / tree `62c2820`，九组共 98 项回归通过。生成包已在源码仓库外的临时目录跑通所有 runtime 入口，但还没有加入 marketplace 或在 Codex 中安装/触发。本轮也没有创建、读取、发消息、等待、handoff 或归档真实 Codex task，没有合并 `main`。
+截至 2026-08-26，`codex/team-v01` 的 marketplace contract 基线为 `19c8152` / tree `a548cc3`，plugin tests 为 9/9，与原 Team 回归合计 99 项。`codex-team@codex-team-local` 已两次安装为 `0.1.0 installed, enabled`，安装缓存与 repo source 38 文件 hash 一致；6 条可读新任务提供 discovery、7-skill 显式加载、一条隐式路由、行为负触发和两次卸载后 `ABSENT` 证据。最终 plugin 和 marketplace 已从全局 Codex 配置移除，版本缓存已删，repo marketplace/source 保留用于复现。`main` 未合并。
 
 首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
 
-Run02–Run10 暴露的 canonical identity、artifact root、所有权、状态、integration/review target、proof-carrying recovery 和分层 cleanliness 已进入 Team v0.1。可移动 plugin 打包与临时隔离运行已验证；仍未完成的是实际 marketplace/UI 安装、新会话触发、只读 live facts collector、真实 Desktop dispatch/handoff/archive 以及公平对照。任何全局安装或真实 task 创建仍需用户单独授权。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。
+Run02–Run10 暴露的 canonical identity、artifact root、所有权、状态、integration/review target、proof-carrying recovery 和分层 cleanliness 已进入 Team v0.1。可移动打包、真实 repo marketplace 安装、新任务 7-skill discovery/显式加载、单次隐式路由和卸载负验证已观察。仍未完成的是版本升级/cachebuster、长期触发准确率、只读 live facts collector、真实 Desktop worker dispatch/handoff/archive 以及公平对照。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。

@@ -8,7 +8,7 @@
 
 Prior-art 调查进一步表明，skills 本身也必须作为 intervention 评测：目录更多、prompt 更长或流程更完整，不等于 pass rate 更高。每个可执行 skill 都应尽量有 no-skill baseline；每个多任务拓扑都应和能力相近的单任务/subagent baseline 比较。
 
-截至 2026-08-25，Team v0.1 七个 skill 与离线主链已完成，可确定构建为可移动 skills-only plugin。原有 90 项与 8 项打包/隔离运行测试共 `98 passed, 0 failed`；临时生成包通过官方 plugin validator、7/7 packaged skill validator 和 37-file bundle self-check。当前证据支持“离线工作流可 fail closed，生成 plugin 可脱离源码仓库 cwd 运行”；仍没有真实 Codex marketplace/UI 安装、新会话触发、Desktop dispatch/live observation 或公平边际效用数字。OutputGuard 无 skill baseline 因读取历史 solution refs 和其他 planning guidance 被判为污染，只保留作 failure corpus。
+截至 2026-08-26，Team v0.1 七个 skill、离线主链、可移动 skills-only plugin 和 repo marketplace contract 已完成；九组共 99 项测试。在用户明确授权后，`codex-team@codex-team-local` 在 Windows / Codex CLI `0.146.0` 完成两次安装/重安/卸载；新任务发现并显式加载全部 7 个 skill，一条高匹配请求隐式选中 `codex-team:team`，两条卸载后新任务均返回 `ABSENT`。当前证据支持“当前环境新任务可从已安装 plugin 加载全部 Team skills”；仍没有长期触发准确率、旧会话热刷新、版本升级/cachebuster、Desktop worker dispatch/live observation 或公平边际效用数字。OutputGuard 无 skill baseline 仍只作 failure corpus。
 
 ## 已完成的最小通信实验
 
@@ -245,9 +245,10 @@ Codex 官方文档提供测试用例 baseline，A2A 提供 task/message/artifact
 10. 已完成：`team-integrate`、`team-finish`、`team-recover` 和统一 `team` 只读路由的 repo-local v0.1；Gate receipt、append-only recovery link 和 ordinary/ignored/operation-residue receipt 已落地。
 11. 已完成：八组共 90 项回归通过，一条临时 Git/worktree 主链从 run preparation 走到 milestone completion，16 份产物通过 schema。该结果只是离线 workflow 证据。
 12. 已完成：按官方 skills-only plugin 结构构建可移动 `codex-team`，bundled runtime/schema 不依赖源码仓库 cwd；两次构建 bytes 一致，全入口在临时目录隔离运行。
-13. 下一步只在用户单独授权后验证 marketplace/UI 安装、新会话 discovery、显式/隐式/非触发对照、更新与卸载；同时可继续实现独立 Codex-native observation adapter，只读 list/read/wait、Git 和 artifact，写新 immutable facts。
-14. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
-15. Team v0.1 实际安装/live 边界冻结后选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow；注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
-16. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。
+13. 已完成：repo marketplace 两次注册、plugin `0.1.0` 安装/重安/卸载、新任务 7-skill discovery/显式加载、单次隐式路由、行为负触发和两次卸载后 `ABSENT`。最终全局安装已回滚。
+14. 下一步实现独立 Codex-native observation adapter，只读 list/read/wait、Git 和 artifact，写新 immutable facts；随后由用户单独授权最小 worker dispatch/preflight pilot。并行研究版本升级/cachebuster、旧会话热刷新和长期触发准确率。
+15. OutputGuard native single 只能在不含 solution objects/refs 的新 Git object store、独立 Desktop project、冻结 prompt、零 follow-up 和同一 Gate 下补做；由于执行顺序与主编排者知识已受多任务 run 影响，它是带污染风险的补充对照。
+16. 选择第二个未见公开仓库与客观验收功能，主要比较 no-skill/native single、native multi-task 和 skill-assisted workflow；注入至少一个 E12/E13 故障，记录 Gate、返工、等待、冲突、wall time、可取得 token 和用户介入。
+17. 第二 benchmark 后再决定哪些入口晋升 stable，并研究上下文裁剪、模型分层、更大并发和长期 owner 轮换。
 
 这项顺序替代“先完成全部 capability contract 再开始纵向切片”的旧安排。已有 capability evidence 保留为安全输入，但不再是 M1 的主交付。
