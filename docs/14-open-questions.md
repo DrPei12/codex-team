@@ -39,17 +39,26 @@
 - `team-finish` 已把 approved review、exact Gate target、ordinary/ignored/operation residue、run inventory 和 milestone result 分开；不自动 archive/cleanup。
 - `team-recover` 已约束 immutable predecessor、exact commit/dirty candidate、same-manifest proofs、一个新事实和命令/路径/预算；不创建 successor task。
 - 统一 `team` 路由只读 canonical artifact 名称，不从多个同类历史文件猜测权威版本，也不把路由建议当成授权。
-- 八组共 90 项回归与 16 份端到端 schema artifact 通过；仍没有安装后或 live Codex 生命周期证据。详见 [Team v0.1 验收](research/team-v0.1-2026-08-25.md)。
+- 该轮当时八组共 90 项回归与 16 份端到端 schema artifact 通过；尚无可移动打包或 live Codex 生命周期证据。详见 [Team v0.1 验收](research/team-v0.1-2026-08-25.md)。
 
-## P0：进入安装/live 验证前必须回答
+## Plugin packaging v0.1 已经部分回答
 
-1. 第一批 skills 如何打包共享 schema/scripts，才能在安装后保持路径稳定又不复制大量资源？
-2. 统一 `team` 的隐式触发、phase 路由和 canonical 文件命名在安装后是否仍可靠？非 canonical 历史产物如何显式“提升”而不覆盖？
-3. `team-run` 准备层已完成 root 初始化与 parent/worker helper；真实 Desktop task 如何消费 dispatch bundle、写入 thread/project binding，并在真实回合运行同一 worker preflight？
-4. `team-status` renderer 已完成；Codex-native observation adapter 如何把 Desktop list/read/wait、Git state 和 artifact timeline 写成新 immutable facts，处理重复/延迟/cursor，同时不发送消息或无理由重复昂贵命令？
-5. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
-6. Desktop 未显式暴露 effective model/thinking 或 token 时，run artifact 应怎样保留 `unknown` 并维持可解释的对照？
-7. 项目应采用什么 LICENSE 与 NOTICE 策略，才能在未来确有必要时合规复用 MIT/Apache-2.0 prior-art 源码，同时保持来源 revision 与本地改写可追溯？
+- 当前官方分发单位是 plugin，一个 skills-only plugin 可包含一组相关 skill，无需为纯本地 workflow 强行增加 MCP server。
+- `build-team-plugin.py` 已将源码中唯一 runtime/schema 注入 bundled `team` skill，其他 phase 从 `<TEAM_SKILL_DIR>` 定位，不在仓库里维护七份重复 runtime。
+- 两次构建 bytes 一致，输出不覆盖；bundle manifest/self-check 绑定 37 份文件和 7 个 runtime entrypoint。
+- 生成包在源码仓库外的临时目录实际运行全流程，通过官方 plugin validator 和 7/7 skill validator。详见 [plugin packaging v0.1 验收](research/team-plugin-packaging-v0.1-2026-08-25.md)。
+- 仍未回答的是真实 marketplace/UI 安装后的 discovery、触发、更新和卸载，不是包内路径。
+
+## P0：进入实际安装/live 验证前必须回答
+
+1. 需用户单独授权的 local/personal marketplace 方案中，应使用临时测试来源还是 repo-scoped marketplace？如何预注册 rollback 和不触碰现有用户 plugin 的边界？
+2. 新会话是否同时发现 7 个 skill？统一 `team` 的显式/隐式触发、phase 路由与非触发对照是否可靠？
+3. Plugin 升级、cachebuster、重装、禁用和卸载后，旧会话与新会话各使用哪个版本，怎样取证？
+4. `team-run` 准备层已完成 root 初始化与 parent/worker helper；真实 Desktop task 如何消费 dispatch bundle、写入 thread/project binding，并在真实回合运行同一 worker preflight？
+5. `team-status` renderer 已完成；Codex-native observation adapter 如何把 Desktop list/read/wait、Git state 和 artifact timeline 写成新 immutable facts，处理重复/延迟/cursor，同时不发送消息或无理由重复昂贵命令？
+6. `team-plan` 已能拒绝依赖或所有权结构不成立的 fan-out；协调成本阈值、“只适合 subagent”与“应当串行”的选择规则如何通过第二 benchmark 验证，而不是写成未经测试的常数？
+7. Desktop 未显式暴露 effective model/thinking 或 token 时，run artifact 应怎样保留 `unknown` 并维持可解释的对照？
+8. 项目应采用什么 LICENSE 与 NOTICE 策略，才能在未来确有必要时合规复用 MIT/Apache-2.0 prior-art 源码，同时保持来源 revision 与本地改写可追溯？
 
 ## P1：第二个 blind 纵向切片中回答
 

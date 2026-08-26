@@ -25,7 +25,7 @@ D-023 再收紧了执行边界：这里的 “Codex session/task” 默认就是
 | `team-finish` | 形成里程碑结论，列出归档和 workspace 处置建议，但不自动归档 task 或清理 worktree |
 | `team-recover` | 从一个明确 blocked run 继续：绑定精确 candidate、旧证据、尚未建立的新事实和新预算；保持旧 run 不变，禁止无关重做 |
 
-截至 2026-08-25，上述六个 phase skill 都有 repo-local v0.1 实现；外层另有统一 `$team` 只读路由，从 canonical run artifact 选择下一 phase，但不给予 task/Git/command/cleanup 授权。`team-plan` 已在 `main`，其余实现位于 `codex/team-v01` stacked branch。八组共 90 项回归通过，但真实 Desktop dispatch/live observation/handoff/archive、安装路径、第二 blind benchmark 和正向边际效用均未验证，因此整套仍只能标 `incubating`。
+截至 2026-08-25，上述六个 phase skill 与统一 `$team` 只读路由都有 v0.1 实现。`team-plan` 已在 `main`，其余位于 `codex/team-v01` stacked branch。确定性 builder 已将整套构建为可移动 skills-only plugin，在临时目录隔离运行全部 runtime 入口，通过官方 plugin validator、7/7 skill validator 和 bundle self-check；九组共 98 项回归通过。真实 Codex marketplace/UI 安装、新会话触发、Desktop dispatch/live observation/handoff/archive、第二 blind benchmark 和正向边际效用仍未验证，因此整套保持 `incubating`。
 
 `team-review`、`team-benchmark` 和 capability audit 后续可以形成独立入口；第一版仍可作为 `team-integrate`、`team-status` 或项目开发工具的子流程。`team-recover` 的晋升来自重复实测：Run03、Run05、Run06、Run08、Run09、Run10 都需要“保留旧结论，只验证一个新事实”的恢复语义。入口 skill 是路由器和治理者，不应复制每个范式的完整说明。
 
@@ -119,7 +119,12 @@ Worker preflight 仍把隔离拆成三层，而不是只记录一个 `workspace_
 
 Workspace policy 也必须在创建前校验：repository work 只能选择 Desktop saved project。若要求自定义实验根目录，而 create/fork schema 又不能指定任意 worktree root，`team-run` 必须停止并让用户选择“注册实验场内 checkout 后使用 local task”或“允许 Desktop-managed worktree 使用默认位置”。
 
-具体打包方式需用 Codex 当前 plugin/skill 安装与相对路径规则验证。未验证前，不复制同一份协议到十几个 skill，也不假定任意跨目录引用都能在安装后工作。
+当前打包方式遵循官方 skills-only plugin 结构：`.codex-plugin/plugin.json`
+指向 `./skills/`；7 个 related skill 作为一个 plugin 分发，不引入无需的
+MCP server。源码 runtime/schema 只维护一份；`build-team-plugin.py` 在生成包内把
+它们注入 bundled `team` skill，并将 phase 命令改写为从
+`<TEAM_SKILL_DIR>` 定位。两次构建 bytes 一致，bundle manifest 绑定 37 份
+文件 SHA-256。该结论只解决包内可移动性，不证明 Codex 实际安装或触发。
 
 ### F. References、examples 与 failure corpus
 
@@ -160,7 +165,7 @@ Codex 只看到 skill 名称和一两句触发描述。例如用户说“把这�
 
 ## 候选目录结构
 
-这是第一版实现后保留的目标打包草案。七个 `skills/` 入口已在 repo-local 存在；顶层 `agents/shared/evaluations` 的可安装布局仍待验证：
+下列是长期开发仓库布局草案，不是 v0.1 安装包的目录结构。v0.1 实际生成包只包含 `.codex-plugin/plugin.json`、`skills/`以及 bundled `team/scripts` / `team/references/schemas`：
 
 ```text
 codex-multitask-engineering/
@@ -197,7 +202,9 @@ codex-multitask-engineering/
 
 后续通过实战证明独立触发价值后，再加入 `team-review`、`team-benchmark`、`skill-evaluate` 等目录。`team-recover` 已由 OutputGuard 的多次 fail-closed recovery 获得候选资格，并在 2026-08-25 完成 repo-local v0.1；跨 benchmark 评测仍未完成，成熟度保持 `incubating`。
 
-在真正落地前要验证：安装后各 skill 是否能可靠定位 shared 资源；如果不能，则改为生成时注入、专门的 core skill，或最小重复的版本化 schema。不要为结构美观牺牲可运行性。
+生成时注入 + bundled `team` core skill 已在仓库外临时目录运行通过，因此
+不再把“包内资源定位”列为未解问题。仍需实测的是 marketplace/UI 安装后
+Codex 是否保留该布局、新会话是否正确发现/触发，以及升级、禁用与卸载语义。
 
 ## 单个 skill 的质量要求
 
@@ -223,7 +230,7 @@ codex-multitask-engineering/
 5. 已实现 `team-integrate` v0.1：单一 integrator 按 manifest 顺序接收 exact candidate，Git 变更与 Gate 命令各需显式授权；
 6. 已实现 `team-finish` v0.1：绑定独立 review，分层审计 ordinary/ignored/operation residue，只生成归档/清理建议；
 7. 已实现 `team-recover` v0.1：冻结 exact commit 或 dirty candidate，携带旧 proof、一个新事实和预算，但不创建 successor task；
-8. 已实现统一 `team` 只读路由和离线端到端验收；下一步是安装面、只读 live observer 和需单独授权的最小 Desktop pilot；
+8. 已实现统一 `team` 只读路由、离线端到端验收和可移动 skills-only plugin builder；下一步是需用户单独授权的实际安装/新会话触发，以及只读 live observer 和最小 Desktop pilot；
 9. 提供 contract-parallel reference，以及 implementer、reviewer、integrator profiles，并把 OutputGuard Run02–Run10 收入 failure corpus。
 
 OutputGuard 已经验证了手工流程可以恢复到公开、审查和 sealed Gate 全部通过，但它不是 skills 边际效用证据。实现冻结后应换一个未见过的第二 benchmark 做 no-skill/native single 与 skill-assisted 对照；OutputGuard 主要用于回归这些已知失败模式。`pattern-contract-parallel` 和 worker role 在产生独立触发证据前仍不必单独包装成 skill。

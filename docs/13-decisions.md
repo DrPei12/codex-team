@@ -289,3 +289,14 @@
 - Canonical 规则：路由器不从多个同类历史产物猜测“最新”；需要自动路由时，接收方将选定产物提升为 canonical 名称，历史文件仍 append-only 保留。各 phase helper 仍必须做自己的 hash/identity/ownership/precondition 校验。
 - 证据：router/e2e commit `e497188` / tree `9930abf`；8 项路由回归和 1 项离线端到端用例通过。全套八组共 90 项回归和 16 份端到端 schema artifact 通过。
 - 限制：没有安装后路径/隐式触发、live Codex task 生命周期或第二 blind benchmark 证据；七个 skill 均保持 `incubating`。
+
+## D-038：Team v0.1 以确定构建的 skills-only plugin 分发
+
+- 日期：2026-08-25
+- 状态：Accepted
+- 官方基线：Codex/ChatGPT plugin 是可发现、安装和分发单位，可包含一组相关 skills；skill 可携带 scripts/references/assets，只需本地指令与资源的 workflow 无需 MCP server。Plugin 用 `.codex-plugin/plugin.json` 的 `./skills/` 相对路径声明 bundled skills。
+- 决策：源码仓库继续只维护一份 runtime 和 schema；`build-team-plugin.py` 构建名为 `codex-team` 的独立 plugin，将共享 runtime/schema 注入 bundled `team` skill，并把每个 phase 的执行路径改写为从 `<TEAM_SKILL_DIR>` 定位。不手工维护七套重复实现，不为打包引入 MCP server。
+- 完整性：输出严格不覆盖，在同父目录 staging 成功后 rename；两次构建的相对文件集/bytes 必须一致。Bundle manifest 绑定全文件 SHA-256，self-check 重验 inventory、plugin name/version 和 7 个 runtime imports。
+- 证据：implementation commit `e4fa221` / tree `62c2820`；plugin tests `8 passed, 0 failed`，与原有套件合计 `98 passed, 0 failed`。临时生成包通过官方 `plugin-creator` validator、7/7 packaged skill validator 和 37-file/7-entrypoint self-check；在源码仓库外实际运行全部 phase。
+- 授权边界：本决策只授权在临时目录构建/验证，不授权写 personal/repo marketplace、全局 skills、Codex 安装/刷新、新会话测试或 live task 操作。
+- 限制：真实 marketplace/UI 安装、新会话 discovery、显式/隐式/非触发、升级、重装、禁用和卸载仍未验证。项目无 LICENSE，生成 manifest 不声称 license。

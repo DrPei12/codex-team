@@ -2,7 +2,7 @@
 
 这套文档采用“先建立共同语言，再进入运行规则，最后进入实现与评测”的顺序。读者无需一次加载全部内容。
 
-最后同步：2026-08-25。`team-plan` 已在 `main`；`codex/team-v01` stacked branch 已实现离线 Team v0.1：`team-run -> team-status -> team-integrate -> team-finish`，失败转 `team-recover`，统一 `team` 只读路由。90 项回归通过；没有真实 Desktop task 操作，也没有合并 `main`。
+最后同步：2026-08-25。`team-plan` 已在 `main`；`codex/team-v01` stacked branch 已实现离线 Team v0.1 与可移动 skills-only plugin builder。98 项回归通过；生成包已在临时目录隔离运行，但没有在 Codex 实际安装/触发，没有真实 Desktop task 操作，也没有合并 `main`。
 
 ## 第一层：五分钟了解项目
 
@@ -54,6 +54,8 @@
 - [team-recover v0.1 机器 evidence](../evidence/skills/2026-08-25-team-recover-v0.1.json)
 - [2026-08-25 Team v0.1 离线完整工作流验收](research/team-v0.1-2026-08-25.md)
 - [Team v0.1 套件 evidence](../evidence/skills/2026-08-25-team-v0.1.json)
+- [2026-08-25 Team plugin packaging v0.1 验收](research/team-plugin-packaging-v0.1-2026-08-25.md)
+- [Team plugin packaging v0.1 机器 evidence](../evidence/skills/2026-08-25-team-plugin-packaging-v0.1.json)
 - [模板目录](templates/README.md)
 
 ## 文档状态标签

@@ -335,3 +335,17 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 最后增加统一 `$team` 只读入口。它只读 run 中的 canonical artifact 名称，返回 `next_skill/next_action`、证据 SHA-256 和是否仍需单独授权，所有 task/Git/command/cleanup 授权字段恒为 false。一条临时 Git/worktree 端到端测试从 run preparation 走到 candidate、真实临时合并、离线 Gate、review、audit 和 milestone completion；模拟 thread ID 只是 facts 测试数据，没有调用 Desktop task 工具。
 
 最终八组共 `90 passed, 0 failed`，16 份端到端产物通过 Draft 2020-12 schema，7 个 skill validator、9 份 schema meta-validation、3 份 capability contract 和 5 类历史 workflow artifact 全部通过。代码基线为 `codex/team-v01@e497188` / tree `9930abf`；`main` 仍为 `db3b810`。项目因此可以声称“Team v0.1 repo-local 离线工作流已完成”，但不能声称“真实 Codex 多任务已由套件自动运行”或“已 stable”。下一阶段是安装面、只读 live observer、需用户单独授权的最小 pilot 和第二 blind benchmark。
+
+## 第二十二阶段：可移动 skills-only plugin 打包
+
+用户要求继续。主任务保留“继续不等于安装、创建真实 task 或合并 main”的边界，将 M1.4 的第一步限定为 repo-local 打包与临时隔离验证。审计发现当时 6 个 phase 脚本都以“脚本上两级是仓库根目录”为运行假设，SKILL.md 也使用 `python scripts/...`；单独复制 skill 目录必然失效。
+
+主任务核对官方 OpenAI plugin/skill 文档：plugin 是 ChatGPT/Codex 可安装分发单位，可包含一组 related skills；skill 可携带 scripts/references/assets，仅本地资源的 workflow 无需 MCP server；`.codex-plugin/plugin.json` 用 `./skills/` 指向打包入口。因此接受 D-038：将 Team v0.1 构建为一个 skills-only `codex-team` plugin，不把 7 个 skill 分别复制成七份 runtime，不引入 MCP。
+
+标准库 RED 测试首轮 `0 passed, 6 failed`，全部因 builder 不存在。实现 `build-team-plugin.py` 后，生成包包含 manifest、7 个 skill、bundled `team/scripts`、7 份 runtime schema 和 SHA-256 bundle manifest/self-check。Builder 强制目录名 `codex-team`、父目录已存在、输出不存在，在同父目录 staging 构建成功后 rename。打包时才将 repo-local 命令改写为 `<TEAM_SKILL_DIR>`，源码仍只维护一份。
+
+最终 plugin tests `8 passed, 0 failed`：两次构建 bytes 一致，错误名/覆盖拒绝，篡改被 self-check 捕获，并在源码仓库外实际运行 plan/run/status/router、candidate/merge/Gate/review/audit/finalize 和 dirty recovery。九组全回归 `98 passed, 0 failed`；临时生成包通过官方 plugin validator、7/7 packaged skill validator 和 37-file/7-entrypoint self-check。实现 commit `e4fa221` / tree `62c2820`。
+
+一次检查命令误将构建输出放到 `D:\Desktop\codex-team`，超出了承诺的临时目录范围。主任务立即报告，核对绝对路径和 plugin manifest 后删除该纯生成目录，确认路径不存在。没有 marketplace、全局 skill 或 Codex 配置被改动，但该事故保留为 scope-discipline 记录。
+
+当前结论是“plugin package 可移动且 runtime 可运行”，不是“Codex 已安装并可触发”。实际 marketplace/UI 安装、新会话 discovery、显式/隐式/非触发、升级/卸载和 live task 仍需用户单独授权。

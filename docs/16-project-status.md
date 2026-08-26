@@ -3,9 +3,9 @@
 ## Snapshot
 
 - 日期：2026-08-25
-- 阶段：`M1.4 — Team v0.1 offline workflow implemented; install/live validation next`
-- 状态：Team v0.1 repo-local 离线工作流已闭环：`team-plan -> team-run -> team-status -> team-integrate -> team-finish`，失败转 `team-recover`，统一 `team` 只读路由。八组共 90 项回归和 16 份端到端 schema artifact 通过；7 个 skill 仍为 `incubating`。没有调用真实 Codex task 生命周期，没有合并 `main`，安装/live observation/公平 no-skill 对照仍未完成
-- 本次同步所依据的功能基线：branch `codex/team-v01`，commit `e497188d27b5531aeb553d852d0a80a546e3bbdd` / tree `9930abfce6d637167f8dc907df1cd9d58ace94f0`；module commits `93a6d4d` / `95b8567` / `32927d0`；`main` 仍为 `db3b810`
+- 阶段：`M1.4 — relocatable Team plugin validated; actual install/live observation next`
+- 状态：Team v0.1 离线工作流已闭环，并可确定构建为独立 `codex-team` skills-only plugin。九组共 98 项回归通过；临时生成包通过官方 plugin validator、7/7 packaged skill validator、37-file/7-entrypoint self-check 和源码仓库外全 runtime 正向运行。7 个 skill 仍为 `incubating`；没有实际 marketplace/UI 安装、新会话触发、真实 Codex task 生命周期或 `main` 合并
+- 本次同步所依据的打包代码基线：branch `codex/team-v01`，commit `e4fa221df00f5dd37ff03a567ccfda9bf6760294` / tree `62c282010c699d036d35d0678cb575ebcac11b4c`；offline suite parent `5cec39b`；`main` 仍为 `db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -83,6 +83,10 @@
 - [x] 接受 D-037 并实现统一 `team` 只读路由：只读 canonical run artifact，选择下一 phase，不授权 task/Git/command/cleanup，8 项回归
 - [x] 完成 Team v0.1 离线端到端主链：临时 Git/worktree 中从 prepare 走到 milestone completion，16 份产物通过 Draft 2020-12 schema
 - [x] Team v0.1 全量验收：8 组 90 项回归、7/7 skill validator、9/9 schema meta-validation、3 份 capability contract 和 5 类旧 workflow artifact 通过
+- [x] 核对 OpenAI 官方 plugin/skill 打包规则：一个 skills-only plugin 可包含一组 related skills，无需为本地 workflow 强行引入 MCP server
+- [x] 接受 D-038 并实现确定性 `codex-team` plugin builder：staging + no-overwrite、bundled runtime/schema、`<TEAM_SKILL_DIR>` 可移动定位和 SHA-256 bundle manifest/self-check
+- [x] Plugin packaging 回归 `8 passed, 0 failed`：两次构建 bytes 一致、篡改检测、错名/覆盖拒绝、源码仓库外全 runtime 正向运行
+- [x] 临时生成包通过官方 `plugin-creator` validator、7/7 packaged skill `quick_validate.py` 和 37-file/7-entrypoint bundle self-check；全套九组 `98 passed, 0 failed`
 
 ## 纵向切片清单（已完成与未完成）
 
@@ -108,13 +112,13 @@
 
 ## 下一里程碑建议
 
-`M1.4 — Validate installation and observe native Codex task facts without mutating them`
+`M1.4 — Validate actual Codex installation and observe native task facts without mutating them`
 
 产物：
 
 1. 冻结 Run02–Run10 failure corpus 和 Run10 exact-tree acceptance evidence，不重跑 sealed、不清理隔离现场；
 2. 审查 `codex/team-v01` 的 Team v0.1 完整 stacked history；未获单独授权时不合并 `main`；
-3. 验证七个 skill 安装后的触发/非触发、helper/schema 路径、共享资源和 Windows 执行入口；
+3. 已完成可移动 plugin 打包和临时隔离运行；下一步只在用户单独授权后验证 marketplace/UI 安装、7-skill discovery、显式/隐式/非触发、更新和卸载；
 4. 实现独立 Codex-native observation adapter：只读 list/read/wait、Git 与 artifact，写新 immutable facts，不发送消息；
 5. 对 duplicate/delayed message、cursor、task 不存在、task/project 错配和中途归档做 fail-closed 测试；
 6. 只在用户单独授权后运行最小 Desktop live pilot，记录 create 返回的 thread/project/workspace binding 和真实 worker preflight；
@@ -129,11 +133,12 @@
 - 当前本地 tool schema 只证明工具入口存在，不证明所有组合行为稳定；
 - `multi_agent=stable,true` 是 CLI feature 声明，不能替代 subagent 生命周期实验；
 - A2A 语义与本地扩展若边界不清，会产生“伪兼容”；
-- 共享资源在多-skill 安装后的路径规则尚未验证；
+- 可移动生成包已证明 bundled runtime/schema 不依赖源码仓库 cwd；但 Codex 实际安装后是否保留布局、新会话是否发现/触发仍未验证；
 - CLI 历史回合能读取 token usage，但 Desktop task/follow-up/fork 未保证暴露同等 usage；telemetry 仍不完整，不能混合统计；
 - 外部论文和社区仓库更新很快，数字和 HEAD 只能作为 2026-08-10 snapshot；
 - skill 可能无正向边际效用、与项目版本冲突或形成供应链/权限风险；
-- Team v0.1 七个 skill 当前通过 repo-local 路径显式加载；作为可安装 skill 后能否稳定定位共享 schema/helper 和正确隐式触发尚未验证；
+- `codex-team` builder 的 bundle manifest 可检出普通文件篡改，但它不是签名/公证机制；攻击者同时改写产物与 manifest 不在当前威胁模型内；
+- 没有验证实际 marketplace source、plugin cachebuster、升级/重装/禁用/卸载和新旧会话版本选择；
 - `team-plan` 的 symlink 边界已实测，Windows junction 未现场实测；
 - `team-run` 已实测 Brief symlink、dirty/ignored、错误 cwd 和 receipt 不覆盖，但未覆盖 Windows junction、submodule/LFS、detached HEAD 或 Git operation residue；
 - `team-status` 已实测 identity/hash、依赖解锁、dirty handoff、跨-run evidence 和矛盾 facts，但没有 live Codex observer、消息/cursor 时序或长期准确率；
@@ -161,4 +166,4 @@
 
 ## 完成 Phase 0 的判定
 
-Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.4；仍然没有 `stable` skill，但已有七个 `incubating` Team v0.1 skill 和离线主链验收。`team-plan` 已在 `main`，其余套件基线位于 `codex/team-v01`，尚未合并 `main`；不能表述为安装后或真实 Desktop dispatch/live observation/handoff/archive 已完成。
+Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.4；仍然没有 `stable` skill，但已有七个 `incubating` Team v0.1 skill、离线主链和可移动 plugin 打包/隔离运行证据。`team-plan` 已在 `main`，其余套件基线位于 `codex/team-v01`，尚未合并 `main`；不能表述为 Codex 已实际安装/触发，或真实 Desktop dispatch/live observation/handoff/archive 已完成。

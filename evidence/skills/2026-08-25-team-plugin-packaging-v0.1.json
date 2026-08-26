@@ -1,0 +1,54 @@
+{
+  "schema_version": "0.1",
+  "kind": "skill-packaging-evaluation-evidence",
+  "skill_suite": "codex-team",
+  "maturity": "incubating",
+  "date": "2026-08-25",
+  "scope": "deterministic relocatable skills-only plugin build and isolated runtime validation; no installation",
+  "official_basis": [
+    "https://developers.openai.com/plugins/concepts/plugins",
+    "https://developers.openai.com/plugins/build/skills",
+    "https://developers.openai.com/plugins/build/plugins"
+  ],
+  "implementation": {
+    "branch": "codex/team-v01",
+    "base_commit": "5cec39b1a5f9b9184b8acf69b5f4bd1453bbd01e",
+    "commit": "e4fa221df00f5dd37ff03a567ccfda9bf6760294",
+    "tree": "62c282010c699d036d35d0678cb575ebcac11b4c",
+    "tests": {
+      "command": "python -B tests/test_team_plugin.py",
+      "result": "8 passed, 0 failed"
+    },
+    "full_regression": "98 passed, 0 failed across nine test groups",
+    "plugin_validation": "official plugin-creator validator passed",
+    "packaged_skill_validation": "7 of 7 skills passed quick_validate.py",
+    "bundle_self_check": "37 bound files and 7 runtime entrypoints passed"
+  },
+  "properties": [
+    "output folder is strictly named codex-team",
+    "output is staged then renamed and never overwritten",
+    "two builds have identical relative files and bytes",
+    "bundle manifest binds packaged files by SHA-256",
+    "packaged skills resolve runtime from bundled TEAM_SKILL_DIR rather than source-repository cwd",
+    "isolated packaged runtime exercised all seven workflow entrypoints"
+  ],
+  "authorization": {
+    "write_global_skills": false,
+    "create_or_update_marketplace": false,
+    "install_or_enable_plugin": false,
+    "refresh_codex": false,
+    "create_live_tasks": false
+  },
+  "execution_incident": {
+    "event": "one inspection build accidentally targeted D:/Desktop/codex-team",
+    "resolution": "verified exact path and plugin manifest, deleted the generated directory, and confirmed it no longer existed",
+    "external_configuration_changed": false
+  },
+  "known_limits": [
+    "No Codex UI or marketplace installation was performed.",
+    "No new-conversation discovery, explicit invocation, implicit invocation, or negative trigger test was performed.",
+    "No upgrade, reinstall, cachebuster, disable, or uninstall flow was tested.",
+    "The repository has no LICENSE, so the generated manifest intentionally omits a license field.",
+    "No live Codex task lifecycle behavior was exercised."
+  ]
+}

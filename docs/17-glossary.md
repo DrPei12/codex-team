@@ -45,6 +45,9 @@
 | Finish audit | 在 milestone 前重验 Gate/review target，并分开记录 ordinary、ignored、Git operation residue 和 run inventory 的审计 |
 | Milestone result | 对 passed Gate、approved review 和 ready audit 的非破坏性收尾结论；只列出 archive/cleanup 候选，不执行它们 |
 | Team route | 统一 `team` 入口从 canonical run artifact 派生的下一 phase 建议；包含证据 hash 和授权提示，但不是执行授权 |
+| Skills-only plugin | 只打包一组 related skills 及其 instructions/scripts/references/assets，不包含无需 MCP server 的 Codex/ChatGPT plugin |
+| Team skill directory | 生成 `codex-team` plugin 中包含 `team/SKILL.md`、共享 runtime 和 runtime schemas 的绝对目录；packaged SKILL.md 以 `<TEAM_SKILL_DIR>` 占位符指示 Codex 在执行前解析它 |
+| Bundle manifest | 生成 plugin 内的精确文件 inventory 和 SHA-256 绑定；可检出普通篡改，不是签名或公证机制 |
 | Gate | 进入下一阶段前必须满足的机械或人工验收条件 |
 | Affected Gate | 只覆盖某次组合变更所引入新风险的测试/检查 |
 | Active roster | 当前活跃任务、角色、workspace、状态和唤醒条件清单 |
