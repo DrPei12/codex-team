@@ -125,6 +125,31 @@ def valid_manifest() -> dict:
     }
 
 
+def relocate_manifest_to(tmp_path: Path, manifest: dict) -> tuple[dict, Path]:
+    """Give ownership validation a real task-project tree without Git setup."""
+
+    experiment_root = tmp_path / "experiment"
+    project = experiment_root / "control"
+    worktree_root = experiment_root / "worktrees"
+    artifact_root = experiment_root / "runs"
+    project.mkdir(parents=True)
+    worktree_root.mkdir()
+    artifact_root.mkdir()
+    manifest["task_project"]["path"] = str(project)
+    manifest["workspace_policy"] = {
+        "experiment_root": str(experiment_root),
+        "worktree_root": str(worktree_root),
+        "artifact_root": str(artifact_root),
+        "require_clean_start": True,
+    }
+    for lane_item in manifest["lanes"]:
+        if lane_item["role"] == "reviewer":
+            lane_item["workspace"]["path"] = str(worktree_root / "integrator")
+        else:
+            lane_item["workspace"]["path"] = str(worktree_root / lane_item["lane_id"])
+    return manifest, project
+
+
 def run_cli(tmp_path: Path, manifest: dict, *args: str) -> subprocess.CompletedProcess[str]:
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -296,6 +321,61 @@ def test_windows_ownership_aliases_are_rejected(tmp_path: Path) -> None:
         assert "ownership" in result.stderr or "canonical" in result.stderr
 
 
+def test_ownership_accepts_exact_file_and_explicit_recursive_directory(tmp_path: Path) -> None:
+    manifest, project = relocate_manifest_to(tmp_path, valid_manifest())
+    exact_file = project / "docs" / "design" / "README"
+    exact_file.parent.mkdir(parents=True)
+    exact_file.write_text("design\n", encoding="utf-8")
+    manifest["lanes"][0]["ownership"]["write_paths"] = [r"docs\design\README"]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 0, result.stderr
+
+    manifest["lanes"][0]["ownership"]["write_paths"] = ["docs/design/**"]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 0, result.stderr
+
+
+def test_ownership_accepts_existing_and_future_bare_subtree_roots(tmp_path: Path) -> None:
+    manifest, project = relocate_manifest_to(tmp_path, valid_manifest())
+    directory = project / "docs" / "design" / "pc-ai-native-v1"
+    directory.mkdir(parents=True)
+    manifest["lanes"][0]["ownership"]["write_paths"] = ["docs/design/pc-ai-native-v1"]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 0, result.stderr
+
+    manifest["lanes"][0]["ownership"]["write_paths"] = ["docs/design/future-subtree"]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 0, result.stderr
+
+
+def test_parallel_ownership_rejects_bare_subtree_and_deeper_glob_intersections(
+    tmp_path: Path,
+) -> None:
+    for left, right in (
+        ("a/b", "a/*/c"),
+        ("a", "*/b"),
+        ("a/b", "a/**/c"),
+    ):
+        manifest = valid_manifest()
+        manifest["lanes"][0]["ownership"]["write_paths"] = [left]
+        manifest["lanes"][1]["ownership"]["write_paths"] = [right]
+        result = run_cli(tmp_path, manifest, "validate")
+        assert result.returncode == 1, (left, right, result.stderr)
+        assert "parallel ownership overlap" in result.stderr
+
+
+def test_forbidden_paths_use_canonical_ownership_normalization(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["lanes"][0]["ownership"]["forbidden_paths"] = [
+        r"SRC\SECRETS",
+        "src/secrets",
+    ]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "forbidden_paths" in result.stderr
+    assert "normalized paths must be unique" in result.stderr
+
+
 def test_integration_order_must_respect_dependencies(tmp_path: Path) -> None:
     manifest = valid_manifest()
     manifest["integration_order"] = ["integrator", "core", "cli", "reviewer"]
@@ -404,6 +484,10 @@ def main() -> int:
         test_lane_workspace_symlink_alias_is_rejected,
         test_reviewer_must_depend_on_integrator_and_share_target_workspace,
         test_windows_ownership_aliases_are_rejected,
+        test_ownership_accepts_exact_file_and_explicit_recursive_directory,
+        test_ownership_accepts_existing_and_future_bare_subtree_roots,
+        test_parallel_ownership_rejects_bare_subtree_and_deeper_glob_intersections,
+        test_forbidden_paths_use_canonical_ownership_normalization,
         test_integration_order_must_respect_dependencies,
         test_project_generates_briefs_from_one_canonical_manifest,
         test_projection_must_stay_under_artifact_root,

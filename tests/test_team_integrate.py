@@ -47,9 +47,18 @@ def create_handoff_fixture(
     tmp_path: Path,
     lanes: tuple[str, ...] = ("core", "cli"),
     gate_commands: tuple[str, ...] | None = None,
+    core_write_paths: list[str] | None = None,
+    core_forbidden_paths: list[str] | None = None,
+    changed_paths: dict[str, str] | None = None,
+    team_run_path: Path | None = None,
+    team_status_path: Path | None = None,
 ) -> dict:
     fixture = RUN_SUPPORT.create_fixture(tmp_path)
     manifest = fixture["manifest"]
+    if core_write_paths is not None:
+        manifest["lanes"][0]["ownership"]["write_paths"] = core_write_paths
+    if core_forbidden_paths is not None:
+        manifest["lanes"][0]["ownership"]["forbidden_paths"] = core_forbidden_paths
     commands = gate_commands or ("python -c \"print('gate-ok')\"",)
     manifest["global_gates"] = [
         {
@@ -76,14 +85,26 @@ def create_handoff_fixture(
     if projection.returncode != 0:
         raise AssertionError(f"team-plan reprojection failed:\n{projection.stderr}")
     run_root = Path(fixture["artifact_root"]) / "status-run"
-    prepared = RUN_SUPPORT.run_prepare(fixture, run_root)
+    prepared = run_command(
+        [
+            sys.executable,
+            str(team_run_path or RUN_SUPPORT.TEAM_RUN),
+            "prepare",
+            str(fixture["manifest_path"]),
+            "--briefs",
+            str(fixture["briefs"]),
+            "--out",
+            str(run_root),
+        ],
+        cwd=ROOT,
+    )
     if prepared.returncode != 0:
         raise AssertionError(f"team-run preparation failed:\n{prepared.stderr}")
     facts_path = run_root / "status-facts.json"
     initialized = run_command(
         [
             sys.executable,
-            str(STATUS_SUPPORT.TEAM_STATUS),
+            str(team_status_path or STATUS_SUPPORT.TEAM_STATUS),
             "init-facts",
             str(fixture["manifest_path"]),
             "--run-dir",
@@ -100,9 +121,27 @@ def create_handoff_fixture(
     facts = read_json(Path(fixture["facts"]))
     project_id = fixture["manifest"]["task_project"]["project_id"]
     for lane_id in lanes:
-        STATUS_SUPPORT.create_passed_worker_receipt(fixture, lane_id)
+        receipt = run_root / "worker-receipts" / f"{lane_id}.json"
+        preflight = run_command(
+            [
+                sys.executable,
+                str(team_run_path or RUN_SUPPORT.TEAM_RUN),
+                "worker-preflight",
+                str(fixture["manifest_path"]),
+                "--brief",
+                str(Path(fixture["briefs"]) / f"{lane_id}.task-brief.json"),
+                "--receipt",
+                str(receipt),
+            ],
+            cwd=Path(fixture[lane_id]),
+        )
+        if preflight.returncode != 0:
+            raise AssertionError(f"worker preflight fixture failed:\n{preflight.stderr}")
         workspace = Path(fixture[lane_id])
-        owned_path = "src/core.py" if lane_id == "core" else "src/cli.py"
+        owned_path = (changed_paths or {}).get(
+            lane_id,
+            "src/core.py" if lane_id == "core" else "src/cli.py",
+        )
         target = workspace / owned_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(f"{lane_id} = True\n", encoding="utf-8")
@@ -116,7 +155,22 @@ def create_handoff_fixture(
         item["workspace"]["observed_at"] = "2026-08-24T14:00:00-04:00"
     facts_path = Path(fixture["run_root"]) / "facts-handoff-integrate.json"
     write_json(facts_path, facts)
-    result, snapshot = STATUS_SUPPORT.render(fixture, facts_path, "status-handoff-integrate.json")
+    snapshot = Path(fixture["run_root"]) / "status-handoff-integrate.json"
+    result = run_command(
+        [
+            sys.executable,
+            str(team_status_path or STATUS_SUPPORT.TEAM_STATUS),
+            "render",
+            str(fixture["manifest_path"]),
+            "--run-dir",
+            str(run_root),
+            "--facts",
+            str(facts_path),
+            "--out",
+            str(snapshot),
+        ],
+        cwd=ROOT,
+    )
     if result.returncode != 0:
         raise AssertionError(f"status fixture render failed:\n{result.stderr}")
     fixture["integration_facts"] = facts_path
@@ -191,6 +245,64 @@ def test_candidate_binds_git_report_and_evidence(tmp_path: Path) -> None:
     assert candidate["workspace"]["head"] == RUN_SUPPORT.git(Path(fixture["core"]), "rev-parse", "HEAD")
     assert candidate["changed_files"] == ["src/core.py"]
     assert candidate["workspace"]["ordinary_status"] == []
+
+
+def test_candidate_accepts_explicit_recursive_directory_glob(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(
+        tmp_path,
+        ("core",),
+        core_write_paths=["docs/**"],
+        changed_paths={"core": "docs/nested/core.py"},
+    )
+    result, output = build_candidate(fixture, "core")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["docs/nested/core.py"]
+
+
+def test_candidate_accepts_descendant_of_bare_ownership_root(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(
+        tmp_path,
+        ("core",),
+        core_write_paths=["docs"],
+        changed_paths={"core": "docs/nested/core.py"},
+    )
+    result, output = build_candidate(fixture, "core")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["docs/nested/core.py"]
+
+
+def test_candidate_normalizes_windows_alias_and_case(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(tmp_path, ("core",), core_write_paths=[r"SRC\CORE.PY"])
+    result, output = build_candidate(fixture, "core")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["src/core.py"]
+
+
+def test_candidate_rejects_changed_file_outside_exact_ownership(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(
+        tmp_path,
+        ("core",),
+        core_write_paths=["src/core.py"],
+        changed_paths={"core": "src/other.py"},
+    )
+    result, output = build_candidate(fixture, "core")
+    assert result.returncode == 1
+    assert "ownership" in result.stderr.lower()
+    assert not output.exists()
+
+
+def test_candidate_forbidden_paths_override_bare_write_root(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(
+        tmp_path,
+        ("core",),
+        core_write_paths=["owned"],
+        core_forbidden_paths=["owned/secrets"],
+        changed_paths={"core": "owned/secrets/key.py"},
+    )
+    result, output = build_candidate(fixture, "core")
+    assert result.returncode == 1
+    assert "ownership" in result.stderr.lower()
+    assert not output.exists()
 
 
 def test_candidate_rejects_out_of_ownership_change(tmp_path: Path) -> None:
@@ -490,6 +602,11 @@ def main() -> int:
     tests_without_tmp = [test_entrypoints_exist]
     tests_with_tmp = [
         test_candidate_binds_git_report_and_evidence,
+        test_candidate_accepts_explicit_recursive_directory_glob,
+        test_candidate_accepts_descendant_of_bare_ownership_root,
+        test_candidate_normalizes_windows_alias_and_case,
+        test_candidate_rejects_changed_file_outside_exact_ownership,
+        test_candidate_forbidden_paths_override_bare_write_root,
         test_candidate_rejects_out_of_ownership_change,
         test_candidate_rejects_dirty_workspace,
         test_prepare_orders_valid_candidates,

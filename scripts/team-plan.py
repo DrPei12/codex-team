@@ -7,6 +7,7 @@ import argparse
 import copy
 import datetime as _datetime
 import fnmatch
+import functools
 import hashlib
 import json
 import ntpath
@@ -185,23 +186,143 @@ def _owned_path(value: Any, path: str) -> str:
     return ntpath.normcase("/".join(parts)).replace("\\", "/")
 
 
-def _path_patterns_overlap(left: str, right: str) -> bool:
-    """Conservatively detect overlap for exact paths and common glob paths."""
+def _ownership_pattern_has_glob(pattern: str) -> bool:
+    """Return whether a normalized ownership path uses explicit glob syntax."""
 
-    left = left.replace("\\", "/").casefold()
-    right = right.replace("\\", "/").casefold()
-    if left == right:
-        return True
-    if left.startswith(right + "/") or right.startswith(left + "/"):
-        return True
-    if fnmatch.fnmatchcase(left, right) or fnmatch.fnmatchcase(right, left):
-        return True
-    for pattern, candidate in ((left, right), (right, left)):
-        if pattern.endswith("/**"):
-            prefix = pattern[:-3].rstrip("/")
-            if candidate == prefix or candidate.startswith(prefix + "/"):
-                return True
-    return False
+    return any(char in pattern for char in "*?[")
+
+
+def _ownership_matches_normalized(path: str, pattern: str) -> bool:
+    """Match normalized repository paths with explicit, segment-aware globs.
+
+    A bare path owns that path and its descendants.  This preserves the
+    planner's existing ancestor/descendant ownership semantics and lets a lane
+    name a repository subtree before it exists.  A ``**`` segment is the only
+    glob form that can consume more than one path component; ``*`` and ``?``
+    stay within one component.  The function expects canonical
+    slash-separated, case-folded inputs so all phases share the same matcher.
+    """
+
+    normalized_path = path.replace("\\", "/").casefold()
+    normalized_pattern = pattern.replace("\\", "/").casefold()
+    if not _ownership_pattern_has_glob(normalized_pattern):
+        return normalized_path == normalized_pattern or normalized_path.startswith(
+            normalized_pattern.rstrip("/") + "/"
+        )
+
+    path_parts = normalized_path.split("/")
+    pattern_parts = normalized_pattern.split("/")
+
+    @functools.lru_cache(maxsize=None)
+    def match(path_index: int, pattern_index: int) -> bool:
+        if pattern_index == len(pattern_parts):
+            return path_index == len(path_parts)
+        token = pattern_parts[pattern_index]
+        if token == "**":
+            # ``**`` consumes zero or more complete path components.
+            return match(path_index, pattern_index + 1) or (
+                path_index < len(path_parts) and match(path_index + 1, pattern_index)
+            )
+        if path_index == len(path_parts):
+            return False
+        return fnmatch.fnmatchcase(path_parts[path_index], token) and match(
+            path_index + 1, pattern_index + 1
+        )
+
+    return match(0, 0)
+
+
+def _ownership_matches(path: str, pattern: str) -> bool:
+    """Canonicalize and match one changed path against one ownership pattern."""
+
+    normalized_path = _owned_path(path, "changed_file")
+    normalized_pattern = _owned_path(pattern, "ownership_pattern")
+    return _ownership_matches_normalized(normalized_path, normalized_pattern)
+
+
+def _path_is_owned(
+    path: str,
+    patterns: list[str],
+    forbidden_patterns: list[str] | None = None,
+) -> bool:
+    """Match one changed path with explicit deny-overrides-write semantics."""
+
+    normalized_path = _owned_path(path, "changed_file")
+    writable = any(
+        _ownership_matches_normalized(
+            normalized_path,
+            _owned_path(pattern, "ownership_pattern"),
+        )
+        for pattern in patterns
+    )
+    if not writable:
+        return False
+    return not any(
+        _ownership_matches_normalized(
+            normalized_path,
+            _owned_path(pattern, "forbidden_pattern"),
+        )
+        for pattern in (forbidden_patterns or [])
+    )
+
+
+def _ownership_pattern_segments_can_overlap(left: str, right: str) -> bool:
+    """Conservatively check two non-recursive glob components for overlap."""
+
+    if not _ownership_pattern_has_glob(left) and not _ownership_pattern_has_glob(right):
+        return left == right
+    if not _ownership_pattern_has_glob(left):
+        return fnmatch.fnmatchcase(left, right)
+    if not _ownership_pattern_has_glob(right):
+        return fnmatch.fnmatchcase(right, left)
+    # Two glob components may overlap even when neither is a fnmatch of the
+    # other (for example ``a*`` and ``*a``).  Keeping this branch conservative
+    # makes the planner fail closed instead of allowing a possible overlap.
+    return True
+
+
+def _path_patterns_overlap(left: str, right: str) -> bool:
+    """Conservatively detect whether two ownership languages intersect."""
+
+    left = _owned_path(left, "ownership_pattern")
+    right = _owned_path(right, "ownership_pattern")
+    left_parts = left.split("/")
+    right_parts = right.split("/")
+    # A bare root owns all descendants, so model it as an implicit trailing
+    # recursive segment.  Explicit globs retain their exact language.
+    if not _ownership_pattern_has_glob(left):
+        left_parts.append("**")
+    if not _ownership_pattern_has_glob(right):
+        right_parts.append("**")
+
+    @functools.lru_cache(maxsize=None)
+    def intersects(left_index: int, right_index: int) -> bool:
+        if left_index == len(left_parts):
+            return all(token == "**" for token in right_parts[right_index:])
+        if right_index == len(right_parts):
+            return all(token == "**" for token in left_parts[left_index:])
+
+        left_token = left_parts[left_index]
+        right_token = right_parts[right_index]
+        if left_token == "**" and right_token == "**":
+            return intersects(left_index + 1, right_index) or intersects(
+                left_index, right_index + 1
+            )
+        if left_token == "**":
+            # Consume zero components, or consume the component accepted by
+            # the right token while the recursive matcher remains active.
+            return intersects(left_index + 1, right_index) or intersects(
+                left_index, right_index + 1
+            )
+        if right_token == "**":
+            return intersects(left_index, right_index + 1) or intersects(
+                left_index + 1, right_index
+            )
+        return _ownership_pattern_segments_can_overlap(left_token, right_token) and intersects(
+            left_index + 1, right_index + 1
+        )
+
+    return intersects(0, 0)
 
 
 def _nearest_existing_path(value: str) -> str:
@@ -620,7 +741,16 @@ def validate_manifest(manifest: Any) -> None:
         ]
         if len(set(normalized_write_paths)) != len(normalized_write_paths):
             _fail(f"{lane_path}.ownership.write_paths", "normalized paths must be unique")
-        _string_list(ownership["forbidden_paths"], f"{lane_path}.ownership.forbidden_paths")
+        raw_forbidden_paths = _string_list(
+            ownership["forbidden_paths"],
+            f"{lane_path}.ownership.forbidden_paths",
+        )
+        normalized_forbidden_paths = [
+            _owned_path(path, f"{lane_path}.ownership.forbidden_paths[{path_index}]")
+            for path_index, path in enumerate(raw_forbidden_paths)
+        ]
+        if len(set(normalized_forbidden_paths)) != len(normalized_forbidden_paths):
+            _fail(f"{lane_path}.ownership.forbidden_paths", "normalized paths must be unique")
 
         if role == "reviewer":
             if mode != "read-only":

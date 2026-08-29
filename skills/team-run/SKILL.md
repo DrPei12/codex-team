@@ -26,7 +26,9 @@ not dispatch work.
    This skill stops before that action.
 5. A future real worker must run the `worker_preflight_argv` recorded for its
    lane from the assigned workspace. Implementation may begin only when the
-   exclusive receipt reports `passed`.
+   exclusive receipt reports `passed`. A reviewer lane's recorded argv
+   includes `--gate-receipt`; after integration it must bind the current run's
+   passed Gate receipt and its exact target commit/tree before review begins.
 
 Read [preparation-artifacts.md](references/preparation-artifacts.md) when
 inspecting the artifact meanings, prompt trust boundary, or failure behavior.

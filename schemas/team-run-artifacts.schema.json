@@ -18,6 +18,19 @@
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
     },
+    "git_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "commit_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree"],
+      "properties": {
+        "commit": {"$ref": "#/$defs/git_hash"},
+        "tree": {"$ref": "#/$defs/git_hash"}
+      }
+    },
     "timestamp": {
       "type": "string",
       "format": "date-time"
@@ -275,6 +288,7 @@
             "brief_ref",
             "recorded_at",
             "lane_id",
+            "role",
             "status",
             "expected",
             "observed",
@@ -289,12 +303,66 @@
             "brief_ref": {"$ref": "#/$defs/brief_ref"},
             "recorded_at": {"$ref": "#/$defs/timestamp"},
             "lane_id": {"$ref": "#/$defs/nonempty_string"},
+            "role": {"enum": ["implementer", "integrator", "reviewer"]},
             "status": {"enum": ["passed", "failed"]},
             "expected": {"$ref": "#/$defs/expected_workspace"},
             "observed": {"$ref": "#/$defs/git_observation"},
             "checks": {"$ref": "#/$defs/checks"},
-            "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
-          }
+            "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
+            "dispatch_ref": {"$ref": "#/$defs/file_ref"},
+            "gate_receipt_ref": {"$ref": "#/$defs/file_ref"},
+            "target": {"$ref": "#/$defs/commit_tree"}
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "role": {"const": "reviewer"},
+                  "status": {"const": "passed"}
+                },
+                "required": ["role", "status"]
+              },
+              "then": {"required": ["dispatch_ref", "gate_receipt_ref", "target"]}
+            },
+            {
+              "if": {
+                "properties": {
+                  "role": {"const": "reviewer"},
+                  "status": {"const": "failed"}
+                },
+                "required": ["role", "status"]
+              },
+              "then": {
+                "oneOf": [
+                  {"required": ["dispatch_ref", "gate_receipt_ref", "target"]},
+                  {
+                    "not": {
+                      "anyOf": [
+                        {"required": ["dispatch_ref"]},
+                        {"required": ["gate_receipt_ref"]},
+                        {"required": ["target"]}
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "role": {"enum": ["implementer", "integrator"]}
+                },
+                "required": ["role"]
+              },
+              "then": {
+                "properties": {
+                  "dispatch_ref": false,
+                  "gate_receipt_ref": false,
+                  "target": false
+                }
+              }
+            }
+          ]
         }
       ]
     },

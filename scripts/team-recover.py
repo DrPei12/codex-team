@@ -154,17 +154,12 @@ def _changed_paths(status_entries: list[str]) -> list[str]:
     return sorted(set(paths), key=str.casefold)
 
 
-def _path_owned(path: str, patterns: list[str]) -> bool:
-    import fnmatch
-
-    normalized = TEAM_PLAN._owned_path(path, "changed_file")
-    return any(
-        fnmatch.fnmatchcase(
-            normalized.casefold(),
-            TEAM_PLAN._owned_path(pattern, "ownership_pattern").casefold(),
-        )
-        for pattern in patterns
-    )
+def _path_owned(
+    path: str,
+    patterns: list[str],
+    forbidden_patterns: list[str] | None = None,
+) -> bool:
+    return TEAM_PLAN._path_is_owned(path, patterns, forbidden_patterns)
 
 
 def _write_text_exclusive(path: Path, value: str) -> None:
@@ -241,7 +236,15 @@ def candidate(
         if not observed["ordinary_status"]:
             raise TeamRecoverError("candidate dirty mode requires ordinary changes")
         changed_files = _changed_paths(observed["ordinary_status"])
-        violations = [path for path in changed_files if not _path_owned(path, lane["ownership"]["write_paths"])]
+        violations = [
+            path
+            for path in changed_files
+            if not _path_owned(
+                path,
+                lane["ownership"]["write_paths"],
+                lane["ownership"]["forbidden_paths"],
+            )
+        ]
         if violations:
             raise TeamRecoverError(f"candidate ownership violation: {violations}")
         patch_path = output.with_suffix(".patch")
@@ -256,7 +259,15 @@ def candidate(
         raise TeamRecoverError("candidate mode must be commit or dirty")
 
     if mode == "commit":
-        violations = [path for path in changed_files if not _path_owned(path, lane["ownership"]["write_paths"])]
+        violations = [
+            path
+            for path in changed_files
+            if not _path_owned(
+                path,
+                lane["ownership"]["write_paths"],
+                lane["ownership"]["forbidden_paths"],
+            )
+        ]
         if violations:
             raise TeamRecoverError(f"candidate ownership violation: {violations}")
     document = {
@@ -329,7 +340,15 @@ def _validate_candidate(
     changed_files = document.get("changed_files")
     if not isinstance(changed_files, list) or not changed_files:
         raise TeamRecoverError("recovery candidate: changed_files must be non-empty")
-    violations = [path for path in changed_files if not _path_owned(path, lane["ownership"]["write_paths"])]
+    violations = [
+        path
+        for path in changed_files
+        if not _path_owned(
+            path,
+            lane["ownership"]["write_paths"],
+            lane["ownership"]["forbidden_paths"],
+        )
+    ]
     if violations:
         raise TeamRecoverError(f"recovery candidate ownership violation: {violations}")
     return document

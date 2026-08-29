@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import fnmatch
 import importlib.util
 import json
 import subprocess
@@ -130,13 +129,12 @@ def _nul_list(value: str) -> list[str]:
     return sorted(item.replace("\\", "/") for item in value.split("\0") if item)
 
 
-def _path_owned(path: str, patterns: list[str]) -> bool:
-    normalized = TEAM_PLAN._owned_path(path, "changed_file")
-    for pattern in patterns:
-        normalized_pattern = TEAM_PLAN._owned_path(pattern, "ownership_pattern")
-        if fnmatch.fnmatchcase(normalized.casefold(), normalized_pattern.casefold()):
-            return True
-    return False
+def _path_owned(
+    path: str,
+    patterns: list[str],
+    forbidden_patterns: list[str] | None = None,
+) -> bool:
+    return TEAM_PLAN._path_is_owned(path, patterns, forbidden_patterns)
 
 
 def _file_ref(path: Path) -> dict[str, str]:
@@ -220,7 +218,15 @@ def candidate(
     changed_files = _candidate_changed_files(Path(observed["path"]), base, head)
     if not changed_files:
         raise TeamIntegrateError(f"lane {lane_id}: candidate has no changed files")
-    violations = [path for path in changed_files if not _path_owned(path, lane["ownership"]["write_paths"])]
+    violations = [
+        path
+        for path in changed_files
+        if not _path_owned(
+            path,
+            lane["ownership"]["write_paths"],
+            lane["ownership"]["forbidden_paths"],
+        )
+    ]
     if violations:
         raise TeamIntegrateError(f"lane {lane_id}: ownership violation: {violations}")
 
@@ -279,7 +285,15 @@ def _validate_candidate_document(
     changed_files = document.get("changed_files")
     if not isinstance(changed_files, list) or not changed_files:
         raise TeamIntegrateError(f"candidate {lane_id}: changed_files must be non-empty")
-    violations = [path for path in changed_files if not _path_owned(path, lane["ownership"]["write_paths"])]
+    violations = [
+        path
+        for path in changed_files
+        if not _path_owned(
+            path,
+            lane["ownership"]["write_paths"],
+            lane["ownership"]["forbidden_paths"],
+        )
+    ]
     if violations:
         raise TeamIntegrateError(f"candidate {lane_id}: ownership violation: {violations}")
     head = workspace.get("head")

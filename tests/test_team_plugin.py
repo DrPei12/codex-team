@@ -92,7 +92,7 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = read_json(plugin / ".codex-plugin" / "plugin.json")
     assert manifest["name"] == PLUGIN_NAME
-    assert manifest["version"] == "0.1.0"
+    assert manifest["version"] == "0.1.1"
     assert manifest["skills"] == "./skills/"
     assert {path.name for path in (plugin / "skills").iterdir() if path.is_dir()} == SKILLS
     runtime = plugin / "skills" / "team" / "scripts"
@@ -209,7 +209,11 @@ def test_packaged_runtime_runs_outside_source_repo(tmp_path: Path) -> None:
 def test_packaged_integrate_and_finish_runtime(tmp_path: Path) -> None:
     result, plugin = build_plugin(tmp_path)
     assert result.returncode == 0, result.stderr
-    fixture = INTEGRATE_SUPPORT.create_handoff_fixture(tmp_path / "fixture")
+    fixture = INTEGRATE_SUPPORT.create_handoff_fixture(
+        tmp_path / "fixture",
+        team_run_path=runtime(plugin, "team-run.py"),
+        team_status_path=runtime(plugin, "team-status.py"),
+    )
     facts = read_json(Path(fixture["integration_facts"]))
     for lane_id in ("core", "cli"):
         item = INTEGRATE_SUPPORT.STATUS_SUPPORT.lane_facts(facts, lane_id)
@@ -295,6 +299,27 @@ def test_packaged_integrate_and_finish_runtime(tmp_path: Path) -> None:
         cwd=tmp_path,
     )
     assert gated.returncode == 0, gated.stderr
+    reviewer_receipt = Path(fixture["run_root"]) / "worker-receipts" / "reviewer.json"
+    reviewer_preflight = run_command(
+        [
+            sys.executable,
+            "-B",
+            str(runtime(plugin, "team-run.py")),
+            "worker-preflight",
+            str(fixture["manifest_path"]),
+            "--brief",
+            str(Path(fixture["briefs"]) / "reviewer.task-brief.json"),
+            "--receipt",
+            str(reviewer_receipt),
+            "--gate-receipt",
+            str(gate_receipt),
+        ],
+        cwd=Path(fixture["integrator"]),
+    )
+    assert reviewer_preflight.returncode == 0, reviewer_preflight.stderr
+    reviewer_document = read_json(reviewer_receipt)
+    assert reviewer_document["status"] == "passed"
+    assert reviewer_document["target"] == read_json(gate_receipt)["target"]
     findings = Path(fixture["run_root"]) / "review-findings.json"
     findings.write_text('{"findings": []}\n', encoding="utf-8")
     review = Path(fixture["run_root"]) / "review-receipt.json"

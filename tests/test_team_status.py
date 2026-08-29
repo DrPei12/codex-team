@@ -441,6 +441,54 @@ def test_tampered_dispatch_binding_is_rejected(tmp_path: Path) -> None:
     assert not output.exists()
 
 
+def test_tampered_reviewer_dispatch_argv_is_rejected(tmp_path: Path) -> None:
+    fixture = create_status_fixture(tmp_path)
+    dispatch_path = Path(fixture["run_root"]) / "dispatch-bundle.json"
+    dispatch = read_json(dispatch_path)
+    reviewer = next(item for item in dispatch["lanes"] if item["role"] == "reviewer")
+    reviewer["worker_preflight_argv"][-1] = str(
+        (Path(fixture["run_root"]) / "historical-gate.json").resolve()
+    )
+    write_json(dispatch_path, dispatch)
+    result, output = render(fixture, Path(fixture["facts"]), "tampered-reviewer-argv.json")
+    assert result.returncode == 1
+    assert "worker preflight argv changed" in result.stderr
+    assert not output.exists()
+
+
+def test_reviewer_receipt_gate_binding_is_revalidated(tmp_path: Path) -> None:
+    fixture = create_status_fixture(tmp_path)
+    target = TEAM_RUN_TESTS.advance_integrator(fixture)
+    gate_path = TEAM_RUN_TESTS.write_gate_receipt(
+        fixture,
+        Path(fixture["run_root"]),
+        target,
+    )
+    receipt_path = Path(fixture["run_root"]) / "worker-receipts" / "reviewer.json"
+    result = TEAM_RUN_TESTS.run_worker_preflight(
+        fixture,
+        lane_id="reviewer",
+        cwd=Path(fixture["integrator"]),
+        receipt=receipt_path,
+        gate_receipt=gate_path,
+    )
+    assert result.returncode == 0, result.stderr
+    rendered, output = render(fixture, Path(fixture["facts"]), "reviewer-bound.json")
+    assert rendered.returncode == 0, rendered.stderr
+    assert output.is_file()
+
+    receipt = read_json(receipt_path)
+    receipt["target"] = {
+        "commit": fixture["manifest"]["base"]["commit"],
+        "tree": fixture["manifest"]["base"]["tree"],
+    }
+    write_json(receipt_path, receipt)
+    rendered, output = render(fixture, Path(fixture["facts"]), "reviewer-tampered.json")
+    assert rendered.returncode == 1
+    assert "reviewer Gate binding changed" in rendered.stderr
+    assert not output.exists()
+
+
 def test_facts_outside_run_directory_are_rejected(tmp_path: Path) -> None:
     fixture = create_status_fixture(tmp_path)
     outside = tmp_path / "outside-facts.json"
@@ -480,6 +528,8 @@ def main() -> int:
         test_manifest_ref_mismatch_is_rejected,
         test_inconsistent_integration_fact_is_rejected,
         test_tampered_dispatch_binding_is_rejected,
+        test_tampered_reviewer_dispatch_argv_is_rejected,
+        test_reviewer_receipt_gate_binding_is_revalidated,
         test_facts_outside_run_directory_are_rejected,
         test_render_never_overwrites_snapshot,
     ]

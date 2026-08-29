@@ -12,6 +12,13 @@ directory so another run cannot satisfy this run's handoff. A task that is not
 created cannot carry thread/project identity;
 accepted and integrated facts require the earlier proof states.
 
+Run validation also reconstructs every recorded worker-preflight argv from the
+manifest, preregistration, brief, run directory, and lane role. A passed reviewer
+receipt must carry the canonical dispatch and Gate refs plus the exact target;
+the renderer revalidates the plan → apply → Gate → target chain before treating
+that preflight as durable. Non-reviewer receipts cannot carry reviewer binding
+fields.
+
 ## Display precedence
 
 The renderer applies higher-risk facts first:

@@ -12,7 +12,7 @@ fields as the source of truth; briefs are projections and carry its SHA-256.
 | `task_project` | UUID, local project path, and environment. |
 | `workspace_policy` | Absolute experiment/worktree/artifact roots and clean-start policy. Roots must stay under `experiment_root`; mutable lane workspaces stay under `worktree_root`. |
 | `contract` | Frozen source, invariants, and forbidden changes. |
-| `lanes` | Each lane’s role, objective, dependencies, workspace, ownership, inputs, outputs, gates, and stop conditions. Reviewer lanes are read-only, directly review an integrator, and may share only that integrator’s exact workspace and base revision. |
+| `lanes` | Each lane’s role, objective, dependencies, workspace, ownership, inputs, outputs, gates, and stop conditions. Reviewer lanes are read-only, directly review an integrator, and may share only that integrator’s exact workspace and base revision. Ownership paths are canonical repository-relative patterns: separators become `/`, Windows matching is case-insensitive, and a bare path owns that path plus every descendant (so it can name a file or a subtree that does not exist yet). Explicit glob syntax is also supported; `*` and `?` stay within one path segment, while `**` can cross segments. `forbidden_paths` use the same matcher and always override `write_paths`. Plan, integrate, and recover share these rules. |
 | `integration_order` | Each lane exactly once, after every dependency. |
 | `global_gates`, `global_stop_conditions` | Run-wide evidence gates and stop conditions. |
 

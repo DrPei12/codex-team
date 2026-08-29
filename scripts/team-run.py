@@ -19,6 +19,7 @@ from typing import Any
 
 PROFILE = "codex-multitask-team-run"
 SCHEMA_VERSION = "0.1"
+INTEGRATE_PROFILE = "codex-multitask-team-integrate"
 ROOT = Path(__file__).resolve().parents[1]
 TEAM_PLAN_PATH = ROOT / "scripts" / "team-plan.py"
 
@@ -455,6 +456,10 @@ def _build_dispatch_bundle(
             "--receipt",
             str(receipt.resolve()),
         ]
+        if lane["role"] == "reviewer":
+            worker_argv.extend(
+                ["--gate-receipt", str((run_root / "gate-receipt.json").resolve())]
+            )
         prompt_path = prompt_dir / f"{lane['lane_id']}.prompt.md"
         _write_text_exclusive(
             prompt_path,
@@ -582,7 +587,485 @@ def _validate_receipt_path(manifest: dict[str, Any], receipt_value: str) -> Path
     return receipt
 
 
-def worker_preflight(manifest_value: str, brief_value: str, receipt_value: str) -> int:
+def _is_git_hash(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 40
+        and value == value.lower()
+        and all(char in "0123456789abcdef" for char in value)
+    )
+
+
+def _is_sha256(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == len("sha256:") + 64
+        and value.startswith("sha256:")
+        and all(char in "0123456789abcdef" for char in value[len("sha256:") :])
+    )
+
+
+def _receipt_run_root(receipt_path: Path) -> Path:
+    """Resolve the run root from the canonical worker-receipts location."""
+
+    if receipt_path.parent.name.casefold() != "worker-receipts":
+        raise TeamRunError(
+            "reviewer receipt must be written under the current run's worker-receipts directory"
+        )
+    return receipt_path.parent.parent
+
+
+def _validate_gate_file_ref(value: Any, run_root: Path, label: str) -> Path:
+    if not isinstance(value, dict) or set(value) != {"path", "sha256"}:
+        raise TeamRunError(f"gate_receipt: {label} must contain path and sha256")
+    if not isinstance(value["path"], str) or not value["path"].strip():
+        raise TeamRunError(f"gate_receipt: {label}.path is invalid")
+    if not _is_sha256(value["sha256"]):
+        raise TeamRunError(f"gate_receipt: {label}.sha256 is invalid")
+    try:
+        path_text = _absolute_path(value["path"], f"gate_receipt.{label}.path")
+    except TEAM_PLAN.ManifestError as exc:
+        raise TeamRunError(f"gate_receipt: {label}.path must be absolute") from exc
+    if not TEAM_PLAN._path_is_within(path_text, str(run_root)):
+        raise TeamRunError(f"gate_receipt: {label} is outside the current worker run")
+    path = Path(path_text)
+    if path.is_symlink() or not path.is_file():
+        raise TeamRunError(f"gate_receipt: {label} is missing or symlinked")
+    if not TEAM_PLAN._real_path_is_within(str(path), str(run_root)):
+        raise TeamRunError(f"gate_receipt: {label} real path escapes the current worker run")
+    if _sha256_file(path) != value["sha256"]:
+        raise TeamRunError(f"gate_receipt: {label} hash mismatch")
+    return path
+
+
+def _validate_commit_tree(value: Any, label: str) -> dict[str, str]:
+    if not isinstance(value, dict) or set(value) != {"commit", "tree"}:
+        raise TeamRunError(f"gate_receipt: {label} must contain commit and tree")
+    if not _is_git_hash(value.get("commit")) or not _is_git_hash(value.get("tree")):
+        raise TeamRunError(f"gate_receipt: {label} commit/tree is invalid")
+    return {"commit": value["commit"], "tree": value["tree"]}
+
+
+def _validate_reviewer_plan(
+    document: dict[str, Any],
+    manifest: dict[str, Any],
+    manifest_ref: dict[str, str],
+    reviewer_lane: dict[str, Any],
+    run_root: Path,
+) -> list[dict[str, Any]]:
+    if (
+        document.get("profile") != INTEGRATE_PROFILE
+        or document.get("schema_version") != SCHEMA_VERSION
+        or document.get("kind") != "integration-plan"
+        or document.get("manifest_ref") != manifest_ref
+        or document.get("status") != "ready-for-authorized-apply"
+    ):
+        raise TeamRunError("gate_receipt: integration plan identity/status is invalid")
+    integration_lane = document.get("integration_lane")
+    if not isinstance(integration_lane, dict):
+        raise TeamRunError("gate_receipt: integration plan lane is missing")
+    lane_id = integration_lane.get("lane_id")
+    lane = next((item for item in manifest["lanes"] if item["lane_id"] == lane_id), None)
+    if lane is None or lane["role"] != "integrator" or lane_id not in reviewer_lane["depends_on"]:
+        raise TeamRunError("gate_receipt: integration plan is not the reviewer's integrator dependency")
+    workspace = integration_lane.get("workspace")
+    if workspace != lane["workspace"] or _normal_path(workspace.get("path", "")) != _normal_path(
+        reviewer_lane["workspace"]["path"]
+    ):
+        raise TeamRunError("gate_receipt: integration plan workspace differs from manifest/reviewer")
+    plan_base = _validate_commit_tree(
+        {"commit": integration_lane.get("base_head"), "tree": integration_lane.get("base_tree")},
+        "integration plan base",
+    )
+    if plan_base["commit"] != lane["workspace"]["base_revision"]:
+        raise TeamRunError("gate_receipt: integration plan base differs from manifest integrator base")
+    actual_base_tree = _run_git(
+        Path(lane["workspace"]["path"]),
+        "rev-parse",
+        f"{plan_base['commit']}^{{tree}}",
+    ).strip()
+    if plan_base["tree"] != actual_base_tree:
+        raise TeamRunError("gate_receipt: integration plan base tree mismatch")
+    if document.get("gates") != manifest["global_gates"]:
+        raise TeamRunError("gate_receipt: integration plan Gates differ from manifest")
+    candidates = document.get("candidates")
+    if not isinstance(candidates, list) or not candidates:
+        raise TeamRunError("gate_receipt: integration plan candidates are missing")
+    seen_lanes: set[str] = set()
+    order_index = {lane_id: index for index, lane_id in enumerate(manifest["integration_order"])}
+    for index, candidate in enumerate(candidates):
+        if not isinstance(candidate, dict):
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] is invalid")
+        lane_id = candidate.get("lane_id")
+        lane = next((item for item in manifest["lanes"] if item["lane_id"] == lane_id), None)
+        if lane is None or lane["role"] != "implementer" or lane_id in seen_lanes:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] lane is invalid")
+        order = candidate.get("order")
+        if not isinstance(order, int) or isinstance(order, bool) or order != index + 1:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] order is invalid")
+        if index > 0 and order_index[candidates[index - 1]["lane_id"]] >= order_index[lane_id]:
+            raise TeamRunError("gate_receipt: plan candidate order differs from manifest")
+        seen_lanes.add(lane_id)
+        candidate_ref = candidate.get("candidate_ref")
+        candidate_path = _validate_gate_file_ref(
+            candidate_ref, run_root, f"plan candidates[{index}].candidate_ref"
+        )
+        expected_candidate_path = run_root / "candidates" / f"{lane_id}.json"
+        if candidate_path != expected_candidate_path:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] is not canonical")
+        candidate_document = _load_json(candidate_path, f"integration candidate {lane_id}")
+        workspace = candidate_document.get("workspace")
+        if (
+            candidate_document.get("profile") != INTEGRATE_PROFILE
+            or candidate_document.get("schema_version") != SCHEMA_VERSION
+            or candidate_document.get("kind") != "integration-candidate"
+            or candidate_document.get("manifest_ref") != manifest_ref
+            or candidate_document.get("lane_id") != lane_id
+            or not isinstance(workspace, dict)
+            or _normal_path(workspace.get("path", "")) != _normal_path(lane["workspace"]["path"])
+            or workspace.get("branch") != lane["workspace"]["branch"]
+            or workspace.get("base_revision") != lane["workspace"]["base_revision"]
+            or candidate.get("commit") != workspace.get("head")
+            or candidate.get("tree") != workspace.get("tree")
+            or candidate.get("changed_files") != candidate_document.get("changed_files")
+        ):
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] content differs from candidate")
+        if not _is_git_hash(candidate.get("commit")) or not _is_git_hash(candidate.get("tree")):
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] commit/tree is invalid")
+        changed_files = candidate.get("changed_files")
+        if not isinstance(changed_files, list) or not changed_files or not all(
+            isinstance(path, str) and path for path in changed_files
+        ):
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] changed_files is invalid")
+        violations = [
+            path
+            for path in changed_files
+            if not TEAM_PLAN._path_is_owned(
+                path,
+                lane["ownership"]["write_paths"],
+                lane["ownership"]["forbidden_paths"],
+            )
+        ]
+        if violations:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] ownership violation")
+        workspace_path = Path(workspace["path"])
+        actual_tree = _run_git(
+            workspace_path, "rev-parse", f"{candidate['commit']}^{{tree}}"
+        ).strip()
+        if actual_tree != candidate["tree"]:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] tree mismatch")
+        ancestry = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(workspace_path),
+                "merge-base",
+                "--is-ancestor",
+                lane["workspace"]["base_revision"],
+                candidate["commit"],
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if ancestry.returncode != 0:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] is not descended from base")
+        actual_changed = sorted(
+            filter(
+                None,
+                _run_git(
+                    workspace_path,
+                    "diff",
+                    "--name-only",
+                    "-z",
+                    lane["workspace"]["base_revision"],
+                    candidate["commit"],
+                ).split("\0"),
+            )
+        )
+        if actual_changed != changed_files:
+            raise TeamRunError(f"gate_receipt: plan candidates[{index}] changed files mismatch")
+    authorization = document.get("authorization")
+    if authorization != {"git_mutation": False, "command_execution": False}:
+        raise TeamRunError("gate_receipt: integration plan authorization boundary is invalid")
+    return candidates
+
+
+def _validate_reviewer_apply_receipt(
+    document: dict[str, Any],
+    manifest_ref: dict[str, str],
+    reviewer_lane: dict[str, Any],
+    plan_ref: dict[str, str],
+    plan: dict[str, Any],
+    candidates: list[dict[str, Any]],
+) -> dict[str, str]:
+    if (
+        document.get("profile") != INTEGRATE_PROFILE
+        or document.get("schema_version") != SCHEMA_VERSION
+        or document.get("kind") != "integration-apply-receipt"
+        or document.get("manifest_ref") != manifest_ref
+        or document.get("status") != "applied"
+    ):
+        raise TeamRunError("gate_receipt: integration apply identity/status is invalid")
+    if document.get("plan_ref") != plan_ref:
+        raise TeamRunError("gate_receipt: integration apply does not bind the canonical plan")
+    if _normal_path(document.get("workspace", "")) != _normal_path(reviewer_lane["workspace"]["path"]):
+        raise TeamRunError("gate_receipt: integration apply workspace differs from reviewer workspace")
+    before = _validate_commit_tree(document.get("before"), "integration apply before")
+    after = _validate_commit_tree(document.get("after"), "integration apply after")
+    plan_base = {
+        "commit": plan["integration_lane"]["base_head"],
+        "tree": plan["integration_lane"]["base_tree"],
+    }
+    if before != plan_base:
+        raise TeamRunError("gate_receipt: integration apply before differs from plan base")
+    if document.get("ordinary_status_after") != [] or document.get("errors") != []:
+        raise TeamRunError("gate_receipt: integration apply is not clean and error-free")
+    merges = document.get("merges")
+    if not isinstance(merges, list) or len(merges) != len(candidates):
+        raise TeamRunError("gate_receipt: integration apply merges differ from plan candidates")
+    workspace = Path(reviewer_lane["workspace"]["path"])
+    if _run_git(workspace, "rev-parse", f"{before['commit']}^{{tree}}").strip() != before["tree"]:
+        raise TeamRunError("gate_receipt: integration apply before tree mismatch")
+    previous_commit = before["commit"]
+    for index, (merge, candidate) in enumerate(zip(merges, candidates)):
+        if (
+            not isinstance(merge, dict)
+            or merge.get("lane_id") != candidate.get("lane_id")
+            or merge.get("source_commit") != candidate.get("commit")
+            or not _is_git_hash(merge.get("result_commit"))
+        ):
+            raise TeamRunError(f"gate_receipt: integration apply merges[{index}] differs from plan")
+        parents = _run_git(workspace, "rev-list", "--parents", "-n", "1", merge["result_commit"]).split()
+        if parents != [merge["result_commit"], previous_commit, merge["source_commit"]]:
+            raise TeamRunError(
+                f"gate_receipt: integration apply merges[{index}] Git parents differ from plan"
+            )
+        previous_commit = merge["result_commit"]
+    if merges[-1]["result_commit"] != after["commit"]:
+        raise TeamRunError("gate_receipt: final merge result does not equal integration target")
+    if _run_git(workspace, "rev-parse", f"{after['commit']}^{{tree}}").strip() != after["tree"]:
+        raise TeamRunError("gate_receipt: integration apply target tree mismatch")
+    return after
+
+
+def _validate_reviewer_dispatch_binding(
+    run_root: Path,
+    manifest_value: str,
+    manifest: dict[str, Any],
+    manifest_ref: dict[str, str],
+    reviewer_lane: dict[str, Any],
+    brief_ref: dict[str, str],
+    receipt_path: Path,
+    gate_path: Path,
+    *,
+    require_current_invocation: bool,
+) -> dict[str, str]:
+    dispatch_path = run_root / "dispatch-bundle.json"
+    if dispatch_path.is_symlink() or not dispatch_path.is_file():
+        raise TeamRunError("reviewer dispatch bundle is missing or unsafe")
+    if not TEAM_PLAN._real_path_is_within(str(dispatch_path), str(run_root)):
+        raise TeamRunError("reviewer dispatch bundle escapes the current run")
+    dispatch = _load_json(dispatch_path, "dispatch bundle")
+    if (
+        dispatch.get("profile") != PROFILE
+        or dispatch.get("schema_version") != SCHEMA_VERSION
+        or dispatch.get("kind") != "dispatch-bundle"
+        or dispatch.get("manifest_ref") != manifest_ref
+        or dispatch.get("status") != "ready_for_authorized_dispatch"
+    ):
+        raise TeamRunError("reviewer dispatch bundle identity/status is invalid")
+    entries = [
+        item
+        for item in dispatch.get("lanes", [])
+        if isinstance(item, dict) and item.get("lane_id") == reviewer_lane["lane_id"]
+    ]
+    if len(entries) != 1:
+        raise TeamRunError("reviewer dispatch lane is missing or duplicated")
+    entry = entries[0]
+    if (
+        entry.get("role") != "reviewer"
+        or entry.get("depends_on") != reviewer_lane["depends_on"]
+        or entry.get("task_project") != manifest["task_project"]
+        or entry.get("workspace") != reviewer_lane["workspace"]
+        or entry.get("runtime") != manifest["runtime"]
+        or entry.get("brief_ref") != brief_ref
+    ):
+        raise TeamRunError("reviewer dispatch lane differs from manifest/brief")
+    expected_argv_tail = [
+        "worker-preflight",
+        str(Path(manifest_value).resolve()),
+        "--brief",
+        brief_ref["path"],
+        "--receipt",
+        str(receipt_path.resolve()),
+        "--gate-receipt",
+        str(gate_path.resolve()),
+    ]
+    argv = entry.get("worker_preflight_argv")
+    if require_current_invocation:
+        valid_argv = argv == [sys.executable, str(Path(__file__).resolve()), *expected_argv_tail]
+    else:
+        valid_argv = (
+            isinstance(argv, list)
+            and len(argv) == len(expected_argv_tail) + 2
+            and isinstance(argv[0], str)
+            and bool(argv[0])
+            and isinstance(argv[1], str)
+            and Path(argv[1]).is_absolute()
+            and Path(argv[1]).name.casefold() == "team-run.py"
+            and argv[2:] == expected_argv_tail
+        )
+    if not valid_argv:
+        raise TeamRunError("reviewer dispatch preflight argv differs from the current invocation")
+    return {"path": str(dispatch_path.resolve()), "sha256": _sha256_file(dispatch_path)}
+
+
+def _load_reviewer_gate_receipt(
+    manifest: dict[str, Any],
+    manifest_ref: dict[str, str],
+    reviewer_lane: dict[str, Any],
+    manifest_value: str,
+    brief_ref: dict[str, str],
+    gate_value: str | None,
+    worker_receipt_path: Path,
+    *,
+    require_current_invocation: bool = True,
+) -> tuple[Path, dict[str, str], dict[str, str], dict[str, str]]:
+    """Load one immutable, current-run integration Gate target for a reviewer."""
+
+    if not gate_value:
+        raise TeamRunError("reviewer worker preflight requires --gate-receipt")
+
+    try:
+        gate_text = _absolute_path(gate_value, "gate_receipt")
+    except TEAM_PLAN.ManifestError as exc:
+        raise TeamRunError(f"gate_receipt: invalid path: {exc}") from exc
+    artifact_root = manifest["workspace_policy"]["artifact_root"]
+    experiment_root = manifest["workspace_policy"]["experiment_root"]
+    if not TEAM_PLAN._path_is_within(gate_text, artifact_root):
+        raise TeamRunError(f"gate_receipt: {gate_text} is outside artifact_root")
+    try:
+        TEAM_PLAN._check_output_parent_real_path(gate_text, artifact_root, experiment_root)
+    except TEAM_PLAN.ManifestError as exc:
+        raise TeamRunError(f"gate_receipt: unsafe path: {exc}") from exc
+
+    run_root = _receipt_run_root(worker_receipt_path)
+    canonical_gate_path = run_root / "gate-receipt.json"
+    if _normal_path(gate_text) != _normal_path(str(canonical_gate_path)):
+        raise TeamRunError("gate_receipt: reviewer must bind canonical gate-receipt.json")
+    if not TEAM_PLAN._path_is_within(gate_text, str(run_root)):
+        raise TeamRunError("gate_receipt: outside the current worker run")
+    if not TEAM_PLAN._real_path_is_within(str(run_root), artifact_root):
+        raise TeamRunError("gate_receipt: current worker run escapes artifact_root")
+
+    gate_path = Path(gate_text)
+    if gate_path.is_symlink() or not gate_path.is_file():
+        raise TeamRunError("gate_receipt: missing or symlinked file")
+    if not TEAM_PLAN._real_path_is_within(str(gate_path), str(run_root)):
+        raise TeamRunError("gate_receipt: real path escapes the current worker run")
+
+    gate_ref = {
+        "path": str(gate_path.resolve()),
+        "sha256": _sha256_file(gate_path),
+    }
+    dispatch_ref = _validate_reviewer_dispatch_binding(
+        run_root,
+        manifest_value,
+        manifest,
+        manifest_ref,
+        reviewer_lane,
+        brief_ref,
+        worker_receipt_path,
+        gate_path,
+        require_current_invocation=require_current_invocation,
+    )
+    document = _load_json(gate_path, "gate receipt")
+    if (
+        document.get("profile") != INTEGRATE_PROFILE
+        or document.get("schema_version") != SCHEMA_VERSION
+        or document.get("kind") != "gate-receipt"
+    ):
+        raise TeamRunError("gate_receipt: unexpected profile, schema version, or kind")
+    if document.get("manifest_ref") != manifest_ref:
+        raise TeamRunError("gate_receipt: manifest_ref does not match the worker manifest")
+    if document.get("status") != "passed":
+        raise TeamRunError("gate_receipt: status must be passed")
+
+    required_fields = {"plan_ref", "apply_receipt_ref", "target", "gates"}
+    missing_fields = sorted(field for field in required_fields if field not in document)
+    if missing_fields:
+        raise TeamRunError(
+            "gate_receipt: missing required field(s): " + ", ".join(missing_fields)
+        )
+    plan_path = _validate_gate_file_ref(document["plan_ref"], run_root, "plan_ref")
+    apply_path = _validate_gate_file_ref(
+        document["apply_receipt_ref"], run_root, "apply_receipt_ref"
+    )
+    if plan_path != run_root / "integration-plan.json":
+        raise TeamRunError("gate_receipt: plan_ref must bind canonical integration-plan.json")
+    if apply_path != run_root / "integration-apply.json":
+        raise TeamRunError("gate_receipt: apply_receipt_ref must bind canonical integration-apply.json")
+    plan_ref = {"path": str(plan_path.resolve()), "sha256": _sha256_file(plan_path)}
+    apply_ref = {"path": str(apply_path.resolve()), "sha256": _sha256_file(apply_path)}
+    if document["plan_ref"] != plan_ref or document["apply_receipt_ref"] != apply_ref:
+        raise TeamRunError("gate_receipt: plan/apply refs are not canonical")
+    plan = _load_json(plan_path, "integration plan")
+    apply_receipt = _load_json(apply_path, "integration apply receipt")
+    candidates = _validate_reviewer_plan(
+        plan,
+        manifest,
+        manifest_ref,
+        reviewer_lane,
+        run_root,
+    )
+    applied_target = _validate_reviewer_apply_receipt(
+        apply_receipt,
+        manifest_ref,
+        reviewer_lane,
+        plan_ref,
+        plan,
+        candidates,
+    )
+    gates = document["gates"]
+    if not isinstance(gates, list) or not gates:
+        raise TeamRunError("gate_receipt: gates must be a non-empty array")
+    expected_gates = manifest["global_gates"]
+    if len(gates) != len(expected_gates):
+        raise TeamRunError("gate_receipt: Gate count differs from manifest")
+    for index, (gate, expected_gate) in enumerate(zip(gates, expected_gates)):
+        if (
+            not isinstance(gate, dict)
+            or not {"gate_id", "owner", "command", "exit_code", "status", "log_ref"}.issubset(gate)
+            or not all(
+                isinstance(gate.get(field), str) and gate[field].strip()
+                for field in ("gate_id", "owner", "command")
+            )
+            or gate.get("status") != "passed"
+            or not isinstance(gate.get("exit_code"), int)
+            or isinstance(gate.get("exit_code"), bool)
+            or gate.get("exit_code") != 0
+        ):
+            raise TeamRunError(f"gate_receipt: gates[{index}] is not passed")
+        if any(
+            gate.get(field) != expected_gate[field]
+            for field in ("gate_id", "owner", "command")
+        ):
+            raise TeamRunError(f"gate_receipt: gates[{index}] differs from manifest")
+        _validate_gate_file_ref(gate.get("log_ref"), run_root, f"gates[{index}].log_ref")
+
+    target = _validate_commit_tree(document.get("target"), "target")
+    if target != applied_target:
+        raise TeamRunError("gate_receipt: target differs from integration apply target")
+    return gate_path, gate_ref, target, dispatch_ref
+
+
+def worker_preflight(
+    manifest_value: str,
+    brief_value: str,
+    receipt_value: str,
+    gate_receipt_value: str | None = None,
+) -> int:
     manifest = TEAM_PLAN.load_manifest(manifest_value)
     TEAM_PLAN.validate_manifest(manifest)
     digest = TEAM_PLAN.manifest_digest(manifest)
@@ -591,12 +1074,50 @@ def worker_preflight(manifest_value: str, brief_value: str, receipt_value: str) 
     receipt_path = _validate_receipt_path(manifest, receipt_value)
     expected = {
         "branch": lane["workspace"]["branch"],
-        "clean_start_required": lane["workspace"]["clean_start_required"]
+        "clean_start_required": lane["role"] == "reviewer"
+        or lane["workspace"]["clean_start_required"]
         or manifest["workspace_policy"]["require_clean_start"],
         "head": lane["workspace"]["base_revision"],
         "path": lane["workspace"]["path"],
     }
     errors: list[str] = []
+    gate_receipt_ref: dict[str, str] | None = None
+    dispatch_ref: dict[str, str] | None = None
+    target: dict[str, str] | None = None
+    reviewer_gate_checks: dict[str, bool] = {}
+    if lane["role"] == "reviewer":
+        reviewer_gate_checks = {
+            "gate_receipt_provided": bool(gate_receipt_value),
+            "gate_receipt_in_current_run": False,
+            "gate_receipt_manifest_matches": False,
+            "gate_receipt_status_passed": False,
+            "gate_target_present": False,
+        }
+        try:
+            _, gate_receipt_ref, target, dispatch_ref = _load_reviewer_gate_receipt(
+                manifest,
+                manifest_ref,
+                lane,
+                manifest_value,
+                brief_ref,
+                gate_receipt_value,
+                receipt_path,
+            )
+            expected["head"] = target["commit"]
+            reviewer_gate_checks.update(
+                {
+                    "gate_receipt_in_current_run": True,
+                    "gate_receipt_manifest_matches": True,
+                    "gate_receipt_status_passed": True,
+                    "gate_target_present": True,
+                }
+            )
+        except TeamRunError as exc:
+            errors.append(f"lane {lane['lane_id']}: {exc}")
+    elif gate_receipt_value is not None:
+        reviewer_gate_checks = {"gate_receipt_not_allowed": False}
+        errors.append(f"lane {lane['lane_id']}: --gate-receipt is only valid for reviewer lanes")
+
     cwd = Path.cwd()
     try:
         observed = _observe_git(str(cwd))
@@ -612,6 +1133,13 @@ def worker_preflight(manifest_value: str, brief_value: str, receipt_value: str) 
             "path_matches_git_root": _normal_path(observed["top_level"])
             == _normal_path(observed["path"]),
         }
+        if lane["role"] == "reviewer":
+            reviewer_gate_checks["gate_target_head_matches_workspace"] = (
+                target is not None and observed["head"] == target["commit"]
+            )
+            reviewer_gate_checks["gate_target_tree_matches_workspace"] = (
+                target is not None and observed["tree"] == target["tree"]
+            )
     except TeamRunError as exc:
         observed = _failed_observation(str(cwd), str(exc))
         checks = {
@@ -623,6 +1151,10 @@ def worker_preflight(manifest_value: str, brief_value: str, receipt_value: str) 
             "path_matches_git_root": False,
         }
         errors.append(str(exc))
+        if lane["role"] == "reviewer":
+            reviewer_gate_checks["gate_target_head_matches_workspace"] = False
+            reviewer_gate_checks["gate_target_tree_matches_workspace"] = False
+    checks.update(reviewer_gate_checks)
     _append_failed_checks(errors, f"lane {lane['lane_id']}", checks)
     receipt = {
         "profile": PROFILE,
@@ -632,12 +1164,19 @@ def worker_preflight(manifest_value: str, brief_value: str, receipt_value: str) 
         "brief_ref": brief_ref,
         "recorded_at": _recorded_at(),
         "lane_id": lane["lane_id"],
+        "role": lane["role"],
         "status": "failed" if errors else "passed",
         "expected": expected,
         "observed": observed,
         "checks": checks,
         "errors": errors,
     }
+    if gate_receipt_ref is not None:
+        receipt["gate_receipt_ref"] = gate_receipt_ref
+    if dispatch_ref is not None:
+        receipt["dispatch_ref"] = dispatch_ref
+    if target is not None:
+        receipt["target"] = target
     _write_json_exclusive(receipt_path, receipt)
     if errors:
         print(f"ERROR: worker preflight failed; receipt={receipt_path}", file=sys.stderr)
@@ -662,6 +1201,7 @@ def _parser() -> argparse.ArgumentParser:
     worker_parser.add_argument("manifest", metavar="MANIFEST")
     worker_parser.add_argument("--brief", required=True, metavar="BRIEF")
     worker_parser.add_argument("--receipt", required=True, metavar="RECEIPT")
+    worker_parser.add_argument("--gate-receipt", metavar="GATE_RECEIPT")
     return parser
 
 
@@ -671,7 +1211,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "prepare":
             return prepare(args.manifest, args.briefs, args.out)
         if args.command == "worker-preflight":
-            return worker_preflight(args.manifest, args.brief, args.receipt)
+            return worker_preflight(
+                args.manifest,
+                args.brief,
+                args.receipt,
+                args.gate_receipt,
+            )
         raise TeamRunError(f"unknown command {args.command!r}")
     except (TeamRunError, TEAM_PLAN.ManifestError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

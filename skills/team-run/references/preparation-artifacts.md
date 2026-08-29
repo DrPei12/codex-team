@@ -41,3 +41,14 @@ The future worker runs `worker-preflight` from its actual assigned workspace.
 The command compares cwd, Git root/common-dir, branch, HEAD, and ordinary clean
 state with the brief. It writes a new exclusive receipt whether the environment
 passes or fails, and never overwrites an earlier receipt.
+
+For a reviewer lane, the dispatch bundle also records a reviewer-only
+`--gate-receipt` argument pointing into the same run. The reviewer preflight
+must use a passed `team-integrate` `gate-receipt`, with a matching manifest
+reference and a `target` containing the exact commit/tree currently observed in
+the shared workspace. It also revalidates the canonical dispatch argv,
+integration plan, apply receipt, Gate definitions/logs, and plan → apply → target
+chain. The resulting receipt records hash-bound `dispatch_ref`,
+`gate_receipt_ref`, and `target`; a reviewer cannot fall back to the manifest
+base revision, reviewer ordinary status must always be clean, and
+implementer/integrator lanes cannot use these fields or the Gate argument.

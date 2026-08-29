@@ -313,3 +313,32 @@
 - 任务治理：6 条可读测试任务保留为 idle，未获单独 archive 授权。一条 worktree create 只返回 client ID、未得 thread ID，不计入验收。本轮 managed worktree 已移出 Git registry，容器目录仍存在但为空，不手工删除。
 - 证据：repo marketplace commit `19c8152` / tree `a548cc3`；plugin tests `9 passed, 0 failed`，与先前 90 项 Team 回归合计 99 项。详细 thread IDs、CLI 返回和残留边界见安装实录与机器 evidence。
 - 限制：无长期触发准确率、多 skill 冲突、旧任务热刷新、版本升级/cachebuster、禁用或真实 worker dispatch/handoff/archive 证据；成熟度保持 `incubating`。
+
+## D-040：Ownership 裸路径统一表示路径根及其子树
+
+- 日期：2026-08-29
+- 状态：Accepted
+- 触发证据：ClothingRecycler live run 的 manifest 用裸路径 `docs/design/pc-ai-native-v1` 声明 lane 所有权。`team-plan` 的并行冲突检查已把 parent/child 当作重叠，但 `team-integrate` 与 `team-recover` 仅用 `fnmatchcase` 做精确匹配，导致合法子文件在 candidate 阶段被判越权；两个 canonical phase 均未生成 candidate，run 被迫使用手工 fallback。
+- 决策：`ownership.write_paths` 的裸仓库相对路径拥有该路径本身及所有后代；显式 glob 仍受支持，`*`/`?` 不跨 path segment，`**` 可跨 segment。`forbidden_paths` 使用同一 matcher 并始终覆盖 write allow。Plan、integrate、recover 必须复用这些 canonical 规则；Windows 分隔符和大小写按同一方式规范化。
+- 安全边界：单文件路径在 Git 中不能同时成为目录，因此该规则不会让一个已存在文件的 lane 写入兄弟路径；planner 用 pattern-language intersection 对 bare/glob/recursive root 保守判冲突。绝对路径、`..`、Windows alias/case、forbidden deny 和越权路径均拒绝。
+- 证据：`team-plan` 23 项、`team-integrate` 17 项、`team-recover` 15 项定向回归通过，覆盖本次裸 subtree RED、三个不同深度 bare/glob overlap RED、显式 `/**`、exact file、forbidden deny、越权与 Windows alias/case。
+- 限制：修正版已完成临时 0.1.1 重建与 package 回归，但尚未安装，也未用修正版对同一 Desktop live manifest 重跑 canonical integrate/recover。
+
+## D-041：Reviewer preflight 绑定 passed Gate 的 post-integration exact target
+
+- 日期：2026-08-29
+- 状态：Accepted
+- 触发证据：真实 run 中 reviewer 与 integrator 共享 workspace；integration 后 HEAD 已不等于 manifest base，而 `team-run worker-preflight` 固定要求 base revision，导致 canonical reviewer 无法进入已通过 Gate 的集成目标，只能手工只读审查。
+- 决策：implementer/integrator preflight 保持 base-bound。Reviewer 必须额外绑定当前 run 的 canonical dispatch、integration plan、apply receipt 与 passed `gate-receipt.json`。Validator 重验 manifest integrator workspace/base/tree、canonical candidate ref/content/order/diff/ownership、apply before、真实 Git merge parent 顺序、after tree、Gate 定义/log/hash及当前 shared workspace exact target。Reviewer 不得回退到 base，非 reviewer 不得使用该入口。
+- Artifact：dispatch bundle 为 reviewer 预生成 `--gate-receipt RUN_DIR/gate-receipt.json`；worker receipt 追加 hash-bound `dispatch_ref`、`gate_receipt_ref` 与 `target`。`team-status` 重算结构化 argv并复验同一 lineage；status 可由另一解释器/同版 runtime读取，但 worker invocation 本身必须精确匹配 dispatch。Receipt 仍 exclusive、不覆盖，dirty/wrong cwd/common-dir/head/tree 均 fail closed。
+- 证据：`team-run` 26 项与 `team-status` 20 项定向回归通过，包含真实 merge 正向用例，以及 missing/noncanonical/wrong-manifest/failed/different-Gate/fake plan-apply/single-parent fake merge/unplanned pre-merge base/missing-or-boolean order/wrong-head/tree/dirty/non-reviewer/tampered status 负例。Packaged integration test实际运行 `integrate → Gate → reviewer-preflight → finish`。
+- 限制：当前 validator 仍要求 reviewer 与 integrator 共享同一 workspace/base 以固定拓扑；新语义只改变 reviewer 执行时的 exact target。尚未用修正版 plugin 运行新的 Desktop reviewer task。
+
+## D-042：协议修订以 plugin 0.1.1 分发，不复用 0.1.0 cache identity
+
+- 日期：2026-08-29
+- 状态：Accepted
+- 决策：D-040/D-041 改变 ownership 和 reviewer preflight 协议，下一构建版本从 `0.1.0` 升为 `0.1.1`。不得用同版覆盖来假定 Codex cache/task 会拾取新 bytes。
+- 原因：既有生命周期实验只覆盖 `0.1.0` 同版安装/重装，没有验证异版升级、旧任务热刷新或 cachebuster；协议变化仍标 `0.1.0` 会让 source、repo package、installed cache 和任务实际加载版本无法可靠区分。
+- 授权边界：本决策允许源码版本与临时 package 验证，不自动授权更新当前 marketplace 安装、刷新旧任务或删除旧 cache。真实升级必须先 snapshot、预注册 rollback，再独立验证新任务 discovery/explicit load/bundle self-check；旧任务 effective version 仍可能不可观测。
+- 临时证据：最终 no-overwrite package 位于 `C:\Users\lenovo\AppData\Local\Temp\codex-team-forward-b517777f19cd4febb9adc48d35286a17\codex-team`；version `0.1.1`，37-file/7-entrypoint self-check 通过，bundle manifest SHA-256 为 `384f230c70e74cb32f6466cbabe1d5a8a4443cacede68a1478b154d8c841e58b`。该路径是临时验证产物，不是已安装状态。

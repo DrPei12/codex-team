@@ -19,6 +19,7 @@ PROFILE = "codex-multitask-team-status"
 SCHEMA_VERSION = "0.1"
 ROOT = Path(__file__).resolve().parents[1]
 TEAM_PLAN_PATH = ROOT / "scripts" / "team-plan.py"
+TEAM_RUN_PATH = ROOT / "scripts" / "team-run.py"
 TEAM_RUN_PROFILE = "codex-multitask-team-run"
 
 TASK_STATES = {
@@ -53,6 +54,7 @@ def _load_module(name: str, path: Path) -> ModuleType:
 
 
 TEAM_PLAN = _load_module("codex_team_plan_for_status", TEAM_PLAN_PATH)
+TEAM_RUN = _load_module("codex_team_run_for_status", TEAM_RUN_PATH)
 
 
 def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -316,6 +318,26 @@ def _load_run_artifacts(
                 raise TeamStatusError(f"dispatch lane {lane_id}: worker preflight argv is missing")
             if not all(isinstance(arg, str) and arg for arg in item["worker_preflight_argv"]):
                 raise TeamStatusError(f"dispatch lane {lane_id}: worker preflight argv is invalid")
+            expected_argv_tail = [
+                "worker-preflight",
+                preregistration["inputs"]["manifest"]["path"],
+                "--brief",
+                item["brief_ref"]["path"],
+                "--receipt",
+                str((run_dir / "worker-receipts" / f"{lane_id}.json").resolve()),
+            ]
+            if lane["role"] == "reviewer":
+                expected_argv_tail.extend(
+                    ["--gate-receipt", str((run_dir / "gate-receipt.json").resolve())]
+                )
+            argv = item["worker_preflight_argv"]
+            if (
+                len(argv) != len(expected_argv_tail) + 2
+                or not Path(argv[1]).is_absolute()
+                or Path(argv[1]).name.casefold() != "team-run.py"
+                or argv[2:] != expected_argv_tail
+            ):
+                raise TeamStatusError(f"dispatch lane {lane_id}: worker preflight argv changed")
             if item["external_context_policy"] != "untrusted-background-only":
                 raise TeamStatusError(f"dispatch lane {lane_id}: external context policy changed")
     if parent_status == "passed" and dispatch is None:
@@ -528,11 +550,16 @@ def _worker_receipts(
     run_dir: Path,
     manifest: dict[str, Any],
     expected_ref: dict[str, str],
+    run_artifacts: dict[str, Any],
 ) -> dict[str, dict[str, Any]]:
     directory = run_dir / "worker-receipts"
     if directory.is_symlink() or not directory.is_dir():
         raise TeamStatusError("worker-receipts: missing or unsafe directory")
-    lanes = {lane["lane_id"] for lane in manifest["lanes"]}
+    lanes = {lane["lane_id"]: lane for lane in manifest["lanes"]}
+    dispatch_lanes = {
+        item["lane_id"]: item for item in (run_artifacts.get("dispatch") or {}).get("lanes", [])
+    }
+    manifest_path = run_artifacts["preregistration"]["inputs"]["manifest"]["path"]
     receipts: dict[str, dict[str, Any]] = {}
     for path in directory.iterdir():
         if path.suffix != ".json" or path.stem not in lanes:
@@ -542,8 +569,50 @@ def _worker_receipts(
             raise TeamStatusError(f"worker receipt {path.stem}: unexpected profile or kind")
         if receipt.get("lane_id") != path.stem:
             raise TeamStatusError(f"worker receipt {path.stem}: lane identity mismatch")
+        lane = lanes[path.stem]
+        if receipt.get("role") != lane["role"]:
+            raise TeamStatusError(f"worker receipt {path.stem}: role differs from manifest")
         _validate_manifest_ref(receipt.get("manifest_ref"), expected_ref, f"worker receipt {path.stem}.manifest_ref")
-        _enum(receipt.get("status"), {"passed", "failed"}, f"worker receipt {path.stem}.status")
+        receipt_status = _enum(
+            receipt.get("status"), {"passed", "failed"}, f"worker receipt {path.stem}.status"
+        )
+        binding_fields = ("dispatch_ref", "gate_receipt_ref", "target")
+        if lane["role"] != "reviewer":
+            if any(field in receipt for field in binding_fields):
+                raise TeamStatusError(
+                    f"worker receipt {path.stem}: non-reviewer contains reviewer Gate binding"
+                )
+        elif receipt_status == "passed" or any(field in receipt for field in binding_fields):
+            if not all(field in receipt for field in binding_fields):
+                raise TeamStatusError(
+                    f"worker receipt {path.stem}: reviewer Gate binding is incomplete"
+                )
+            dispatch_lane = dispatch_lanes.get(path.stem)
+            if dispatch_lane is None:
+                raise TeamStatusError(f"worker receipt {path.stem}: reviewer dispatch lane is missing")
+            try:
+                _, gate_ref, target, dispatch_ref = TEAM_RUN._load_reviewer_gate_receipt(
+                    manifest,
+                    expected_ref,
+                    lane,
+                    manifest_path,
+                    dispatch_lane["brief_ref"],
+                    receipt["gate_receipt_ref"]["path"],
+                    path,
+                    require_current_invocation=False,
+                )
+            except (TEAM_RUN.TeamRunError, TEAM_PLAN.ManifestError) as exc:
+                raise TeamStatusError(
+                    f"worker receipt {path.stem}: invalid reviewer Gate binding: {exc}"
+                ) from exc
+            if (
+                receipt["gate_receipt_ref"] != gate_ref
+                or receipt["target"] != target
+                or receipt["dispatch_ref"] != dispatch_ref
+            ):
+                raise TeamStatusError(
+                    f"worker receipt {path.stem}: reviewer Gate binding changed"
+                )
         receipts[path.stem] = receipt
     return receipts
 
@@ -660,7 +729,7 @@ def render(manifest_value: str, run_value: str, facts_value: str, output_value: 
     facts_path = _validate_facts_path(run_dir, facts_value)
     facts_document = _load_json(facts_path, "status facts")
     facts = _validate_facts(facts_document, manifest, expected_ref, run_dir)
-    receipts = _worker_receipts(run_dir, manifest, expected_ref)
+    receipts = _worker_receipts(run_dir, manifest, expected_ref, run_artifacts)
     output = _validate_output(manifest, run_dir, output_value, "output")
 
     parent_passed = run_artifacts["parent"]["status"] == "passed"

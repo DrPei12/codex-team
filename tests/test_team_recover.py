@@ -42,10 +42,37 @@ def write_json(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
 
-def create_blocked_fixture(tmp_path: Path) -> dict:
+def create_blocked_fixture(
+    tmp_path: Path,
+    *,
+    core_write_paths: list[str] | None = None,
+    core_forbidden_paths: list[str] | None = None,
+    changed_path: str = "src/core.py",
+) -> dict:
     fixture = RUN_SUPPORT.create_fixture(tmp_path)
+    if core_write_paths is not None or core_forbidden_paths is not None:
+        manifest = fixture["manifest"]
+        if core_write_paths is not None:
+            manifest["lanes"][0]["ownership"]["write_paths"] = core_write_paths
+        if core_forbidden_paths is not None:
+            manifest["lanes"][0]["ownership"]["forbidden_paths"] = core_forbidden_paths
+        write_json(Path(fixture["manifest_path"]), manifest)
+        shutil.rmtree(Path(fixture["briefs"]))
+        projection = run_command(
+            [
+                sys.executable,
+                str(RUN_SUPPORT.TEAM_PLAN),
+                "project",
+                str(fixture["manifest_path"]),
+                "--out",
+                str(fixture["briefs"]),
+            ],
+            cwd=ROOT,
+        )
+        assert projection.returncode == 0, projection.stderr
     (Path(fixture["core"]) / "src").mkdir()
-    (Path(fixture["core"]) / "src/core.py").write_text("candidate = True\n", encoding="utf-8")
+    (Path(fixture["core"]) / changed_path).parent.mkdir(parents=True, exist_ok=True)
+    (Path(fixture["core"]) / changed_path).write_text("candidate = True\n", encoding="utf-8")
     run_root = Path(fixture["artifact_root"]) / "blocked-run"
     prepared = RUN_SUPPORT.run_prepare(fixture, run_root)
     assert prepared.returncode == 1
@@ -139,6 +166,66 @@ def test_dirty_candidate_freezes_patch_and_snapshot(tmp_path: Path) -> None:
     assert candidate["changed_files"] == ["src/core.py"]
     assert Path(candidate["patch_ref"]["path"]).is_file()
     assert Path(candidate["snapshot_ref"]["path"]).is_file()
+
+
+def test_dirty_candidate_accepts_explicit_recursive_directory_glob(tmp_path: Path) -> None:
+    fixture = create_blocked_fixture(
+        tmp_path,
+        core_write_paths=["docs/**"],
+        changed_path="docs/nested/core.py",
+    )
+    result, output = create_candidate(fixture, mode="dirty")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["docs/nested/core.py"]
+
+
+def test_dirty_candidate_accepts_descendant_of_bare_ownership_root(tmp_path: Path) -> None:
+    fixture = create_blocked_fixture(
+        tmp_path,
+        core_write_paths=["docs"],
+        changed_path="docs/nested/core.py",
+    )
+    result, output = create_candidate(fixture, mode="dirty")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["docs/nested/core.py"]
+    assert output.with_suffix(".patch").is_file()
+    assert output.with_suffix(".zip").is_file()
+
+
+def test_dirty_candidate_normalizes_windows_alias_and_case(tmp_path: Path) -> None:
+    fixture = create_blocked_fixture(tmp_path, core_write_paths=[r"SRC\CORE.PY"])
+    result, output = create_candidate(fixture, mode="dirty")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["src/core.py"]
+
+
+def test_dirty_candidate_rejects_changed_file_outside_exact_ownership(tmp_path: Path) -> None:
+    fixture = create_blocked_fixture(
+        tmp_path,
+        core_write_paths=["src/core.py"],
+        changed_path="src/other.py",
+    )
+    result, output = create_candidate(fixture, mode="dirty")
+    assert result.returncode == 1
+    assert "ownership" in result.stderr.lower()
+    assert not output.exists()
+    assert not output.with_suffix(".patch").exists()
+    assert not output.with_suffix(".zip").exists()
+
+
+def test_dirty_candidate_forbidden_paths_override_bare_write_root(tmp_path: Path) -> None:
+    fixture = create_blocked_fixture(
+        tmp_path,
+        core_write_paths=["owned"],
+        core_forbidden_paths=["owned/secrets"],
+        changed_path="owned/secrets/key.py",
+    )
+    result, output = create_candidate(fixture, mode="dirty")
+    assert result.returncode == 1
+    assert "ownership" in result.stderr.lower()
+    assert not output.exists()
+    assert not output.with_suffix(".patch").exists()
+    assert not output.with_suffix(".zip").exists()
 
 
 def test_commit_candidate_requires_clean_descendant(tmp_path: Path) -> None:
@@ -298,6 +385,11 @@ def main() -> int:
     tests_without_tmp = [test_entrypoints_exist]
     tests_with_tmp = [
         test_dirty_candidate_freezes_patch_and_snapshot,
+        test_dirty_candidate_accepts_explicit_recursive_directory_glob,
+        test_dirty_candidate_accepts_descendant_of_bare_ownership_root,
+        test_dirty_candidate_normalizes_windows_alias_and_case,
+        test_dirty_candidate_rejects_changed_file_outside_exact_ownership,
+        test_dirty_candidate_forbidden_paths_override_bare_write_root,
         test_commit_candidate_requires_clean_descendant,
         test_dirty_candidate_rejects_unowned_paths_without_partial_artifacts,
         test_prepare_binds_predecessor_candidate_proofs_and_budget,
