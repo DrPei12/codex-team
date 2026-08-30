@@ -113,11 +113,42 @@
 
 **建议：** finish artifact 支持 `accepted_followups`，绑定 owner、风险和不阻断理由；不要自动创建 issue、删除 evidence 或把 P3 隐藏为“无风险”。
 
+### T-012 Visual Gate 必须证明 material design delta
+
+**证据：** UI lane 曾以 token、静态 WinUI Gate、Light/Dark/preview截图和 74/74 tests 被接收；用户随后明确否决，认为页面、背景、动画和 Apple-inspired UI/UX“根本没有大的改变”。此前 Gate 证明实现没有明显结构错误，但没有证明设计目标达成。
+
+**影响：** 自动 Gate 与 worker screenshot 可在“视觉变化不足”时产生 false acceptance；用户主观目标没有被转成可审查 artifact。
+
+**建议：** UI brief 必须冻结逐屏 before/after、视觉层级、material/background、motion、breakpoint 和 copy matrix；验收同时包含机器 Gate、运行截图和独立高级模型视觉 review。Reviewer 必须回答“变化是否足够明显且仍原生”，不能只核对 token/控件存在。
+
+### T-013 用户可见 copy 需要结构化类别与 deny policy
+
+**证据：** 用户在已 review-approved candidate 后要求“前端展示给用户的语言中解释性话语全部禁止出现”，说明原 contract 没有区分必要功能标签与解释性/营销/架构文案。
+
+**影响：** 功能正确的 UI 仍可能因冗长副标题、教程、系统自述或 AI explanation 不可接受；纯 regex 很难独立判断语义。
+
+**建议：** 维护 user-visible copy inventory；只允许 Nav/Field/Action/State/Error/ConfirmFact/Data 类别，拒绝 Description/Subtitle/Help/Tip/Explain/Marketing。机器 validator 负责 inventory/类别/重复与禁用前缀，高级 reviewer 逐屏检查语义；危险操作保留结构化影响事实，不能因“禁止解释”删除安全确认。
+
+### T-014 Secret input 只保存 capability reference，不进入 artifact bytes
+
+**证据：** 用户提供 `D:\Desktop\121.txt` 作为新 DeepSeek Key 来源。产品 live Gate需要读取真实 secret，但 Team artifact、command evidence和对话都不能保存 Key、请求头或可还原片段。
+
+**影响：** 若 brief/receipt 把 secret 值或包含值的 argv/env dump纳入 proof，会造成凭据泄漏；若完全不记录，又无法证明 live Gate使用的是用户重新配置的新凭据。
+
+**建议：** manifest/brief仅记录 secret source kind/path和授权，不记录 bytes/hash/长度/片段；受控 helper无输出导入 Windows credential store或进程内使用。Receipt只记录 `source_present`、`secure_import_succeeded`、`live_result`、`secret_output_detected=false`，并对日志做 fail-closed secret scan。Secret file删除/改写永不隐含授权。
+
+### T-015 用户否决已验收里程碑时创建 successor，不改写旧 review
+
+**证据：** 最终代码 review曾为 approved/live-blocked，但用户后来否决视觉结果并扩大UI验收。旧 review对当时 contract仍是事实，却不能继续支持正式发布。
+
+**建议：** status facts支持 `superseded-by-user-rejection` 或等价 append-only successor关系，绑定新 acceptance delta；旧Gate/review保留，不重标为失败，新release candidate必须消费新successor结果。
+
 ## 推荐实施顺序
 
 1. T-001/T-002 已完成源码修复；下一步先做同类 manifest 和 Desktop reviewer 的 live forward test，不直接重装覆盖旧 plugin。
 2. 设计 T-003/T-004/T-007 的统一 successor/fallback/conditional milestone 状态机，避免三个局部补丁互相冲突。
 3. 实施 T-005/T-006 的 Gate qualification 与 nested-exit receipt。
-4. 最后补 T-008/T-009/T-010/T-011 的可观测性和治理材料。
+4. 补 T-008/T-009/T-010/T-011 的可观测性和治理材料。
+5. 将 T-012/T-013/T-014/T-015 纳入下一版 UI/secret/status contract，避免本次用户否决再次发生。
 
 在 T-001/T-002 完成 live forward test 前，不应声称 Team v0.1 的 live `integrate -> review -> finish` 已验证。
