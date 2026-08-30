@@ -143,6 +143,28 @@
 
 **建议：** status facts支持 `superseded-by-user-rejection` 或等价 append-only successor关系，绑定新 acceptance delta；旧Gate/review保留，不重标为失败，新release candidate必须消费新successor结果。
 
+## P2：长时间运行与 GUI Gate 可观测性
+
+### T-016 长 turn 需要 material-progress heartbeat 与 checkpoint
+
+**证据：** 产品主编排的同一可见 turn 从 `2026-08-30T01:44:16-04:00` 持续到至少 `10:59:27-04:00`。Codex 原生读取始终只有 `active/inProgress`，`latestAssistantMessage` 和 `latestToolMarker` 均为空；与此同时 exact integration 分支新增 25 个提交并形成测试、live、截图、打包和安装回执。当前观察面无法区分有效执行、等待、重复 Gate 和卡死。
+
+**影响：** 用户在超过 9 小时内无法判断是否需要介入；中断可能损失有效执行，不中断又可能放任无收益循环。`active` 只能表示生命周期状态，不能代表 material progress。
+
+**建议：** visible task receipt 增加 `phase`、`phase_started_at`、`last_material_progress_at`、`material_delta_ref`、`next_bounded_action`、`expected_user_visible_effect` 和 `stalled_reason`。超过配置的 silent interval 或 wall-clock budget 时，先写 non-destructive checkpoint/resume receipt，再由主编排决定继续、handoff 或请求人工介入；不得自动把超时等同失败或擅自中断。
+
+**边界：** 本实验只证明单个超长 turn 的可观测性缺口，没有验证通用超时常数、scheduler 稳定性或自动恢复。
+
+### T-017 GUI Gate 需要 launch/session/resource receipt
+
+**证据：** 用户观察到应用频繁打开；产品证据包含 32 张运行截图、UIA 10/10、真实 backup success/failure 和 clean-install launch/restore，但没有逐次 launch/restart 计数或 case-to-process 映射。两次实验进程快照均为零残留，因此当前不支持“实例持续堆积”的判断，也无法证明不存在无收益重启。
+
+**影响：** GUI matrix 的必要多次运行与 launch thrash 对用户表现相同；观察者也无法检查旧实例是否正常关闭、系统设置是否恢复、安装/临时文件是否残留。
+
+**建议：** 为 GUI Gate 增加 batch/session receipt：target commit/tree/executable hash、case id/purpose、launch/restart ordinal、PID/window identity、start/stop/exit、screenshot/result refs、previous-instance disposition、system-setting/install side effects、restore digest、final process residue。manifest 可声明有理由的 launch budget；超过预算必须给出新增 finding 或 target delta，不能静默重跑。
+
+**边界：** launch budget 不能写成未经实测的固定常数；Light/Dark、scale、Contrast、Narrator、clean install 等独立 case 可能合法需要新的进程或系统会话。
+
 ## 推荐实施顺序
 
 1. T-001/T-002 已完成源码修复；下一步先做同类 manifest 和 Desktop reviewer 的 live forward test，不直接重装覆盖旧 plugin。
@@ -150,5 +172,6 @@
 3. 实施 T-005/T-006 的 Gate qualification 与 nested-exit receipt。
 4. 补 T-008/T-009/T-010/T-011 的可观测性和治理材料。
 5. 将 T-012/T-013/T-014/T-015 纳入下一版 UI/secret/status contract，避免本次用户否决再次发生。
+6. 先把 T-016/T-017 作为 receipt/backlog 设计做 controlled forward test；在没有多个 GUI run 样本前，不固化 silent interval、launch 次数或自动中断策略。
 
 在 T-001/T-002 完成 live forward test 前，不应声称 Team v0.1 的 live `integrate -> review -> finish` 已验证。
