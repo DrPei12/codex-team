@@ -165,6 +165,40 @@
 
 **边界：** launch budget 不能写成未经实测的固定常数；Light/Dark、scale、Contrast、Narrator、clean install 等独立 case 可能合法需要新的进程或系统会话。
 
+## P1：任务拆分后的语义覆盖
+
+### T-018 Plan 必须证明 requirement-to-owner-to-Gate 覆盖闭合
+
+**证据：** ClothingRecycler manifest 把“WinUI 与 AI 共用 dispatcher/catalog”列为全局 invariant，`ui-adoption` objective 也要求 move AI tools onto dispatcher；但 application-core、business-adapters 和 ui-adoption 都 forbidden `PC/Services/Ai`，provider-security 又不拥有 `AiWorkflowToolService.cs`。该核心文件成为 ownership orphan。最终只完成了页面 handoff后的两条共享 dispatcher slice，通用 AI catalog tool surface 没有实现。
+
+**影响：** 每条 lane 都可以在自身 ownership 内“完成”，全局 contract 仍会落空。自然语言 objective 与机器 ownership冲突时，worker无法安全补齐，只能形成局部替代实现。
+
+**建议：** team-plan 输出 machine-checkable coverage lattice：`requirement_id -> implementation_lane -> owned_paths -> output -> gate_id -> reviewer`。任何 requirement 无 owner、一个可变文件无 owner/多 owner、objective 需要 forbidden path、Gate只检查组件而不检查用户流程时 fail closed。integration/finish 必须消费 coverage receipt，不能只消费 lane completed。
+
+**变更等级：** plan/schema/integration 协议扩展；实施前需决策日志、状态页和负例测试。
+
+### T-019 Handoff 需要 hash-bound backbrief 与 delta，而不是自由文本复制
+
+**证据：** 本 run 的长期 requirement、lane brief、successor delta 和用户最新 UI/copy要求分散在 manifest、product docs、recovery brief和主任务消息中。最新九小时 turn 没有可见 task prompt、assistant marker或 canonical facts，无法审核内部 subagent实际消费了哪些版本。ownership orphan又证明仅把全局 invariant写在 manifest并不足以让接收任务理解/执行。
+
+**影响：** 多级 handoff 会丢失“为什么、哪些不允许、谁补剩余部分、哪个 Gate证明什么”；后续任务可能完成字面目标，却偏离产品语义。
+
+**建议：** dispatch prompt只引用 immutable brief/hash和当前 delta；receiver preflight必须提交 backbrief receipt：consumed artifact hashes、accepted requirement ids、owned/forbidden scope、assumptions、open questions、does-not-cover、first bounded action和planned evidence。parent做机器 diff，缺 requirement或出现新假设即停，不让 worker凭长 prompt自由总结项目真相。
+
+**边界：** backbrief不能要求复制全部产品文档或用户数据；它保存 id、hash、摘要和差异，权威内容仍在版本库。
+
+## P2：主编排职责与阶段检查点
+
+### T-020 主任务不能把开发、修复、GUI QA、打包和发布吞进一个 turn
+
+**证据：** 最新主 turn耗时 9小时17分41秒，期间集成分支新增25个提交并执行UIA、截图、live业务、打包和clean-install，但canonical Team facts停留在前一天。turn完成后仍无assistant/tool marker。工作有实质产出，却不具备Team topology、阶段receipt或用户可见checkpoints。
+
+**影响：** 高级主编排退化为超长执行者；用户无法判断方向、及时否决视觉结果或控制系统交互成本。错误视觉方向在昂贵 system Gate前没有被拦截。
+
+**建议：** 主编排只拥有 plan、coverage、dispatch、checkpoint、acceptance、integration order和release decision。实现交给明确 execution lane/internal subagent；阶段至少包括 AI vertical slice、代表性视觉方向、集成候选、pre-expensive-Gate、system matrix、independent review。每个阶段必须写 checkpoint receipt并回到可观察状态；继续执行需要消费上一个 accepted checkpoint。
+
+**模型政策：** planning/analysis/acceptance请求 `gpt-5.6-sol/high`，development请求 `gpt-5.6-luna/max`；receipt仍需分开记录 requested/effective/observability，不能从 prompt推断 effective。
+
 ## 推荐实施顺序
 
 1. T-001/T-002 已完成源码修复；下一步先做同类 manifest 和 Desktop reviewer 的 live forward test，不直接重装覆盖旧 plugin。
@@ -173,5 +207,6 @@
 4. 补 T-008/T-009/T-010/T-011 的可观测性和治理材料。
 5. 将 T-012/T-013/T-014/T-015 纳入下一版 UI/secret/status contract，避免本次用户否决再次发生。
 6. 先把 T-016/T-017 作为 receipt/backlog 设计做 controlled forward test；在没有多个 GUI run 样本前，不固化 silent interval、launch 次数或自动中断策略。
+7. 优先设计 T-018 的 coverage lattice 和 T-019 backbrief，因为它们直接解释了本次 AI Native requirement 丢失；随后用 T-020 的阶段 checkpoint做一次新的 controlled successor，不继续复用九小时单 turn模式。
 
 在 T-001/T-002 完成 live forward test 前，不应声称 Team v0.1 的 live `integrate -> review -> finish` 已验证。
