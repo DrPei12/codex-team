@@ -52,6 +52,9 @@ def lane(
     return {
         "lane_id": lane_id,
         "role": role,
+        "execution_surface": "visible-task",
+        "task_title": f"Team Run | {lane_id.title()}",
+        "lifecycle": "one-shot",
         "objective": f"Complete the {lane_id} responsibility.",
         "depends_on": depends_on,
         "workspace": {
@@ -136,6 +139,7 @@ def create_fixture(tmp_path: Path) -> dict[str, Path | dict]:
         "created_at": "2026-08-24T12:00:00-04:00",
         "status": "planned",
         "objective": "Exercise the team-run preparation boundary.",
+        "user_locale": "en",
         "decision": {
             "mode": "multi-task",
             "reason": "Core and CLI have disjoint ownership.",
@@ -441,6 +445,11 @@ def test_prepare_creates_bound_artifacts(tmp_path: Path) -> None:
     prompt_text = prompt_bytes.decode("utf-8")
     assert "trusted assignment" in prompt_text.lower()
     assert "untrusted" in prompt_text.lower()
+    assert fixture["manifest"]["lanes"][0]["task_title"] in prompt_text
+    assert dispatch["lanes"][0]["task_title"] == fixture["manifest"]["lanes"][0]["task_title"]
+    assert dispatch["lanes"][0]["execution_surface"] == "visible-task"
+    assert dispatch["lanes"][0]["lifecycle"] == "one-shot"
+    assert dispatch["lanes"][0]["user_locale"] == "en"
     assert preregistration["manifest_ref"] == parent_receipt["manifest_ref"] == dispatch["manifest_ref"]
     reviewer_argv = dispatch["lanes"][-1]["worker_preflight_argv"]
     assert "--gate-receipt" in reviewer_argv

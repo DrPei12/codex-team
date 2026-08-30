@@ -9,6 +9,12 @@ Use this skill to prepare and validate a frozen, manifest-driven lane plan. Firs
 check whether parallel work is worth the coordination cost and whether boundaries,
 owners, inputs, outputs, and integration points are explicit.
 
+For every lane, decide whether it needs a user-visible durable task or a short
+internal subagent. Visible tasks require a concise title in the user's current
+language; never use the task prompt or a machine lane id as the sidebar title.
+Record whether the lane is one-shot, milestone-scoped, or a long-lived owner so
+finish can recommend the correct lifecycle action.
+
 Workflow:
 
 1. Freeze the contract and record its invariants and forbidden changes.

@@ -23,7 +23,10 @@ not dispatch work.
    failed run directory.
 4. If preparation passes, inspect `dispatch-bundle.json` and hand it to an
    orchestrator that already has explicit authority to create Codex tasks.
-   This skill stops before that action.
+   This skill stops before that action. The orchestrator creates a sidebar task
+   only for `execution_surface=visible-task` and passes the separate
+   user-language `task_title`; `internal-subagent` lanes stay inside the owning
+   task and never create sidebar clutter.
 5. A future real worker must run the `worker_preflight_argv` recorded for its
    lane from the assigned workspace. Implementation may begin only when the
    exclusive receipt reports `passed`. A reviewer lane's recorded argv

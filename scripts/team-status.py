@@ -270,6 +270,10 @@ def _load_run_artifacts(
                 {
                     "lane_id",
                     "role",
+                    "user_locale",
+                    "execution_surface",
+                    "task_title",
+                    "lifecycle",
                     "depends_on",
                     "task_project",
                     "workspace",
@@ -285,6 +289,15 @@ def _load_run_artifacts(
             lane = lane_by_id[lane_id]
             if item["role"] != lane["role"] or item["depends_on"] != lane["depends_on"]:
                 raise TeamStatusError(f"dispatch lane {lane_id}: role/dependencies differ from manifest")
+            if (
+                item["user_locale"] != manifest["user_locale"]
+                or item["execution_surface"] != lane["execution_surface"]
+                or item["task_title"] != lane["task_title"]
+                or item["lifecycle"] != lane["lifecycle"]
+            ):
+                raise TeamStatusError(
+                    f"dispatch lane {lane_id}: title/surface/lifecycle differs from manifest"
+                )
             if item["task_project"] != manifest["task_project"]:
                 raise TeamStatusError(f"dispatch lane {lane_id}: task project differs from manifest")
             if item["workspace"] != lane["workspace"]:

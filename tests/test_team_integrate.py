@@ -52,6 +52,7 @@ def create_handoff_fixture(
     changed_paths: dict[str, str] | None = None,
     team_run_path: Path | None = None,
     team_status_path: Path | None = None,
+    lane_metadata: dict[str, dict[str, object]] | None = None,
 ) -> dict:
     fixture = RUN_SUPPORT.create_fixture(tmp_path)
     manifest = fixture["manifest"]
@@ -59,6 +60,10 @@ def create_handoff_fixture(
         manifest["lanes"][0]["ownership"]["write_paths"] = core_write_paths
     if core_forbidden_paths is not None:
         manifest["lanes"][0]["ownership"]["forbidden_paths"] = core_forbidden_paths
+    for lane_item in manifest["lanes"]:
+        updates = (lane_metadata or {}).get(lane_item["lane_id"])
+        if updates:
+            lane_item.update(updates)
     commands = gate_commands or ("python -c \"print('gate-ok')\"",)
     manifest["global_gates"] = [
         {

@@ -2,10 +2,10 @@
 
 ## Snapshot
 
-- 日期：2026-08-29
-- 阶段：`M1.5 — First live Team run observed; cross-phase identity repairs validated in source`
-- 状态：ClothingRecycler PC v1 首次提供了真实 Desktop 多任务 dispatch、worker preflight、任务中断/恢复、Gate、独立 review 和 bounded repair 证据；同时证明 Team v0.1 canonical live 主链尚未闭合：ownership 语义阻断 integrate/recover，reviewer preflight 错绑 base，实际 run 使用手工 fallback。源码已接受 D-040/D-041/D-042，下一 plugin 版本为 `0.1.1`，九组 130 项回归全绿；7 个 skill 仍为 `incubating`，修正版 plugin 尚未安装或 Desktop live forward-test，`main` 未合并
-- 当前源码基线：本 worktree 基于 branch `codex/team-v01` commit `6f817c8b292eedc9a1bea6385410ce92bec44ef7`，含未提交的实验记录与 D-040/D-041 修订；plugin builder 基线 `e4fa221`；`main` 仍为 `db3b810`
+- 日期：2026-08-30
+- 阶段：`M1.6 — Live task lifecycle and localized title contract`
+- 状态：ClothingRecycler live run证明早期可见task并行、后期internal subagent收敛总体合理，但暴露sidebar任务命名和归档治理缺失。D-040至D-042的0.1.1 identity修复已在branch `codex/team-v011-live-fixes`通过130项回归；本轮接受D-043/D-044/D-045，为0.1.2增加user locale、execution surface、独立task title、lifecycle和逐lane disposition，九组133项回归全绿。13条历史任务已中文重命名并归档，active主编排未中断；7个skill仍为`incubating`，0.1.2尚未安装或Desktop live forward-test，`main`未合并
+- 当前源码基线：branch `codex/team-v012-lifecycle` 基于 `ffc01b1`；0.1.1核心修复commit `85baabe`，lifecycle sweep before snapshot commit `931c350`；plugin builder基线`e4fa221`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -95,6 +95,10 @@
 - [x] 接受 D-041：reviewer preflight 必须绑定 canonical dispatch/plan/apply/passed Gate 和真实 Git merge topology 的 post-integration exact target；`team-run` 26 项、`team-status` 20 项回归通过
 - [x] D-040/D-041 后九组 Team 回归共 130 项全绿，包含离线端到端 artifact schema validation、relocatable plugin build/self-check 和 packaged `integrate → Gate → reviewer-preflight → finish`
 - [x] 接受 D-042：协议修订构建版本升为 `0.1.1`，不以 same-version overwrite 假定 cache/task 刷新；真实安装升级仍需独立 snapshot/rollback 验证
+- [x] 接受 D-043：manifest/brief/dispatch记录user locale、visible-task/internal-subagent、独立用户语言title和one-shot/milestone/long-lived-owner生命周期
+- [x] 接受 D-044：finish输出逐lane task disposition；本轮按before snapshot/rollback纪律中文重命名并归档13条历史任务，主编排保持active
+- [x] 接受 D-045：required标题/生命周期协议构建版本升为`0.1.2`；不覆盖当前installed 0.1.0
+- [x] D-043/D-044/D-045后九组Team回归共133项全绿；team-plan/run/finish quick validation和临时0.1.2 bundle self-check通过
 
 ## 纵向切片清单（已完成与未完成）
 
@@ -149,6 +153,7 @@
 - `codex-team` builder 的 bundle manifest 可检出普通文件篡改，但它不是签名/公证机制；攻击者同时改写产物与 manifest 不在当前威胁模型内；
 - 已验证 repo marketplace、同版重安和卸载；未验证 plugin cachebuster、异版升级、禁用和新旧会话版本选择；
 - D-040/D-041 目前只在源码 fixture、离线端到端和临时 plugin package 中验证；当前安装 cache 与既有 live task 仍可能运行旧 v0.1 bytes，未做升级/cachebuster；
+- D-043/D-044新增required manifest字段，旧0.1.0/0.1.1 artifact/runtime不应被假定兼容；当前活动ClothingRecycler task没有热加载0.1.2证据；
 - 负触发任务没有直接 skill-invocation telemetry，只能根据最终行为与无 bundle output 判定“相符”；隐式路由也只有一条高匹配样本；
 - 一条卸载后 worktree task 只返回 client ID 而未得 thread ID，不计入验收；6 条可读测试任务保留 idle，本轮无 archive 授权；
 - 本轮 managed worktree 已移出 Git registry，但 4 个产品管理容器目录仍存在且为空；plugin marketplace cache 父目录也存在但为空，本轮不手工删除这些容器；
@@ -156,7 +161,7 @@
 - `team-run` 已实测 Brief symlink、dirty/ignored、错误 cwd、receipt 不覆盖和 reviewer exact Gate target；仍未用 Desktop task forward-test reviewer 新路径，也未覆盖 Windows junction、submodule/LFS、detached HEAD 或 Git operation residue；
 - `team-status` 已实测 identity/hash、依赖解锁、dirty handoff、跨-run evidence 和矛盾 facts，但没有 live Codex observer、消息/cursor 时序或长期准确率；
 - `team-integrate` 的原 canonical candidate 在 ClothingRecycler live run 因 ownership mismatch fail closed；手工 ff-only/Gate 不能替代 skill apply 证据。D-040 修复仅在临时 fixture 验证，仍没有修正版 live apply、submodule/LFS、长队列、push 或 sealed 证据；
-- `team-finish` 只生成 archive/cleanup 建议；没有验证 Codex archive/handoff 或实际 worktree/cache 清理；
+- `team-finish`仍只生成未授权task disposition和workspace建议；本轮另行验证native rename/archive/unarchive/rearchive及active主任务保留，但没有自动adapter、批次失败恢复、handoff或实际worktree/cache清理证据；
 - `team-recover` 在 live capability blocker 上正确被 router 选中，但 candidate 因 ownership/非空 candidate 限制失败；后续 successor 为手工 fallback。D-040 只修 ownership，不解决 evidence-only recovery；
 - 统一 `team` 路由依赖 canonical 文件名；当历史产物不在 canonical 名称时，仍需明确接收/提升步骤，不能由路由器猜测“最新”；
 - 当前仓库没有 LICENSE；本轮只独立实现 prior-art 思想，没有复制外部源码。任何后续源码复用必须先决定 LICENSE/NOTICE；
@@ -179,4 +184,4 @@
 
 ## 完成 Phase 0 的判定
 
-Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.5；仍然没有 `stable` skill，但已有七个 `incubating` Team v0.1 skill、离线主链、可移动 plugin、repo marketplace、真实安装/发现证据，以及一轮有失败边界的 Desktop live 多任务观察。D-040/D-041/D-042 源码修订通过 130 项回归，临时 0.1.1 package通过 packaged reviewer E2E，但修正版尚未安装或 Desktop live forward-test。`team-plan` 已在 `main`，其余套件位于 `codex/team-v01`，`main` 未合并。不能把 ClothingRecycler 的手工 fallback 写成 canonical integrate/recover/reviewer/finish 已验证，也不能声称长期触发或 archive/cleanup 稳定。
+Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.6；仍然没有`stable` skill，但已有七个`incubating` Team skill、离线主链、可移动plugin、repo marketplace、真实安装/发现证据和一轮有失败边界的Desktop live多任务观察。D-040至D-045源码修订通过133项回归，临时0.1.2 package自检通过，且完成一次真实rename/archive sweep；修正版尚未安装或Desktop live forward-test。`team-plan`已在`main`，其余套件位于`codex/team-v01`及当前候选分支，`main`未合并。不能把手工fallback写成canonical全链已验证，也不能声称长期标题语言准确、自动归档或worktree cleanup稳定。

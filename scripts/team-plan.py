@@ -23,6 +23,8 @@ SCHEMA_VERSION = "0.1"
 KIND = "run-manifest"
 STATUSES = {"planned", "active", "completed", "blocked", "cancelled"}
 ROLES = {"implementer", "integrator", "reviewer"}
+EXECUTION_SURFACES = {"visible-task", "internal-subagent"}
+LIFECYCLES = {"one-shot", "milestone", "long-lived-owner"}
 WORKSPACE_MODES = {"read-only", "permanent-worktree"}
 ID_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 GENERIC_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
@@ -84,6 +86,20 @@ def _string_list(value: Any, path: str, *, min_items: int = 0, unique: bool = Tr
     if unique and len(set(result)) != len(result):
         _fail(path, "items must be unique")
     return result
+
+
+def _task_title(value: Any, path: str) -> str:
+    title = _string(value, path)
+    if len(title) > 80:
+        _fail(path, "must contain at most 80 characters")
+    if "\n" in title or "\r" in title:
+        _fail(path, "must be a single line")
+    normalized = title.casefold()
+    if "<codex_delegation" in normalized or normalized.startswith(
+        "orchestrator dispatch authorization"
+    ):
+        _fail(path, "must be a concise user-facing title, not a task prompt")
+    return title
 
 
 def _exact(value: Any, expected: str, path: str) -> None:
@@ -544,6 +560,7 @@ def validate_manifest(manifest: Any) -> None:
         "created_at",
         "status",
         "objective",
+        "user_locale",
         "decision",
         "client_surface",
         "base",
@@ -566,6 +583,9 @@ def validate_manifest(manifest: Any) -> None:
     if status not in STATUSES:
         _fail("status", f"must be one of: {', '.join(sorted(STATUSES))}")
     _string(manifest_object["objective"], "objective")
+    user_locale = _string(manifest_object["user_locale"], "user_locale")
+    if not re.fullmatch(r"[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*", user_locale):
+        _fail("user_locale", "must be a normalized BCP-47-like locale")
     _exact(manifest_object["client_surface"], "codex_desktop", "client_surface")
 
     decision_allowed = {"mode", "reason", "parallel_groups"}
@@ -649,6 +669,9 @@ def validate_manifest(manifest: Any) -> None:
     lane_allowed = {
         "lane_id",
         "role",
+        "execution_surface",
+        "task_title",
+        "lifecycle",
         "objective",
         "depends_on",
         "workspace",
@@ -678,6 +701,27 @@ def validate_manifest(manifest: Any) -> None:
         role = _string(lane["role"], f"{lane_path}.role")
         if role not in ROLES:
             _fail(f"{lane_path}.role", f"must be one of: {', '.join(sorted(ROLES))}")
+        execution_surface = _string(
+            lane["execution_surface"], f"{lane_path}.execution_surface"
+        )
+        if execution_surface not in EXECUTION_SURFACES:
+            _fail(
+                f"{lane_path}.execution_surface",
+                f"must be one of: {', '.join(sorted(EXECUTION_SURFACES))}",
+            )
+        lifecycle = _string(lane["lifecycle"], f"{lane_path}.lifecycle")
+        if lifecycle not in LIFECYCLES:
+            _fail(
+                f"{lane_path}.lifecycle",
+                f"must be one of: {', '.join(sorted(LIFECYCLES))}",
+            )
+        if execution_surface == "visible-task":
+            _task_title(lane["task_title"], f"{lane_path}.task_title")
+        else:
+            if lane["task_title"] is not None:
+                _fail(f"{lane_path}.task_title", "must be null for internal-subagent lanes")
+            if lifecycle != "one-shot":
+                _fail(f"{lane_path}.lifecycle", "internal-subagent lanes must be one-shot")
         _string(lane["objective"], f"{lane_path}.objective")
         dependencies = _string_list(lane["depends_on"], f"{lane_path}.depends_on")
 
@@ -902,6 +946,10 @@ def _brief(manifest: dict[str, Any], lane: dict[str, Any], digest: str) -> dict[
         "manifest_ref": {"run_id": manifest["run_id"], "sha256": digest},
         "lane_id": lane["lane_id"],
         "role": lane["role"],
+        "user_locale": manifest["user_locale"],
+        "execution_surface": lane["execution_surface"],
+        "task_title": lane["task_title"],
+        "lifecycle": lane["lifecycle"],
         "objective": lane["objective"],
         "depends_on": copy.deepcopy(lane["depends_on"]),
         "base": copy.deepcopy(manifest["base"]),

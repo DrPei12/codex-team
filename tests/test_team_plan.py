@@ -29,6 +29,9 @@ def lane(
     return {
         "lane_id": lane_id,
         "role": role,
+        "execution_surface": "visible-task",
+        "task_title": f"Demo | {lane_id.title()}",
+        "lifecycle": "one-shot",
         "objective": f"Complete the {lane_id} responsibility.",
         "depends_on": depends_on,
         "workspace": {
@@ -70,6 +73,7 @@ def valid_manifest() -> dict:
         "created_at": "2026-08-15T12:00:00-04:00",
         "status": "planned",
         "objective": "Implement and verify streaming JSONL support.",
+        "user_locale": "en",
         "decision": {
             "mode": "multi-task",
             "reason": "The frozen contract separates Core and CLI ownership.",
@@ -376,6 +380,36 @@ def test_forbidden_paths_use_canonical_ownership_normalization(tmp_path: Path) -
     assert "normalized paths must be unique" in result.stderr
 
 
+def test_visible_task_title_is_required_and_prompt_titles_are_rejected(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["lanes"][0]["task_title"] = None
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "task_title" in result.stderr
+
+    manifest = valid_manifest()
+    manifest["lanes"][0]["task_title"] = "Orchestrator dispatch authorization: do everything"
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "task_title" in result.stderr
+    assert "task prompt" in result.stderr
+
+
+def test_internal_subagent_requires_null_title_and_one_shot_lifecycle(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    lane_item = manifest["lanes"][0]
+    lane_item["execution_surface"] = "internal-subagent"
+    lane_item["task_title"] = None
+    lane_item["lifecycle"] = "one-shot"
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 0, result.stderr
+
+    lane_item["lifecycle"] = "milestone"
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "internal-subagent lanes must be one-shot" in result.stderr
+
+
 def test_integration_order_must_respect_dependencies(tmp_path: Path) -> None:
     manifest = valid_manifest()
     manifest["integration_order"] = ["integrator", "core", "cli", "reviewer"]
@@ -413,6 +447,10 @@ def test_project_generates_briefs_from_one_canonical_manifest(tmp_path: Path) ->
     assert core["runtime"] == manifest["runtime"]
     assert core["workspace"] == manifest["lanes"][0]["workspace"]
     assert core["ownership"] == manifest["lanes"][0]["ownership"]
+    assert core["user_locale"] == manifest["user_locale"]
+    assert core["execution_surface"] == manifest["lanes"][0]["execution_surface"]
+    assert core["task_title"] == manifest["lanes"][0]["task_title"]
+    assert core["lifecycle"] == manifest["lanes"][0]["lifecycle"]
 
 
 def test_projection_must_stay_under_artifact_root(tmp_path: Path) -> None:
@@ -488,6 +526,8 @@ def main() -> int:
         test_ownership_accepts_existing_and_future_bare_subtree_roots,
         test_parallel_ownership_rejects_bare_subtree_and_deeper_glob_intersections,
         test_forbidden_paths_use_canonical_ownership_normalization,
+        test_visible_task_title_is_required_and_prompt_titles_are_rejected,
+        test_internal_subagent_requires_null_title_and_one_shot_lifecycle,
         test_integration_order_must_respect_dependencies,
         test_project_generates_briefs_from_one_canonical_manifest,
         test_projection_must_stay_under_artifact_root,

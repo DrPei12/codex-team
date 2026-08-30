@@ -42,8 +42,15 @@ def write_json(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
 
-def create_integrated_fixture(tmp_path: Path) -> dict:
-    fixture = INTEGRATE_SUPPORT.create_handoff_fixture(tmp_path)
+def create_integrated_fixture(
+    tmp_path: Path,
+    *,
+    lane_metadata: dict[str, dict[str, object]] | None = None,
+) -> dict:
+    fixture = INTEGRATE_SUPPORT.create_handoff_fixture(
+        tmp_path,
+        lane_metadata=lane_metadata,
+    )
     for lane_id in ("core", "cli"):
         result, _ = INTEGRATE_SUPPORT.build_candidate(fixture, lane_id)
         if result.returncode != 0:
@@ -297,6 +304,16 @@ def test_finalize_reports_ignored_residue_and_no_cleanup(tmp_path: Path) -> None
     assert milestone["status"] == "completed-with-ignored-residue"
     assert milestone["cleanup_performed"] is False
     assert all(item["authorized"] is False for item in milestone["workspace_actions"])
+    assert milestone["archive_candidates"] == [
+        lane["lane_id"] for lane in fixture["manifest"]["lanes"]
+    ]
+    assert all(
+        item["recommended_action"] == "archive" and item["authorized"] is False
+        for item in milestone["task_dispositions"]
+    )
+    assert [item["task_title"] for item in milestone["task_dispositions"]] == [
+        lane["task_title"] for lane in fixture["manifest"]["lanes"]
+    ]
     assert ignored.exists()
 
 
@@ -311,6 +328,34 @@ def test_finalize_rejects_workspace_change_after_audit(tmp_path: Path) -> None:
     assert result.returncode == 1
     assert "changed after audit" in result.stderr.lower()
     assert not output.exists()
+
+
+def test_finalize_task_dispositions_respect_surface_and_lifecycle(tmp_path: Path) -> None:
+    fixture = create_integrated_fixture(
+        tmp_path,
+        lane_metadata={
+            "core": {"lifecycle": "long-lived-owner"},
+            "reviewer": {
+                "execution_surface": "internal-subagent",
+                "task_title": None,
+                "lifecycle": "one-shot",
+            },
+        },
+    )
+    result, review = record_review(fixture)
+    assert result.returncode == 0, result.stderr
+    result, audit_path = audit(fixture, review)
+    assert result.returncode == 0, result.stderr
+    result, output = finalize(fixture, review, audit_path)
+    assert result.returncode == 0, result.stderr
+    milestone = read_json(output)
+    dispositions = {item["lane_id"]: item for item in milestone["task_dispositions"]}
+    assert dispositions["core"]["recommended_action"] == "retain"
+    assert dispositions["reviewer"]["recommended_action"] == "not-applicable"
+    assert dispositions["cli"]["recommended_action"] == "archive"
+    assert dispositions["integrator"]["recommended_action"] == "archive"
+    assert milestone["archive_candidates"] == ["cli", "integrator"]
+    assert all(item["authorized"] is False for item in milestone["task_dispositions"])
 
 
 def test_finalize_never_overwrites_result(tmp_path: Path) -> None:
@@ -340,6 +385,7 @@ def main() -> int:
         test_finalize_requires_approved_review,
         test_finalize_reports_ignored_residue_and_no_cleanup,
         test_finalize_rejects_workspace_change_after_audit,
+        test_finalize_task_dispositions_respect_surface_and_lifecycle,
         test_finalize_never_overwrites_result,
     ]
     for test in tests_without_tmp:

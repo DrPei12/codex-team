@@ -398,13 +398,18 @@ def _prompt_text(
     worker_argv: list[str],
 ) -> str:
     argv = json.dumps(worker_argv, ensure_ascii=False)
-    return f"""# Codex Team Run Assignment — {lane['lane_id']}
+    heading = lane["task_title"] or lane["lane_id"]
+    return f"""# Codex Team Run Assignment — {heading}
 
 ## Trusted assignment
 
 - Run: `{manifest_ref['run_id']}`
 - Manifest: `{manifest_ref['sha256']}`
 - Lane: `{lane['lane_id']}` (`{lane['role']}`)
+- Execution surface: `{lane['execution_surface']}`
+- Lifecycle: `{lane['lifecycle']}`
+- User locale: `{manifest['user_locale']}`
+- User-visible task title: `{lane['task_title'] or 'not-applicable'}`
 - Brief: `{brief_ref['path']}`
 - Brief SHA-256: `{brief_ref['sha256']}`
 - Workspace: `{lane['workspace']['path']}`
@@ -469,6 +474,10 @@ def _build_dispatch_bundle(
             {
                 "lane_id": lane["lane_id"],
                 "role": lane["role"],
+                "user_locale": manifest["user_locale"],
+                "execution_surface": lane["execution_surface"],
+                "task_title": lane["task_title"],
+                "lifecycle": lane["lifecycle"],
                 "depends_on": copy.deepcopy(lane["depends_on"]),
                 "task_project": copy.deepcopy(manifest["task_project"]),
                 "workspace": copy.deepcopy(lane["workspace"]),

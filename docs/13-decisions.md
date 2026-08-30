@@ -342,3 +342,32 @@
 - 原因：既有生命周期实验只覆盖 `0.1.0` 同版安装/重装，没有验证异版升级、旧任务热刷新或 cachebuster；协议变化仍标 `0.1.0` 会让 source、repo package、installed cache 和任务实际加载版本无法可靠区分。
 - 授权边界：本决策允许源码版本与临时 package 验证，不自动授权更新当前 marketplace 安装、刷新旧任务或删除旧 cache。真实升级必须先 snapshot、预注册 rollback，再独立验证新任务 discovery/explicit load/bundle self-check；旧任务 effective version 仍可能不可观测。
 - 临时证据：最终 no-overwrite package 位于 `C:\Users\lenovo\AppData\Local\Temp\codex-team-forward-b517777f19cd4febb9adc48d35286a17\codex-team`；version `0.1.1`，37-file/7-entrypoint self-check 通过，bundle manifest SHA-256 为 `384f230c70e74cb32f6466cbabe1d5a8a4443cacede68a1478b154d8c841e58b`。该路径是临时验证产物，不是已安装状态。
+
+## D-043：可见任务标题、执行 surface 和生命周期进入 canonical manifest
+
+- 日期：2026-08-30
+- 状态：Accepted
+- 触发证据：ClothingRecycler 初始阶段创建多条用户可见任务，标题大量使用英文 lane id，甚至有一条把完整 delegation prompt 作为标题；后期工作切换到主任务内部 subagent，但没有 durable topology decision。任务 prompt 与 sidebar title 实际是独立字段，不存在必须同语言的技术约束。
+- 决策：manifest 根记录 `user_locale`；每条 lane 必须记录 `execution_surface`（`visible-task` / `internal-subagent`）、独立 `task_title` 和 `lifecycle`（`one-shot` / `milestone` / `long-lived-owner`）。Visible task要求最多80字符、单行、非prompt的用户语言标题；internal subagent使用 `task_title=null` 且必须one-shot。Brief和dispatch从同一manifest投影这些字段，外部orchestrator不得用prompt或lane id替代title。
+- 拓扑边界：surface/lifecycle在一个run内冻结；从可见task收敛到internal subagent或反向提升为长期task，必须创建新successor/manifest并说明所有权、上下文和原因，不能静默切换。
+- 证据：`team-plan` 25项和`team-run` 26项回归通过，包含可见task标题、raw-prompt拒绝、internal-subagent null title/one-shot约束和brief/dispatch字段绑定。
+- 限制：validator只验证locale/title的结构安全，不能可靠判断自然语言是否真的匹配用户语言；最终仍需主编排者/用户审查。
+
+## D-044：Milestone finish 输出逐 lane task disposition，真实归档单独授权执行
+
+- 日期：2026-08-30
+- 状态：Accepted
+- 触发证据：ClothingRecycler 12条已完成可见任务长期堆在侧栏；历史证据已进入Git/artifact，但task没有归档。另有一条早已归档的Open Design任务仍保留英文标题。
+- 决策：`team-finish` milestone result为每条lane输出`task_dispositions`。Visible one-shot/milestone推荐`archive`，visible long-lived owner推荐`retain`，internal subagent为`not-applicable`。所有disposition仍`authorized=false`，skill本身不调用live task API。
+- 执行纪律：获得用户授权后，native lifecycle adapter必须先保存before snapshot和rollback映射，再按thread ID执行重命名/归档并同时核验普通列表与归档列表。失败/changes-requested任务只要predecessor artifact和successor绑定已冻结，也可归档；保留证据不等于保留侧栏项。
+- 安全边界：task archive不删除历史，也不授权worktree、branch、artifact、cache或ignored residue cleanup。Cleanup继续是独立动作。
+- 实际观察：本轮按该纪律中文重命名并归档13条历史任务；产品主编排保持active，未被消息、归档或handoff打断。
+- 证据：`team-finish` 12项回归通过，覆盖visible one-shot/milestone archive、long-lived owner retain、internal-subagent not-applicable和所有action未授权。
+
+## D-045：标题与生命周期协议以 plugin 0.1.2 分发
+
+- 日期：2026-08-30
+- 状态：Accepted
+- 决策：D-043/D-044新增required manifest/dispatch/finish字段，下一构建版本从`0.1.1`升为`0.1.2`。不得把新manifest交给已安装0.1.0/临时0.1.1 runtime并假定兼容。
+- 授权边界：允许源码、临时package和forward fixture验证；不自动授权更新marketplace安装、刷新活动产品任务或删除旧cache。真实0.1.2升级继续要求before snapshot、rollback和新任务discovery/explicit-load验证。
+- 临时证据：no-overwrite package位于`C:\Users\lenovo\AppData\Local\Temp\codex-team-forward-2d62408b2ae24173888f684ff303db50\codex-team`；version `0.1.2`，37-file/7-entrypoint self-check通过，bundle manifest SHA-256为`c935261251d61787491922a551ce470d50e7ef49842abf203cf0a3cdf9f1e1b5`。该路径不是已安装状态。

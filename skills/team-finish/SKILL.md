@@ -23,6 +23,12 @@ records recommendations only; it never archives tasks or deletes workspaces.
 
    `python scripts/team-finish.py finalize MANIFEST --run-dir RUN_DIR --gate-receipt GATE_RECEIPT --review-receipt REVIEW_RECEIPT --audit AUDIT --out RESULT`
 
+4. Inspect `task_dispositions`. Visible one-shot/milestone tasks become archive
+   candidates, long-lived owners are retained, and internal subagents are not
+   sidebar actions. A separately authorized orchestrator may execute the exact
+   archive plan only after a before snapshot and rollback mapping; worktree
+   cleanup remains a different action.
+
 Read [finish-contract.md](references/finish-contract.md) when interpreting
 cleanliness dimensions, ignored residue, archive candidates, or blocked finish.
 
@@ -30,7 +36,9 @@ cleanliness dimensions, ignored residue, archive candidates, or blocked finish.
 
 Do not rerun Gates, invoke sealed evaluation, merge or push Git, archive Codex
 tasks, remove worktrees, delete ignored files, or rewrite a blocked audit.
-Archive and cleanup remain explicit future actions even after a completed result.
+Task dispositions and cleanup remain explicit future actions even after a
+completed result. Archiving a task never authorizes removing its worktree or
+evidence.
 
 ## Verification
 

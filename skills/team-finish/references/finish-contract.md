@@ -22,7 +22,10 @@ functional Gates and review pass, but never `residue_free_checkout=true`.
 
 ## Final result
 
-The milestone result references exact Gate, review, and audit bytes. It lists
-archive candidates and unique workspace actions, but every workspace action is
-`retain` with `authorized=false`. Cleanup and archive are never implied by
-milestone completion and must be separately authorized.
+The milestone result references exact Gate, review, and audit bytes. It lists a
+task disposition for every lane: visible one-shot/milestone tasks recommend
+`archive`, visible long-lived owners recommend `retain`, and internal subagents
+are `not-applicable`. All dispositions remain `authorized=false`; execution
+requires a native task-lifecycle adapter with a before snapshot and rollback
+mapping. Unique workspace actions remain `retain` and separately unauthorized.
+Task archive never implies worktree or evidence cleanup.

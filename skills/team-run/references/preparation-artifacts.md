@@ -35,6 +35,12 @@ the manifest dependencies/workspaces/runtime request, and contains no Codex
 thread or task identity. Those identities can exist only after a separately
 authorized dispatcher creates the real tasks.
 
+Each lane also carries `user_locale`, `execution_surface`, `task_title`, and
+`lifecycle`. These fields are independent of the prompt. A visible task must be
+created with the recorded user-language title; an internal-subagent lane must
+not create a sidebar task. Changing surface or lifecycle requires a new
+manifest/successor rather than an unrecorded mid-run topology switch.
+
 ## Worker preflight receipt
 
 The future worker runs `worker-preflight` from its actual assigned workspace.

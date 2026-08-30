@@ -392,6 +392,30 @@ def finalize(
                 "authorized": False,
             },
         )["lanes"].append(lane["lane_id"])
+    task_dispositions: list[dict[str, Any]] = []
+    archive_candidates: list[str] = []
+    for lane in manifest["lanes"]:
+        if lane["execution_surface"] == "internal-subagent":
+            action = "not-applicable"
+            reason = "internal subagent has no user-visible task to archive"
+        elif lane["lifecycle"] == "long-lived-owner":
+            action = "retain"
+            reason = "long-lived owner remains available after this milestone"
+        else:
+            action = "archive"
+            reason = "visible one-shot or milestone task is complete; preserve history by archiving"
+            archive_candidates.append(lane["lane_id"])
+        task_dispositions.append(
+            {
+                "lane_id": lane["lane_id"],
+                "execution_surface": lane["execution_surface"],
+                "task_title": lane["task_title"],
+                "lifecycle": lane["lifecycle"],
+                "recommended_action": action,
+                "reason": reason,
+                "authorized": False,
+            }
+        )
     result = {
         "profile": PROFILE,
         "schema_version": SCHEMA_VERSION,
@@ -403,7 +427,8 @@ def finalize(
         "gate_receipt_ref": _file_ref(gate_path),
         "review_receipt_ref": _file_ref(review_path),
         "audit_ref": _file_ref(audit_path),
-        "archive_candidates": [lane["lane_id"] for lane in manifest["lanes"]],
+        "archive_candidates": archive_candidates,
+        "task_dispositions": task_dispositions,
         "workspace_actions": list(unique_workspaces.values()),
         "ignored_residue": ignored,
         "cleanup_performed": False,
@@ -413,7 +438,7 @@ def finalize(
     }
     _write_json(output, result)
     print(f"PASS: milestone result {status}; artifact={output}")
-    print("STOP: archive and workspace cleanup remain unexecuted recommendations")
+    print("STOP: task dispositions and workspace cleanup remain unexecuted recommendations")
     return 0
 
 
