@@ -4,7 +4,7 @@
 
 - 日期：2026-09-01
 - 阶段：`M1.8 — Public GitHub release`
-- 状态：`DrPei12/codex-team` public main、v0.1.0–v0.1.8 annotated tags/releases与assets已发布，private vulnerability reporting已启用。0.1.8 CI越过UTF-8与源码phase，在packaged reviewer canonical file equality失败；D-056已接受，0.1.9以samefile修复canonical plan/apply/Gate/backbrief路径并正在追加发布。7个skill继续`incubating`，没有live fact collector或Desktop backbrief/checkpoint forward test
+- 状态：D-057已接受，`DrPei12/codex-team`已作为正式PUBLIC工程发布。v0.1.0–v0.1.9共10个annotated tags/Releases，每个含tag-exact plugin ZIP与SHA256SUMS；v0.1.9为Latest，main/tag CI双green，private vulnerability reporting启用。历史失败runs与known issues保留。7个skill继续`incubating`，本机installed plugin仍为0.1.0；没有live fact collector或Desktop backbrief/checkpoint forward test
 - 当前源码基线：branch `codex/team-v012-lifecycle`，本轮0.1.3实现基于实验审计commit `3563dbe`继续；0.1.1核心修复commit `85baabe`，0.1.2 lifecycle commit `d43aa9c`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
@@ -115,7 +115,7 @@
 - [x] D-054本地九组回归149项全绿，离线主链16份artifact通过schema
 - [x] 发布0.1.7并保留第五次CI失败证据；path phases已通过，失败为cp1252输出编码
 - [x] 发布0.1.8并保留第六次CI失败证据；UTF-8生效，失败推进到packaged canonical file identity
-- [ ] 发布0.1.9 canonical-file identity fix并取得public main/tag CI green
+- [x] 发布0.1.9并取得public main/tag CI双green；10个Releases/20个assets、Latest、remote main/tag、private vulnerability reporting均反查通过
 
 ## 纵向切片清单（已完成与未完成）
 
@@ -205,4 +205,4 @@
 
 ## 完成 Phase 0 的判定
 
-Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.7；仍然没有`stable` skill，但已有七个`incubating` Team skill、离线主链、可移动plugin、repo marketplace、真实0.1.0安装/发现证据和一轮有失败边界的Desktop live多任务观察。D-040至D-049源码修订后九组144项回归全绿，最终临时0.1.3 package自检与7/7 skill validation通过；0.1.3尚未安装或Desktop live forward-test。`team-plan`已在`main`，其余套件位于候选分支，`main`未合并。不能把手工fallback写成canonical全链已验证，也不能声称live heartbeat、自动checkpoint、长期标题语言、归档或worktree cleanup稳定。
+Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.8；仍然没有`stable` skill，但已有七个`incubating` Team skill、离线主链、可移动plugin、repo marketplace、真实0.1.0安装/发现证据、一轮有失败边界的Desktop live多任务观察，以及PUBLIC GitHub main/tag双green release。最新v0.1.9在九组149项本地回归、16份离线artifact schema、tag-exact package self-check和两个public CI run上通过；本机0.1.9尚未安装或Desktop live forward-test。不能把public release写成live scheduler、自动checkpoint、长期标题语言、归档或worktree cleanup稳定。

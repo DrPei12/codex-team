@@ -473,3 +473,12 @@
 - 触发证据：本机将TEMP切换为真实8.3短路径后复现0.1.8 CI；reviewer receipt仅canonical plan/apply/Gate file identity失败，其余路径检查通过。
 - 决策：`team-run`新增`_same_canonical_path`。已存在canonical files用samefile；尚未创建的exclusive output要求filename case-insensitive相同且parent samefile。Candidate、plan、apply、gate与backbrief canonical路径复用，branch/base/mode/hash仍独立exact校验。
 - 回归与版本：8.3 TEMP下packaged plugin 9/9通过，team-run30/30与离线端到端/schema1/1通过；builder升为0.1.9。0.1.3–0.1.8 tags不移动；public main/tag CI必须green。
+
+## D-057：0.1.9作为首个main/tag双green public release完成发布验收
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 远端事实：`https://github.com/DrPei12/codex-team`为PUBLIC，default branch为`main`，Issues启用、Projects/Wiki关闭，private vulnerability reporting启用。Repository topics为codex、multi-agent、agentic-engineering、git-worktrees、skills、orchestration。
+- 历史发布：v0.1.0–v0.1.9共10个annotated tags和10个非draft/non-prerelease Releases；每个release有tag-exact `codex-team-vX.Y.Z.zip`与`SHA256SUMS.txt`，远端assets均为uploaded并带GitHub SHA-256 digest。历史tags不移动，v0.1.3–v0.1.8 known issue与失败CI保留。
+- Release Gate：v0.1.9 commit `a56b0b1d3dc5104171ebed3a28346b58646052a6`的main run `33549040820`与tag run `33549043905`均SUCCESS；九组回归与plugin build/self-check通过。Latest Release为`v0.1.9`，asset digest `sha256:fa7e77273eb148a1c0bc6e5e80834479a497cb937bc5ee5a5dffc883a1a580a2`。
+- 发布边界：远端公开完整可达历史，但没有LICENSE，不授予复用权；本机installed plugin仍为0.1.0，本轮未执行升级/refresh/cache删除。Public release成功不证明Desktop live fact collector、长期scheduler、自动checkpoint或ClothingRecycler产品发布完成。
