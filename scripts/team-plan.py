@@ -26,6 +26,7 @@ ROLES = {"implementer", "integrator", "reviewer"}
 EXECUTION_SURFACES = {"visible-task", "internal-subagent"}
 LIFECYCLES = {"one-shot", "milestone", "long-lived-owner"}
 WORKSPACE_MODES = {"read-only", "permanent-worktree"}
+CHECKPOINT_ACCEPTANCE_OWNERS = {"orchestrator", "reviewer", "user"}
 ID_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 GENERIC_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 HEX40_RE = re.compile(r"^[0-9a-fA-F]{40}$")
@@ -67,6 +68,12 @@ def _string(value: Any, path: str, *, nonempty: bool = True) -> str:
 def _boolean(value: Any, path: str) -> bool:
     if not isinstance(value, bool):
         _fail(path, "expected a boolean")
+    return value
+
+
+def _positive_integer(value: Any, path: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        _fail(path, "expected a positive integer")
     return value
 
 
@@ -472,6 +479,13 @@ def _gate(value: Any, path: str, *, command_required: bool) -> dict[str, Any]:
     return gate
 
 
+def _requirement_path(value: Any, path: str) -> str:
+    normalized = _owned_path(value, path)
+    if _ownership_pattern_has_glob(normalized):
+        _fail(path, "must name a concrete repository path, not a glob")
+    return normalized
+
+
 def _dependency_reachable(graph: dict[str, list[str]], start: str, target: str) -> bool:
     pending = list(graph[start])
     visited: set[str] = set()
@@ -568,6 +582,8 @@ def validate_manifest(manifest: Any) -> None:
         "runtime",
         "workspace_policy",
         "contract",
+        "requirements",
+        "checkpoints",
         "lanes",
         "integration_order",
         "global_gates",
@@ -666,6 +682,9 @@ def validate_manifest(manifest: Any) -> None:
     _string_list(contract["invariants"], "contract.invariants", min_items=1)
     _string_list(contract["forbidden_changes"], "contract.forbidden_changes", min_items=1)
 
+    requirements_raw = _list(manifest_object["requirements"], "requirements", min_items=1)
+    checkpoints_raw = _list(manifest_object["checkpoints"], "checkpoints", min_items=1)
+
     lane_allowed = {
         "lane_id",
         "role",
@@ -673,6 +692,9 @@ def validate_manifest(manifest: Any) -> None:
         "task_title",
         "lifecycle",
         "objective",
+        "requirement_ids",
+        "does_not_cover",
+        "progress_policy",
         "depends_on",
         "workspace",
         "ownership",
@@ -683,11 +705,13 @@ def validate_manifest(manifest: Any) -> None:
     }
     workspace_allowed = {"mode", "path", "branch", "base_revision", "clean_start_required"}
     ownership_allowed = {"write_paths", "forbidden_paths"}
+    progress_policy_allowed = {"heartbeat_minutes", "max_turn_minutes", "on_limit"}
     lanes = _list(manifest_object["lanes"], "lanes", min_items=1)
     lane_by_id: dict[str, dict[str, Any]] = {}
     lane_roles: dict[str, str] = {}
     graph: dict[str, list[str]] = {}
     write_paths: dict[str, list[str]] = {}
+    forbidden_paths: dict[str, list[str]] = {}
     workspace_keys: dict[str, list[str]] = {}
     branch_keys: dict[str, str] = {}
     gate_ids: set[str] = set()
@@ -723,6 +747,32 @@ def validate_manifest(manifest: Any) -> None:
             if lifecycle != "one-shot":
                 _fail(f"{lane_path}.lifecycle", "internal-subagent lanes must be one-shot")
         _string(lane["objective"], f"{lane_path}.objective")
+        _string_list(lane["requirement_ids"], f"{lane_path}.requirement_ids", min_items=1)
+        _string_list(lane["does_not_cover"], f"{lane_path}.does_not_cover")
+        progress_policy = _object(
+            lane["progress_policy"],
+            f"{lane_path}.progress_policy",
+            progress_policy_allowed,
+            progress_policy_allowed,
+        )
+        heartbeat_minutes = _positive_integer(
+            progress_policy["heartbeat_minutes"],
+            f"{lane_path}.progress_policy.heartbeat_minutes",
+        )
+        max_turn_minutes = _positive_integer(
+            progress_policy["max_turn_minutes"],
+            f"{lane_path}.progress_policy.max_turn_minutes",
+        )
+        if max_turn_minutes < heartbeat_minutes:
+            _fail(
+                f"{lane_path}.progress_policy.max_turn_minutes",
+                "must be greater than or equal to heartbeat_minutes",
+            )
+        _exact(
+            progress_policy["on_limit"],
+            "checkpoint-stop",
+            f"{lane_path}.progress_policy.on_limit",
+        )
         dependencies = _string_list(lane["depends_on"], f"{lane_path}.depends_on")
 
         workspace = _object(
@@ -854,6 +904,7 @@ def validate_manifest(manifest: Any) -> None:
         lane_roles[lane_id] = role
         graph[lane_id] = dependencies
         write_paths[lane_id] = normalized_write_paths
+        forbidden_paths[lane_id] = normalized_forbidden_paths
 
     lane_ids = set(lane_by_id)
     for lane_id, dependencies in graph.items():
@@ -894,6 +945,159 @@ def validate_manifest(manifest: Any) -> None:
         gate_ids.add(gate_id)
         if gate["owner"] not in valid_owners:
             _fail(f"{gate_path}.owner", f"unknown lane or role {gate['owner']!r}")
+
+    requirement_allowed = {
+        "requirement_id",
+        "statement",
+        "contract_invariant",
+        "implementation_kind",
+        "owner_lanes",
+        "owned_paths",
+        "gate_ids",
+        "reviewer_lane",
+    }
+    requirement_ids: set[str] = set()
+    requirement_by_id: dict[str, dict[str, Any]] = {}
+    invariant_statements: list[str] = []
+    for index, raw_requirement in enumerate(requirements_raw):
+        path = f"requirements[{index}]"
+        requirement = _object(raw_requirement, path, requirement_allowed, requirement_allowed)
+        requirement_id = _identity(
+            requirement["requirement_id"],
+            f"{path}.requirement_id",
+            GENERIC_ID_RE,
+        )
+        if requirement_id in requirement_ids:
+            _fail(f"{path}.requirement_id", f"duplicate requirement_id {requirement_id!r}")
+        requirement_ids.add(requirement_id)
+        requirement_by_id[requirement_id] = requirement
+        statement = _string(requirement["statement"], f"{path}.statement")
+        if _boolean(requirement["contract_invariant"], f"{path}.contract_invariant"):
+            invariant_statements.append(statement)
+        implementation_kind = _string(
+            requirement["implementation_kind"], f"{path}.implementation_kind"
+        )
+        if implementation_kind not in {"change", "verification-only"}:
+            _fail(
+                f"{path}.implementation_kind",
+                "must be 'change' or 'verification-only'",
+            )
+        owners = _string_list(requirement["owner_lanes"], f"{path}.owner_lanes", min_items=1)
+        for owner in owners:
+            if owner not in lane_ids:
+                _fail(f"{path}.owner_lanes", f"unknown lane {owner!r}")
+            if lane_roles[owner] == "reviewer":
+                _fail(f"{path}.owner_lanes", "reviewer cannot be an implementation owner")
+        reviewer = _string(requirement["reviewer_lane"], f"{path}.reviewer_lane")
+        if reviewer not in lane_ids or lane_roles[reviewer] != "reviewer":
+            _fail(f"{path}.reviewer_lane", "must name a reviewer lane")
+        owned_path_values = _list(
+            requirement["owned_paths"],
+            f"{path}.owned_paths",
+            min_items=1 if implementation_kind == "change" else 0,
+        )
+        if implementation_kind == "verification-only" and owned_path_values:
+            _fail(f"{path}.owned_paths", "verification-only requirement must not claim writable paths")
+        owned_paths = [
+            _requirement_path(value, f"{path}.owned_paths[{path_index}]")
+            for path_index, value in enumerate(owned_path_values)
+        ]
+        if len(set(owned_paths)) != len(owned_paths):
+            _fail(f"{path}.owned_paths", "normalized paths must be unique")
+        for owned_path in owned_paths:
+            matching = [
+                owner
+                for owner in owners
+                if _path_is_owned(owned_path, write_paths[owner], forbidden_paths[owner])
+            ]
+            if len(matching) != 1:
+                _fail(
+                    f"{path}.owned_paths",
+                    f"path {owned_path!r} must have exactly one listed writable owner; matched {matching}",
+                )
+        covered_gates = _string_list(requirement["gate_ids"], f"{path}.gate_ids", min_items=1)
+        for gate_id in covered_gates:
+            if gate_id not in gate_ids:
+                _fail(f"{path}.gate_ids", f"unknown gate_id {gate_id!r}")
+
+    if len(set(invariant_statements)) != len(invariant_statements):
+        _fail("requirements", "contract invariant statements must be unique")
+    if set(invariant_statements) != set(contract["invariants"]):
+        missing = sorted(set(contract["invariants"]) - set(invariant_statements))
+        extra = sorted(set(invariant_statements) - set(contract["invariants"]))
+        _fail(
+            "requirements",
+            f"contract invariant coverage differs; missing={missing}, extra={extra}",
+        )
+    for lane_id, lane in lane_by_id.items():
+        for requirement_id in lane["requirement_ids"]:
+            if requirement_id not in requirement_ids:
+                _fail(
+                    f"lanes[{lane_id}].requirement_ids",
+                    f"unknown requirement_id {requirement_id!r}",
+                )
+    for requirement_id, requirement in requirement_by_id.items():
+        for owner in requirement["owner_lanes"]:
+            if requirement_id not in lane_by_id[owner]["requirement_ids"]:
+                _fail(
+                    f"lanes[{owner}].requirement_ids",
+                    f"missing owned requirement {requirement_id!r}",
+                )
+        reviewer = requirement["reviewer_lane"]
+        if requirement_id not in lane_by_id[reviewer]["requirement_ids"]:
+            _fail(
+                f"lanes[{reviewer}].requirement_ids",
+                f"missing reviewed requirement {requirement_id!r}",
+            )
+
+    checkpoint_allowed = {
+        "checkpoint_id",
+        "after_lanes",
+        "before_lanes",
+        "requirement_ids",
+        "acceptance_owner",
+        "evidence_required",
+        "resume_requires_acceptance",
+    }
+    checkpoint_ids: set[str] = set()
+    for index, raw_checkpoint in enumerate(checkpoints_raw):
+        path = f"checkpoints[{index}]"
+        checkpoint = _object(raw_checkpoint, path, checkpoint_allowed, checkpoint_allowed)
+        checkpoint_id = _identity(
+            checkpoint["checkpoint_id"], f"{path}.checkpoint_id", GENERIC_ID_RE
+        )
+        if checkpoint_id in checkpoint_ids:
+            _fail(f"{path}.checkpoint_id", f"duplicate checkpoint_id {checkpoint_id!r}")
+        checkpoint_ids.add(checkpoint_id)
+        after = _string_list(checkpoint["after_lanes"], f"{path}.after_lanes", min_items=1)
+        before = _string_list(checkpoint["before_lanes"], f"{path}.before_lanes", min_items=1)
+        unknown = sorted((set(after) | set(before)) - lane_ids)
+        if unknown:
+            _fail(path, f"unknown checkpoint lane(s): {unknown}")
+        overlap = sorted(set(after) & set(before))
+        if overlap:
+            _fail(path, f"after_lanes and before_lanes overlap: {overlap}")
+        for after_lane in after:
+            for before_lane in before:
+                if positions[after_lane] >= positions[before_lane]:
+                    _fail(path, "after_lanes must precede before_lanes in integration_order")
+        for requirement_id in _string_list(
+            checkpoint["requirement_ids"], f"{path}.requirement_ids", min_items=1
+        ):
+            if requirement_id not in requirement_ids:
+                _fail(f"{path}.requirement_ids", f"unknown requirement_id {requirement_id!r}")
+        acceptance_owner = _string(checkpoint["acceptance_owner"], f"{path}.acceptance_owner")
+        if acceptance_owner not in CHECKPOINT_ACCEPTANCE_OWNERS:
+            _fail(
+                f"{path}.acceptance_owner",
+                f"must be one of: {', '.join(sorted(CHECKPOINT_ACCEPTANCE_OWNERS))}",
+            )
+        _string_list(checkpoint["evidence_required"], f"{path}.evidence_required", min_items=1)
+        if _boolean(
+            checkpoint["resume_requires_acceptance"],
+            f"{path}.resume_requires_acceptance",
+        ) is not True:
+            _fail(f"{path}.resume_requires_acceptance", "must be true")
     _string_list(
         manifest_object["global_stop_conditions"],
         "global_stop_conditions",
@@ -951,6 +1155,24 @@ def _brief(manifest: dict[str, Any], lane: dict[str, Any], digest: str) -> dict[
         "task_title": lane["task_title"],
         "lifecycle": lane["lifecycle"],
         "objective": lane["objective"],
+        "requirement_ids": copy.deepcopy(lane["requirement_ids"]),
+        "requirements": [
+            copy.deepcopy(requirement)
+            for requirement in manifest["requirements"]
+            if requirement["requirement_id"] in lane["requirement_ids"]
+        ],
+        "does_not_cover": copy.deepcopy(lane["does_not_cover"]),
+        "progress_policy": copy.deepcopy(lane["progress_policy"]),
+        "entry_checkpoints": [
+            copy.deepcopy(checkpoint)
+            for checkpoint in manifest["checkpoints"]
+            if lane["lane_id"] in checkpoint["before_lanes"]
+        ],
+        "exit_checkpoints": [
+            copy.deepcopy(checkpoint)
+            for checkpoint in manifest["checkpoints"]
+            if lane["lane_id"] in checkpoint["after_lanes"]
+        ],
         "depends_on": copy.deepcopy(lane["depends_on"]),
         "base": copy.deepcopy(manifest["base"]),
         "runtime": copy.deepcopy(manifest["runtime"]),

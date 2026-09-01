@@ -12,6 +12,17 @@ directory so another run cannot satisfy this run's handoff. A task that is not
 created cannot carry thread/project identity;
 accepted and integrated facts require the earlier proof states.
 
+Each lane also carries a progress fact: phase, phase start, last material
+progress, material delta, next bounded action, and optional stalled reason.
+The renderer compares these timestamps with that lane's manifest-specific
+heartbeat and turn budgets. Missing/stale progress produces
+`checkpoint-required`; no universal timeout is embedded in the skill.
+
+Run facts also contain every manifest checkpoint. A checkpoint becomes
+accepted only with valid in-run evidence. Dependencies alone cannot unlock a
+`before_lanes` target while its checkpoint is pending, blocked, or
+changes-requested.
+
 Run validation also reconstructs every recorded worker-preflight argv from the
 manifest, preregistration, brief, run directory, and lane role. A passed reviewer
 receipt must carry the canonical dispatch and Gate refs plus the exact target;
@@ -25,7 +36,8 @@ The renderer applies higher-risk facts first:
 
 1. archived;
 2. failed parent/worker preflight;
-3. blocker, failed/canceled task, invalid evidence, rejected handoff, blocked
+3. blocker, failed/canceled task, invalid evidence, failed/needs-input
+   backbrief, stale/missing progress checkpoint, rejected handoff, blocked
    integration, or changes requested;
 4. reviewed, review pending, integrated, integrating, accepted;
 5. handoff-ready or needs-evidence;

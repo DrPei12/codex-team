@@ -108,6 +108,38 @@
         }
       }
     },
+    "progress_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "phase_started_at",
+        "last_material_progress_at",
+        "material_delta",
+        "next_bounded_action",
+        "stalled_reason"
+      ],
+      "properties": {
+        "phase": {"type": ["string", "null"], "minLength": 1},
+        "phase_started_at": {"$ref": "#/$defs/nullable_timestamp"},
+        "last_material_progress_at": {"$ref": "#/$defs/nullable_timestamp"},
+        "material_delta": {"type": ["string", "null"], "minLength": 1},
+        "next_bounded_action": {"type": ["string", "null"], "minLength": 1},
+        "stalled_reason": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "checkpoint_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint_id", "state", "observed_at", "evidence", "reason"],
+      "properties": {
+        "checkpoint_id": {"$ref": "#/$defs/nonempty_string"},
+        "state": {"enum": ["pending", "accepted", "changes-requested", "blocked"]},
+        "observed_at": {"$ref": "#/$defs/nullable_timestamp"},
+        "evidence": {"$ref": "#/$defs/evidence_fact"},
+        "reason": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
     "lane_fact": {
       "type": "object",
       "additionalProperties": false,
@@ -117,6 +149,7 @@
         "workspace",
         "worker_report",
         "evidence",
+        "progress",
         "acceptance_state",
         "integration_state",
         "review_state",
@@ -129,6 +162,7 @@
         "workspace": {"$ref": "#/$defs/workspace_fact"},
         "worker_report": {"$ref": "#/$defs/report_fact"},
         "evidence": {"$ref": "#/$defs/evidence_fact"},
+        "progress": {"$ref": "#/$defs/progress_fact"},
         "acceptance_state": {"enum": ["pending", "accepted", "rejected"]},
         "integration_state": {"enum": ["not-started", "pending", "integrated", "blocked"]},
         "review_state": {"enum": ["not-requested", "pending", "approved", "changes-requested"]},
@@ -146,7 +180,8 @@
         "manifest_ref",
         "observed_at",
         "source",
-        "lanes"
+        "lanes",
+        "checkpoints"
       ],
       "properties": {
         "profile": {"const": "codex-multitask-team-status"},
@@ -155,6 +190,11 @@
         "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
         "observed_at": {"$ref": "#/$defs/timestamp"},
         "source": {"$ref": "#/$defs/nonempty_string"},
+        "checkpoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/checkpoint_fact"}
+        },
         "lanes": {
           "type": "array",
           "minItems": 1,
@@ -172,9 +212,12 @@
         "reason",
         "depends_on",
         "blocking_dependencies",
+        "blocking_checkpoints",
         "task",
         "workspace",
+        "progress",
         "worker_receipt_ref",
+        "backbrief_receipt_ref",
         "next_action"
       ],
       "properties": {
@@ -188,6 +231,10 @@
             "ready-for-dispatch",
             "preflight",
             "preflight-failed",
+            "backbrief-required",
+            "backbrief-failed",
+            "checkpoint-required",
+            "waiting-checkpoint",
             "working",
             "no-signal",
             "needs-input",
@@ -206,9 +253,17 @@
         "reason": {"$ref": "#/$defs/nonempty_string"},
         "depends_on": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
         "blocking_dependencies": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
+        "blocking_checkpoints": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}},
         "task": {"$ref": "#/$defs/task_fact"},
         "workspace": {"$ref": "#/$defs/workspace_fact"},
+        "progress": {"$ref": "#/$defs/progress_fact"},
         "worker_receipt_ref": {
+          "oneOf": [
+            {"$ref": "#/$defs/file_ref"},
+            {"type": "null"}
+          ]
+        },
+        "backbrief_receipt_ref": {
           "oneOf": [
             {"$ref": "#/$defs/file_ref"},
             {"type": "null"}
@@ -234,6 +289,7 @@
         "facts_ref",
         "run_status",
         "counts",
+        "checkpoints",
         "lanes",
         "next_actions"
       ],
@@ -249,6 +305,7 @@
             "planned",
             "preparation-failed",
             "waiting-dependency",
+            "waiting-checkpoint",
             "ready-for-dispatch",
             "working",
             "needs-input",
@@ -260,6 +317,11 @@
         "counts": {
           "type": "object",
           "additionalProperties": {"type": "integer", "minimum": 1}
+        },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/checkpoint_fact"}
         },
         "lanes": {
           "type": "array",

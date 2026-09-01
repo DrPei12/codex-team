@@ -18,16 +18,21 @@ finish can recommend the correct lifecycle action.
 Workflow:
 
 1. Freeze the contract and record its invariants and forbidden changes.
-2. Generate one canonical JSON manifest with the base identity, lane graph,
-   parallel groups, workspaces, ownership, gates, and stop conditions. Read
+2. Build a requirement coverage lattice before lane dispatch. Every frozen
+   invariant and delivery requirement must bind exactly one writable owner for
+   each concrete path, one or more Gates, and a reviewer. Reject ownership
+   orphans and objectives that require a lane's forbidden path.
+3. Generate one canonical JSON manifest with the base identity, lane graph,
+   parallel groups, workspaces, ownership, requirement coverage, stage
+   checkpoints, per-lane progress policy, gates, and stop conditions. Read
    [manifest-fields.md](references/manifest-fields.md) for the compact field map.
-3. Run the validator before any dispatch:
+4. Run the validator before any dispatch:
    `python scripts/team-plan.py validate MANIFEST`
    If validation fails, fix only the manifest from the concrete error and run the validator again. Stop when identity or a required fact is missing, or when the same error repeats.
-4. After a passing validation, project immutable lane briefs from that same
+5. After a passing validation, project immutable lane briefs from that same
    manifest:
    `python scripts/team-plan.py project MANIFEST --out DIR`
-5. Stop after project succeeds, then hand the manifest, digest, and brief
+6. Stop after project succeeds, then hand the manifest, digest, and brief
    directory to the already-authorized orchestrator, preserving ownership
    boundaries.
 

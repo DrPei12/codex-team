@@ -6,6 +6,7 @@
     {"$ref": "#/$defs/preregistration"},
     {"$ref": "#/$defs/parent_preflight_receipt"},
     {"$ref": "#/$defs/worker_preflight_receipt"},
+    {"$ref": "#/$defs/worker_backbrief_receipt"},
     {"$ref": "#/$defs/dispatch_bundle"}
   ],
   "$defs": {
@@ -366,6 +367,47 @@
         }
       ]
     },
+    "worker_backbrief_receipt": {
+      "allOf": [
+        {"$ref": "#/$defs/header"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "schema_version",
+            "kind",
+            "manifest_ref",
+            "brief_ref",
+            "recorded_at",
+            "lane_id",
+            "role",
+            "status",
+            "preflight_ref",
+            "input_ref",
+            "acknowledgement",
+            "checks",
+            "errors"
+          ],
+          "properties": {
+            "profile": {"const": "codex-multitask-team-run"},
+            "schema_version": {"const": "0.1"},
+            "kind": {"const": "worker-backbrief-receipt"},
+            "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+            "brief_ref": {"$ref": "#/$defs/brief_ref"},
+            "recorded_at": {"$ref": "#/$defs/timestamp"},
+            "lane_id": {"$ref": "#/$defs/nonempty_string"},
+            "role": {"enum": ["implementer", "integrator", "reviewer"]},
+            "status": {"enum": ["passed", "needs-input", "failed"]},
+            "preflight_ref": {"$ref": "#/$defs/file_ref"},
+            "input_ref": {"$ref": "#/$defs/file_ref"},
+            "acknowledgement": {"type": "object"},
+            "checks": {"$ref": "#/$defs/checks"},
+            "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
+          }
+        }
+      ]
+    },
     "dispatch_lane": {
       "type": "object",
       "additionalProperties": false,
@@ -383,6 +425,8 @@
         "brief_ref",
         "prompt_ref",
         "worker_preflight_argv",
+        "backbrief_template_ref",
+        "worker_backbrief_argv",
         "external_context_policy"
       ],
       "properties": {
@@ -404,6 +448,12 @@
         "brief_ref": {"$ref": "#/$defs/brief_ref"},
         "prompt_ref": {"$ref": "#/$defs/file_ref"},
         "worker_preflight_argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "backbrief_template_ref": {"$ref": "#/$defs/file_ref"},
+        "worker_backbrief_argv": {
           "type": "array",
           "minItems": 1,
           "items": {"$ref": "#/$defs/nonempty_string"}

@@ -54,6 +54,12 @@ def create_blocked_fixture(
         manifest = fixture["manifest"]
         if core_write_paths is not None:
             manifest["lanes"][0]["ownership"]["write_paths"] = core_write_paths
+            coverage_root = core_write_paths[0].replace("\\", "/")
+            if any(token in coverage_root for token in ("*", "?", "[")):
+                coverage_root = coverage_root.split("*", 1)[0].rstrip("/") + "/coverage-probe"
+            elif "." not in coverage_root.rsplit("/", 1)[-1]:
+                coverage_root = coverage_root.rstrip("/") + "/coverage-probe"
+            manifest["requirements"][0]["owned_paths"] = [coverage_root]
         if core_forbidden_paths is not None:
             manifest["lanes"][0]["ownership"]["forbidden_paths"] = core_forbidden_paths
         write_json(Path(fixture["manifest_path"]), manifest)
@@ -246,6 +252,7 @@ def test_dirty_candidate_rejects_unowned_paths_without_partial_artifacts(tmp_pat
     manifest = read_json(Path(fixture["manifest_path"]))
     core_lane = next(lane for lane in manifest["lanes"] if lane["lane_id"] == "core")
     core_lane["ownership"]["write_paths"] = ["owned/**"]
+    manifest["requirements"][0]["owned_paths"] = ["owned/coverage-probe"]
     write_json(Path(fixture["manifest_path"]), manifest)
     result, output = create_candidate(fixture, mode="dirty", name="unowned-candidate.json")
     assert result.returncode == 1

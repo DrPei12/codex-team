@@ -396,8 +396,11 @@ def _prompt_text(
     manifest_ref: dict[str, str],
     brief_ref: dict[str, str],
     worker_argv: list[str],
+    backbrief_argv: list[str],
+    backbrief_template_ref: dict[str, str],
 ) -> str:
     argv = json.dumps(worker_argv, ensure_ascii=False)
+    backbrief = json.dumps(backbrief_argv, ensure_ascii=False)
     heading = lane["task_title"] or lane["lane_id"]
     return f"""# Codex Team Run Assignment — {heading}
 
@@ -426,6 +429,21 @@ Run this argv in the assigned workspace before implementation:
 
 Do not implement until the receipt reports `passed`. On any mismatch, stop and report the receipt path.
 
+## Required worker backbrief
+
+After preflight, copy the hash-bound template `{backbrief_template_ref['path']}`
+(`{backbrief_template_ref['sha256']}`) to the input path recorded below. Preserve
+the requirement ids, ownership, Gates, and `does_not_cover` exactly; replace the
+first-action placeholder and disclose every assumption or open question.
+
+```json
+{backbrief}
+```
+
+Implementation may begin only when the backbrief receipt reports `passed`.
+`needs-input` means the parent must resolve the question through a new accepted
+brief or successor; do not silently delete an assumption to force a pass.
+
 ## Authority boundary
 
 This preparation bundle does not authorize creating tasks or worktrees, sending messages, changing the frozen contract, or expanding ownership.
@@ -447,6 +465,8 @@ def _build_dispatch_bundle(
     brief_by_lane = {item["lane_id"]: item for item in briefs}
     prompt_dir = run_root / "prompts"
     prompt_dir.mkdir(exist_ok=False)
+    template_dir = run_root / "backbrief-templates"
+    template_dir.mkdir(exist_ok=False)
     lanes: list[dict[str, Any]] = []
     for lane in manifest["lanes"]:
         brief_ref = brief_by_lane[lane["lane_id"]]
@@ -465,10 +485,56 @@ def _build_dispatch_bundle(
             worker_argv.extend(
                 ["--gate-receipt", str((run_root / "gate-receipt.json").resolve())]
             )
+        template_path = template_dir / f"{lane['lane_id']}.json"
+        backbrief_template = {
+            "profile": PROFILE,
+            "schema_version": SCHEMA_VERSION,
+            "kind": "worker-backbrief",
+            "manifest_ref": manifest_ref,
+            "lane_id": lane["lane_id"],
+            "brief_ref": brief_ref,
+            "requirement_ids": copy.deepcopy(lane["requirement_ids"]),
+            "ownership": copy.deepcopy(lane["ownership"]),
+            "gate_ids": [gate["gate_id"] for gate in lane["gates"]],
+            "does_not_cover": copy.deepcopy(lane["does_not_cover"]),
+            "assumptions": [],
+            "open_questions": [],
+            "first_bounded_action": "REPLACE_WITH_FIRST_BOUNDED_ACTION",
+            "planned_evidence": copy.deepcopy(lane["outputs"]),
+        }
+        _write_json_exclusive(template_path, backbrief_template)
+        template_ref = {
+            "path": str(template_path.resolve()),
+            "sha256": _sha256_file(template_path),
+        }
+        backbrief_input = run_root / "backbrief-inputs" / f"{lane['lane_id']}.json"
+        backbrief_receipt = run_root / "backbrief-receipts" / f"{lane['lane_id']}.json"
+        backbrief_argv = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "worker-backbrief",
+            str(manifest_path.resolve()),
+            "--brief",
+            brief_ref["path"],
+            "--preflight-receipt",
+            str(receipt.resolve()),
+            "--input",
+            str(backbrief_input.resolve()),
+            "--receipt",
+            str(backbrief_receipt.resolve()),
+        ]
         prompt_path = prompt_dir / f"{lane['lane_id']}.prompt.md"
         _write_text_exclusive(
             prompt_path,
-            _prompt_text(manifest, lane, manifest_ref, brief_ref, worker_argv),
+            _prompt_text(
+                manifest,
+                lane,
+                manifest_ref,
+                brief_ref,
+                worker_argv,
+                backbrief_argv,
+                template_ref,
+            ),
         )
         lanes.append(
             {
@@ -488,6 +554,8 @@ def _build_dispatch_bundle(
                     "sha256": _sha256_file(prompt_path),
                 },
                 "worker_preflight_argv": worker_argv,
+                "backbrief_template_ref": template_ref,
+                "worker_backbrief_argv": backbrief_argv,
                 "external_context_policy": "untrusted-background-only",
             }
         )
@@ -524,6 +592,8 @@ def prepare(manifest_value: str, briefs_value: str, output_value: str) -> int:
             "runtime/logs",
             "runtime/pytest",
             "worker-receipts",
+            "backbrief-inputs",
+            "backbrief-receipts",
         ):
             (run_root / relative).mkdir(parents=True, exist_ok=False)
     except OSError as exc:
@@ -1194,6 +1264,211 @@ def worker_preflight(
     return 0
 
 
+def _canonical_run_file(path_value: str, receipt_path: Path, directory: str, lane_id: str, label: str) -> Path:
+    path_text = _absolute_path(path_value, label)
+    run_root = receipt_path.parent.parent
+    expected = run_root / directory / f"{lane_id}.json"
+    if _normal_path(path_text) != _normal_path(str(expected)):
+        raise TeamRunError(f"{label}: must be the current run's canonical {directory}/{lane_id}.json")
+    if not TEAM_PLAN._real_path_is_within(str(expected.parent), str(run_root)):
+        raise TeamRunError(f"{label}: canonical parent escapes the current run")
+    return expected
+
+
+def worker_backbrief(
+    manifest_value: str,
+    brief_value: str,
+    preflight_value: str,
+    input_value: str,
+    receipt_value: str,
+) -> int:
+    manifest = TEAM_PLAN.load_manifest(manifest_value)
+    TEAM_PLAN.validate_manifest(manifest)
+    digest = TEAM_PLAN.manifest_digest(manifest)
+    manifest_ref = {"run_id": manifest["run_id"], "sha256": digest}
+    lane, brief_ref = _single_brief(manifest, brief_value, digest)
+    receipt_path = _validate_receipt_path(manifest, receipt_value)
+    receipt_path = _canonical_run_file(
+        str(receipt_path), receipt_path, "backbrief-receipts", lane["lane_id"], "receipt"
+    )
+    run_root = receipt_path.parent.parent
+    dispatch_path = run_root / "dispatch-bundle.json"
+    if dispatch_path.is_symlink() or not dispatch_path.is_file():
+        raise TeamRunError("dispatch bundle is missing or symlinked")
+    dispatch = _load_json(str(dispatch_path), "dispatch bundle")
+    if (
+        dispatch.get("profile") != PROFILE
+        or dispatch.get("schema_version") != SCHEMA_VERSION
+        or dispatch.get("kind") != "dispatch-bundle"
+        or dispatch.get("manifest_ref") != manifest_ref
+        or dispatch.get("status") != "ready_for_authorized_dispatch"
+    ):
+        raise TeamRunError("dispatch bundle identity/status is invalid")
+    dispatch_entries = [
+        item for item in dispatch.get("lanes", []) if item.get("lane_id") == lane["lane_id"]
+    ]
+    if len(dispatch_entries) != 1:
+        raise TeamRunError("dispatch lane is missing or duplicated")
+    dispatch_lane = dispatch_entries[0]
+    if dispatch_lane.get("brief_ref") != brief_ref:
+        raise TeamRunError("dispatch lane brief reference differs from the current brief")
+    preflight_path = _canonical_run_file(
+        preflight_value, receipt_path, "worker-receipts", lane["lane_id"], "preflight_receipt"
+    )
+    if preflight_path.is_symlink() or not preflight_path.is_file():
+        raise TeamRunError("preflight_receipt: missing or symlinked")
+    preflight = _load_json(str(preflight_path), "preflight receipt")
+    if (
+        preflight.get("profile") != PROFILE
+        or preflight.get("schema_version") != SCHEMA_VERSION
+        or preflight.get("kind") != "worker-preflight-receipt"
+        or preflight.get("manifest_ref") != manifest_ref
+        or preflight.get("brief_ref") != brief_ref
+        or preflight.get("lane_id") != lane["lane_id"]
+        or preflight.get("status") != "passed"
+    ):
+        raise TeamRunError("preflight_receipt: identity or passed status is invalid")
+    input_path = _canonical_run_file(
+        input_value, receipt_path, "backbrief-inputs", lane["lane_id"], "input"
+    )
+    expected_backbrief_tail = [
+        "worker-backbrief",
+        str(Path(manifest_value).resolve()),
+        "--brief",
+        brief_ref["path"],
+        "--preflight-receipt",
+        str(preflight_path.resolve()),
+        "--input",
+        str(input_path.resolve()),
+        "--receipt",
+        str(receipt_path.resolve()),
+    ]
+    dispatch_argv = dispatch_lane.get("worker_backbrief_argv")
+    if (
+        not isinstance(dispatch_argv, list)
+        or len(dispatch_argv) != len(expected_backbrief_tail) + 2
+        or dispatch_argv[2:] != expected_backbrief_tail
+    ):
+        raise TeamRunError("dispatch worker_backbrief_argv differs from the current invocation")
+    template_ref = dispatch_lane.get("backbrief_template_ref")
+    if not isinstance(template_ref, dict) or set(template_ref) != {"path", "sha256"}:
+        raise TeamRunError("dispatch backbrief template reference is invalid")
+    template_path = Path(_absolute_path(template_ref["path"], "backbrief_template_ref.path"))
+    if (
+        template_path.is_symlink()
+        or not template_path.is_file()
+        or not TEAM_PLAN._path_is_within(str(template_path), str(run_root))
+        or _sha256_file(template_path) != template_ref["sha256"]
+    ):
+        raise TeamRunError("dispatch backbrief template is missing, unsafe, or changed")
+    expected_template = {
+        "profile": PROFILE,
+        "schema_version": SCHEMA_VERSION,
+        "kind": "worker-backbrief",
+        "manifest_ref": manifest_ref,
+        "lane_id": lane["lane_id"],
+        "brief_ref": brief_ref,
+        "requirement_ids": lane["requirement_ids"],
+        "ownership": lane["ownership"],
+        "gate_ids": [gate["gate_id"] for gate in lane["gates"]],
+        "does_not_cover": lane["does_not_cover"],
+        "assumptions": [],
+        "open_questions": [],
+        "first_bounded_action": "REPLACE_WITH_FIRST_BOUNDED_ACTION",
+        "planned_evidence": lane["outputs"],
+    }
+    if _load_json(str(template_path), "backbrief template") != expected_template:
+        raise TeamRunError("backbrief template differs from the manifest projection")
+    if input_path.is_symlink() or not input_path.is_file():
+        raise TeamRunError("input: missing or symlinked")
+    document = _load_json(str(input_path), "worker backbrief")
+    required = {
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "lane_id",
+        "brief_ref",
+        "requirement_ids",
+        "ownership",
+        "gate_ids",
+        "does_not_cover",
+        "assumptions",
+        "open_questions",
+        "first_bounded_action",
+        "planned_evidence",
+    }
+    errors: list[str] = []
+    if set(document) != required:
+        errors.append("worker backbrief fields differ from the canonical contract")
+    expected_values = {
+        "profile": PROFILE,
+        "schema_version": SCHEMA_VERSION,
+        "kind": "worker-backbrief",
+        "manifest_ref": manifest_ref,
+        "lane_id": lane["lane_id"],
+        "brief_ref": brief_ref,
+        "requirement_ids": lane["requirement_ids"],
+        "ownership": lane["ownership"],
+        "gate_ids": [gate["gate_id"] for gate in lane["gates"]],
+        "does_not_cover": lane["does_not_cover"],
+    }
+    checks = {
+        f"{field}_matches": document.get(field) == value
+        for field, value in expected_values.items()
+    }
+    for name, passed in checks.items():
+        if not passed:
+            errors.append(f"worker backbrief check failed: {name}")
+    list_fields = ("assumptions", "open_questions", "planned_evidence")
+    for field in list_fields:
+        value = document.get(field)
+        valid = isinstance(value, list) and all(isinstance(item, str) and item.strip() for item in value)
+        if field == "planned_evidence":
+            valid = valid and bool(value)
+        checks[f"{field}_valid"] = valid
+        if not valid:
+            errors.append(f"worker backbrief {field} must be a valid string array")
+    first_action = document.get("first_bounded_action")
+    action_valid = (
+        isinstance(first_action, str)
+        and bool(first_action.strip())
+        and first_action != "REPLACE_WITH_FIRST_BOUNDED_ACTION"
+    )
+    checks["first_bounded_action_valid"] = action_valid
+    if not action_valid:
+        errors.append("worker backbrief first_bounded_action is missing or still a placeholder")
+    assumptions = document.get("assumptions") if isinstance(document.get("assumptions"), list) else []
+    questions = document.get("open_questions") if isinstance(document.get("open_questions"), list) else []
+    needs_input = not errors and bool(assumptions or questions)
+    status = "failed" if errors else "needs-input" if needs_input else "passed"
+    receipt = {
+        "profile": PROFILE,
+        "schema_version": SCHEMA_VERSION,
+        "kind": "worker-backbrief-receipt",
+        "manifest_ref": manifest_ref,
+        "brief_ref": brief_ref,
+        "recorded_at": _recorded_at(),
+        "lane_id": lane["lane_id"],
+        "role": lane["role"],
+        "status": status,
+        "preflight_ref": {"path": str(preflight_path.resolve()), "sha256": _sha256_file(preflight_path)},
+        "input_ref": {"path": str(input_path.resolve()), "sha256": _sha256_file(input_path)},
+        "acknowledgement": copy.deepcopy(document),
+        "checks": checks,
+        "errors": errors,
+    }
+    _write_json_exclusive(receipt_path, receipt)
+    if status == "failed":
+        print(f"ERROR: worker backbrief failed; receipt={receipt_path}", file=sys.stderr)
+        return 1
+    if status == "needs-input":
+        print(f"BLOCKED: worker backbrief needs input; receipt={receipt_path}", file=sys.stderr)
+        return 2
+    print(f"PASS: worker backbrief {lane['lane_id']}; receipt={receipt_path}")
+    return 0
+
+
 class _ArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         raise TeamRunError(message)
@@ -1211,6 +1486,12 @@ def _parser() -> argparse.ArgumentParser:
     worker_parser.add_argument("--brief", required=True, metavar="BRIEF")
     worker_parser.add_argument("--receipt", required=True, metavar="RECEIPT")
     worker_parser.add_argument("--gate-receipt", metavar="GATE_RECEIPT")
+    backbrief_parser = commands.add_parser("worker-backbrief", help="validate worker scope acknowledgement")
+    backbrief_parser.add_argument("manifest", metavar="MANIFEST")
+    backbrief_parser.add_argument("--brief", required=True, metavar="BRIEF")
+    backbrief_parser.add_argument("--preflight-receipt", required=True, metavar="PREFLIGHT_RECEIPT")
+    backbrief_parser.add_argument("--input", required=True, metavar="INPUT")
+    backbrief_parser.add_argument("--receipt", required=True, metavar="RECEIPT")
     return parser
 
 
@@ -1225,6 +1506,14 @@ def main(argv: list[str] | None = None) -> int:
                 args.brief,
                 args.receipt,
                 args.gate_receipt,
+            )
+        if args.command == "worker-backbrief":
+            return worker_backbrief(
+                args.manifest,
+                args.brief,
+                args.preflight_receipt,
+                args.input,
+                args.receipt,
             )
         raise TeamRunError(f"unknown command {args.command!r}")
     except (TeamRunError, TEAM_PLAN.ManifestError) as exc:

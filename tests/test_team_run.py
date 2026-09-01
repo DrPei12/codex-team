@@ -56,6 +56,13 @@ def lane(
         "task_title": f"Team Run | {lane_id.title()}",
         "lifecycle": "one-shot",
         "objective": f"Complete the {lane_id} responsibility.",
+        "requirement_ids": ["REQ-001"],
+        "does_not_cover": ["Responsibilities assigned to other lanes."],
+        "progress_policy": {
+            "heartbeat_minutes": 20,
+            "max_turn_minutes": 90,
+            "on_limit": "checkpoint-stop",
+        },
         "depends_on": depends_on,
         "workspace": {
             "mode": "read-only" if role == "reviewer" else "permanent-worktree",
@@ -130,6 +137,11 @@ def create_fixture(tmp_path: Path) -> dict[str, Path | dict]:
     )
     reviewer["workspace"]["path"] = integrator["workspace"]["path"]
     reviewer["workspace"]["base_revision"] = integrator["workspace"]["base_revision"]
+    integrator["requirement_ids"] = ["REQ-001", "REQ-002"]
+    reviewer["requirement_ids"] = ["REQ-001", "REQ-002"]
+    core = lane(experiment_root, base_commit, "core", "implementer", [], ["src/core.py"])
+    cli = lane(experiment_root, base_commit, "cli", "implementer", [], ["src/cli.py"])
+    cli["requirement_ids"] = ["REQ-002"]
 
     manifest = {
         "profile": "codex-multitask-team-plan",
@@ -173,12 +185,45 @@ def create_fixture(tmp_path: Path) -> dict[str, Path | dict]:
         "contract": {
             "state": "frozen",
             "source": "README.md",
-            "invariants": ["briefs are manifest projections"],
+            "invariants": ["briefs are manifest projections", "dispatch preserves lane scope"],
             "forbidden_changes": ["task graph", "ownership"],
         },
+        "requirements": [
+            {
+                "requirement_id": "REQ-001",
+                "statement": "briefs are manifest projections",
+                "contract_invariant": True,
+                "implementation_kind": "change",
+                "owner_lanes": ["core"],
+                "owned_paths": ["src/core.py"],
+                "gate_ids": ["core-gate", "public-suite"],
+                "reviewer_lane": "reviewer",
+            },
+            {
+                "requirement_id": "REQ-002",
+                "statement": "dispatch preserves lane scope",
+                "contract_invariant": True,
+                "implementation_kind": "change",
+                "owner_lanes": ["cli"],
+                "owned_paths": ["src/cli.py"],
+                "gate_ids": ["cli-gate", "public-suite"],
+                "reviewer_lane": "reviewer",
+            },
+        ],
+        "checkpoints": [
+            {
+                "checkpoint_id": "vertical-slice-accepted",
+                "after_lanes": ["core", "cli"],
+                "before_lanes": ["integrator"],
+                "requirement_ids": ["REQ-001", "REQ-002"],
+                "acceptance_owner": "orchestrator",
+                "evidence_required": ["exact candidate refs", "representative behavior"],
+                "resume_requires_acceptance": True,
+            }
+        ],
         "lanes": [
-            lane(experiment_root, base_commit, "core", "implementer", [], ["src/core.py"]),
-            lane(experiment_root, base_commit, "cli", "implementer", [], ["src/cli.py"]),
+            core,
+            cli,
             integrator,
             reviewer,
         ],
@@ -425,6 +470,11 @@ def test_prepare_creates_bound_artifacts(tmp_path: Path) -> None:
         "integrator",
         "reviewer",
     ]
+    core_dispatch = dispatch["lanes"][0]
+    assert core_dispatch["worker_backbrief_argv"][2] == "worker-backbrief"
+    template = Path(core_dispatch["backbrief_template_ref"]["path"])
+    assert template.is_file()
+    assert read_json(template)["requirement_ids"] == ["REQ-001"]
     assert not any(key in json.dumps(dispatch).lower() for key in ("thread_id", "task_id"))
     for directory in (
         "runtime/cache",
@@ -575,6 +625,34 @@ def run_worker_preflight(
     return run_command(args, cwd=cwd)
 
 
+def run_worker_backbrief(
+    fixture: dict[str, Path | dict],
+    *,
+    run_root: Path,
+    lane_id: str,
+    cwd: Path,
+    assumptions: list[str] | None = None,
+    open_questions: list[str] | None = None,
+    tamper_requirement_ids: bool = False,
+) -> tuple[subprocess.CompletedProcess[str], Path]:
+    dispatch = read_json(run_root / "dispatch-bundle.json")
+    lane_dispatch = next(item for item in dispatch["lanes"] if item["lane_id"] == lane_id)
+    template = read_json(Path(lane_dispatch["backbrief_template_ref"]["path"]))
+    template["first_bounded_action"] = "Inspect the exact owned source before editing."
+    template["assumptions"] = assumptions or []
+    template["open_questions"] = open_questions or []
+    if tamper_requirement_ids:
+        template["requirement_ids"] = ["REQ-TAMPERED"]
+    input_path = run_root / "backbrief-inputs" / f"{lane_id}.json"
+    input_path.write_text(
+        json.dumps(template, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    receipt = run_root / "backbrief-receipts" / f"{lane_id}.json"
+    result = run_command(lane_dispatch["worker_backbrief_argv"], cwd=cwd)
+    return result, receipt
+
+
 def test_worker_preflight_passes_in_assigned_workspace(tmp_path: Path) -> None:
     fixture = create_fixture(tmp_path)
     run_root = Path(fixture["artifact_root"]) / "run-worker-pass"
@@ -591,6 +669,78 @@ def test_worker_preflight_passes_in_assigned_workspace(tmp_path: Path) -> None:
     assert receipt["status"] == "passed"
     assert receipt["lane_id"] == "core"
     assert all(receipt["checks"].values())
+
+
+def test_worker_backbrief_passes_only_with_exact_scope_acknowledgement(tmp_path: Path) -> None:
+    fixture = create_fixture(tmp_path)
+    run_root = Path(fixture["artifact_root"]) / "run-backbrief-pass"
+    assert run_prepare(fixture, run_root).returncode == 0
+    preflight = run_root / "worker-receipts" / "core.json"
+    assert run_worker_preflight(
+        fixture,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        receipt=preflight,
+    ).returncode == 0
+    result, receipt = run_worker_backbrief(
+        fixture,
+        run_root=run_root,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+    )
+    assert result.returncode == 0, result.stderr
+    document = read_json(receipt)
+    assert document["status"] == "passed"
+    assert document["acknowledgement"]["requirement_ids"] == ["REQ-001"]
+    assert document["acknowledgement"]["does_not_cover"] == [
+        "Responsibilities assigned to other lanes."
+    ]
+
+
+def test_worker_backbrief_open_question_stops_as_needs_input(tmp_path: Path) -> None:
+    fixture = create_fixture(tmp_path)
+    run_root = Path(fixture["artifact_root"]) / "run-backbrief-needs-input"
+    assert run_prepare(fixture, run_root).returncode == 0
+    preflight = run_root / "worker-receipts" / "core.json"
+    assert run_worker_preflight(
+        fixture,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        receipt=preflight,
+    ).returncode == 0
+    result, receipt = run_worker_backbrief(
+        fixture,
+        run_root=run_root,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        open_questions=["Which requirement version owns the new edge case?"],
+    )
+    assert result.returncode == 2
+    assert read_json(receipt)["status"] == "needs-input"
+
+
+def test_worker_backbrief_rejects_requirement_loss(tmp_path: Path) -> None:
+    fixture = create_fixture(tmp_path)
+    run_root = Path(fixture["artifact_root"]) / "run-backbrief-tamper"
+    assert run_prepare(fixture, run_root).returncode == 0
+    preflight = run_root / "worker-receipts" / "core.json"
+    assert run_worker_preflight(
+        fixture,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        receipt=preflight,
+    ).returncode == 0
+    result, receipt = run_worker_backbrief(
+        fixture,
+        run_root=run_root,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        tamper_requirement_ids=True,
+    )
+    assert result.returncode == 1
+    document = read_json(receipt)
+    assert document["status"] == "failed"
+    assert document["checks"]["requirement_ids_matches"] is False
 
 
 def test_worker_preflight_records_wrong_cwd_failure(tmp_path: Path) -> None:
@@ -1035,6 +1185,9 @@ def main() -> int:
         test_ignored_inventory_is_recorded_without_failing,
         test_prepare_refuses_existing_output,
         test_worker_preflight_passes_in_assigned_workspace,
+        test_worker_backbrief_passes_only_with_exact_scope_acknowledgement,
+        test_worker_backbrief_open_question_stops_as_needs_input,
+        test_worker_backbrief_rejects_requirement_loss,
         test_worker_preflight_records_wrong_cwd_failure,
         test_worker_preflight_never_overwrites_receipt,
         test_reviewer_preflight_binds_post_integration_gate_target,

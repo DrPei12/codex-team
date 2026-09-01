@@ -85,6 +85,10 @@ def test_full_team_v01_mainline_offline(tmp_path: Path) -> None:
             "evidence_required": ["exact tree", "command log", "exit code"],
         }
     ]
+    for requirement in manifest["requirements"]:
+        requirement["gate_ids"] = [
+            gate_id for gate_id in requirement["gate_ids"] if gate_id != "public-suite"
+        ] + ["offline-smoke"]
     write_json(Path(fixture["manifest_path"]), manifest)
     fixture["manifest"] = manifest
     shutil.rmtree(Path(fixture["briefs"]))

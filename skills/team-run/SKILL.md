@@ -32,6 +32,12 @@ not dispatch work.
    exclusive receipt reports `passed`. A reviewer lane's recorded argv
    includes `--gate-receipt`; after integration it must bind the current run's
    passed Gate receipt and its exact target commit/tree before review begins.
+6. After preflight and before implementation, the worker copies the recorded
+   backbrief template to the canonical input path, fills the first bounded
+   action, discloses assumptions/open questions, and runs the recorded
+   `worker_backbrief_argv`. Only a `passed` receipt authorizes implementation.
+   `needs-input` stops for a new accepted brief/successor; requirement ids,
+   ownership, Gates, and `does_not_cover` cannot be paraphrased away.
 
 Read [preparation-artifacts.md](references/preparation-artifacts.md) when
 inspecting the artifact meanings, prompt trust boundary, or failure behavior.

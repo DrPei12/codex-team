@@ -371,3 +371,36 @@
 - 决策：D-043/D-044新增required manifest/dispatch/finish字段，下一构建版本从`0.1.1`升为`0.1.2`。不得把新manifest交给已安装0.1.0/临时0.1.1 runtime并假定兼容。
 - 授权边界：允许源码、临时package和forward fixture验证；不自动授权更新marketplace安装、刷新活动产品任务或删除旧cache。真实0.1.2升级继续要求before snapshot、rollback和新任务discovery/explicit-load验证。
 - 临时证据：no-overwrite package位于`C:\Users\lenovo\AppData\Local\Temp\codex-team-forward-2d62408b2ae24173888f684ff303db50\codex-team`；version `0.1.2`，37-file/7-entrypoint self-check通过，bundle manifest SHA-256为`c935261251d61787491922a551ce470d50e7ef49842abf203cf0a3cdf9f1e1b5`。该路径不是已安装状态。
+
+## D-046：Plan 必须证明 requirement、owner、path、Gate 和 reviewer 覆盖闭合
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：ClothingRecycler frozen contract要求WinUI与AI共用dispatcher/catalog，`ui-adoption` objective也要求把AI tools接入dispatcher；但application-core、business-adapters和ui-adoption均forbidden `PC/Services/Ai`，provider-security又不拥有`AiWorkflowToolService.cs`。各lane可在自身范围完成，通用AI catalog tool surface仍成为ownership orphan。
+- 决策：manifest新增required `requirements` coverage lattice。每项绑定requirement id/statement、是否为contract invariant、`change`/`verification-only` kind、非reviewer owner lanes、具体owned paths、Gate ids和reviewer lane。所有contract invariant必须且只能由一条requirement覆盖；change requirement的每个owned path在列出的owner中必须恰有一个通过canonical ownership matcher可写，forbidden deny仍优先；verification-only requirement不声明可写路径但仍必须有owner/Gate/reviewer；owner/reviewer lane的`requirement_ids`必须显式包含该requirement。
+- 失败语义：未知lane/Gate/requirement、无owner、多owner、objective需要forbidden path、contract invariant缺失均在project/dispatch前fail closed。Coverage证明机器映射闭合，不证明产品语义正确；representative vertical slice和review仍独立需要。
+
+## D-047：Worker 实现前提交 hash-bound backbrief，不用自由文本摘要替代权威brief
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：ClothingRecycler长期需求、successor delta和用户最新UI/copy要求分散在manifest/docs/message中；九小时turn没有可见task prompt或canonical facts，无法审核内部执行实际消费的版本。仅把invariant写在父manifest没有阻止ownership orphan。
+- 决策：`team-run prepare`为每条lane生成immutable backbrief template与canonical argv。Worker必须在passed preflight后、实现前确认exact brief ref、requirement ids、ownership、Gate ids和`does_not_cover`，填写first bounded action并披露assumptions/open questions。Receipt为`passed`、`needs-input`或`failed`且exclusive/no-overwrite。
+- 停止语义：任何assumption/open question都返回`needs-input`，只能由新accepted brief/successor解决；不能删除问题来强行pass。Backbrief只证明精确acknowledgement artifact存在，不证明模型私下理解或effective runtime。
+
+## D-048：Stage checkpoint 与 material-progress heartbeat 进入 manifest/status
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：ClothingRecycler单个主turn持续9小时17分41秒，期间有25个提交和大量Gate，却没有assistant/tool marker；错误视觉方向在昂贵系统测试前未被用户/高级reviewer拦截。`active`只表示生命周期，不表示material progress。
+- 决策：manifest新增required stage `checkpoints`和per-lane `progress_policy`。Checkpoint明确after/before lanes、requirements、acceptance owner、evidence和`resume_requires_acceptance=true`。Status facts记录checkpoint状态和lane phase/phase start/last material progress/material delta/next bounded action/stalled reason；pending checkpoint阻止before lane dispatch。
+- 时间边界：heartbeat与max-turn分钟数由具体manifest根据任务风险设置，skill不提供通用常数；max-turn不得短于heartbeat。缺backbrief、缺progress、heartbeat或turn预算超限分别派生`backbrief-required`/`checkpoint-required`，动作固定为non-destructive `checkpoint-stop`，不自动中断、归档或重派任务。
+- 能力边界：当前仍没有Codex-native live fact collector；renderer只能消费adapter写入的新immutable facts。该协议不证明后台调度、长时触发或自动恢复稳定。
+
+## D-049：Coverage/backbrief/checkpoint 协议以 plugin 0.1.3 分发
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 决策：D-046至D-048新增required manifest/brief/dispatch/status字段和新backbrief artifact，plugin版本从`0.1.2`升为`0.1.3`。旧0.1.0–0.1.2 runtime不得读取新manifest并假定兼容；新runtime也不把旧facts自动升级为新事实。
+- 授权边界：允许源码、测试和临时no-overwrite package验证；不自动授权更新当前installed 0.1.0、创建新的ClothingRecycler任务、热刷新旧task、删除cache或恢复产品发布执行。真实安装升级与live forward test仍需要独立snapshot/rollback。
+- 临时证据：最终no-overwrite package位于`C:\Users\lenovo\AppData\Local\Temp\codex-team-forward-bf7e83a782b54ea1b2dfa990c42812e3\codex-team`；version `0.1.3`，37-file/7-entrypoint bundle self-check与7/7 packaged skill quick validation通过，bundle manifest SHA-256为`e2dd456c0a2427d32bae5181cef9994a1c464e4f57f789e6508b29197e95afac`。此前`0431…`和`f871…`包分别早于verification-only/backbrief绑定和failed-backbrief status修正，只保留为中间产物，不是最终证据。该路径不是已安装状态。

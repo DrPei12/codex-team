@@ -41,6 +41,11 @@ created with the recorded user-language title; an internal-subagent lane must
 not create a sidebar task. Changing surface or lifecycle requires a new
 manifest/successor rather than an unrecorded mid-run topology switch.
 
+The bundle also creates an immutable per-lane backbrief template and records a
+canonical `worker_backbrief_argv`. The receiver must acknowledge the exact
+requirement ids, ownership, Gate ids, and `does_not_cover`; a receipt with an
+assumption or open question is `needs-input`, not an implementation pass.
+
 ## Worker preflight receipt
 
 The future worker runs `worker-preflight` from its actual assigned workspace.
@@ -58,3 +63,12 @@ chain. The resulting receipt records hash-bound `dispatch_ref`,
 `gate_receipt_ref`, and `target`; a reviewer cannot fall back to the manifest
 base revision, reviewer ordinary status must always be clean, and
 implementer/integrator lanes cannot use these fields or the Gate argument.
+
+## Worker backbrief receipt
+
+`worker-backbrief` requires the current run's passed worker preflight, exact
+digest-bound brief, canonical input/output paths, and an acknowledgement based
+on the generated template. It writes one exclusive receipt with `passed`,
+`needs-input`, or `failed`. A passed receipt cannot contain assumptions or open
+questions. This proves an exact scope acknowledgement artifact exists; it does
+not prove a model's private understanding or effective runtime configuration.

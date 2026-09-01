@@ -38,6 +38,7 @@ EVIDENCE_STATES = {"not-checked", "missing", "valid", "invalid"}
 ACCEPTANCE_STATES = {"pending", "accepted", "rejected"}
 INTEGRATION_STATES = {"not-started", "pending", "integrated", "blocked"}
 REVIEW_STATES = {"not-requested", "pending", "approved", "changes-requested"}
+CHECKPOINT_STATES = {"pending", "accepted", "changes-requested", "blocked"}
 
 
 class TeamStatusError(ValueError):
@@ -281,6 +282,8 @@ def _load_run_artifacts(
                     "brief_ref",
                     "prompt_ref",
                     "worker_preflight_argv",
+                    "backbrief_template_ref",
+                    "worker_backbrief_argv",
                     "external_context_policy",
                 },
                 f"dispatch bundle.lanes[{index}]",
@@ -327,6 +330,12 @@ def _load_run_artifacts(
                 raise TeamStatusError(f"dispatch lane {lane_id}: prompt real path is outside run_dir")
             if _sha256_file(prompt_path) != prompt_digest:
                 raise TeamStatusError(f"dispatch lane {lane_id}: prompt hash mismatch")
+            _validate_ref_file(
+                item["backbrief_template_ref"],
+                f"dispatch lane {lane_id}.backbrief_template_ref",
+                artifact_root,
+                required=True,
+            )
             if not isinstance(item["worker_preflight_argv"], list) or not item["worker_preflight_argv"]:
                 raise TeamStatusError(f"dispatch lane {lane_id}: worker preflight argv is missing")
             if not all(isinstance(arg, str) and arg for arg in item["worker_preflight_argv"]):
@@ -351,6 +360,28 @@ def _load_run_artifacts(
                 or argv[2:] != expected_argv_tail
             ):
                 raise TeamStatusError(f"dispatch lane {lane_id}: worker preflight argv changed")
+            expected_backbrief_tail = [
+                "worker-backbrief",
+                preregistration["inputs"]["manifest"]["path"],
+                "--brief",
+                item["brief_ref"]["path"],
+                "--preflight-receipt",
+                str((run_dir / "worker-receipts" / f"{lane_id}.json").resolve()),
+                "--input",
+                str((run_dir / "backbrief-inputs" / f"{lane_id}.json").resolve()),
+                "--receipt",
+                str((run_dir / "backbrief-receipts" / f"{lane_id}.json").resolve()),
+            ]
+            backbrief_argv = item["worker_backbrief_argv"]
+            if (
+                not isinstance(backbrief_argv, list)
+                or len(backbrief_argv) != len(expected_backbrief_tail) + 2
+                or not all(isinstance(arg, str) and arg for arg in backbrief_argv)
+                or not Path(backbrief_argv[1]).is_absolute()
+                or Path(backbrief_argv[1]).name.casefold() != "team-run.py"
+                or backbrief_argv[2:] != expected_backbrief_tail
+            ):
+                raise TeamStatusError(f"dispatch lane {lane_id}: worker backbrief argv changed")
             if item["external_context_policy"] != "untrusted-background-only":
                 raise TeamStatusError(f"dispatch lane {lane_id}: external context policy changed")
     if parent_status == "passed" and dispatch is None:
@@ -381,11 +412,29 @@ def _initial_lane_fact(manifest: dict[str, Any], lane: dict[str, Any]) -> dict[s
         },
         "worker_report": {"status": "absent", "path": None, "sha256": None},
         "evidence": {"state": "not-checked", "path": None, "sha256": None},
+        "progress": {
+            "phase": None,
+            "phase_started_at": None,
+            "last_material_progress_at": None,
+            "material_delta": None,
+            "next_bounded_action": None,
+            "stalled_reason": None,
+        },
         "acceptance_state": "pending",
         "integration_state": "not-started",
         "review_state": "not-requested",
         "blocked_reason": None,
         "archived": False,
+    }
+
+
+def _initial_checkpoint_fact(checkpoint: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "checkpoint_id": checkpoint["checkpoint_id"],
+        "state": "pending",
+        "observed_at": None,
+        "evidence": {"state": "not-checked", "path": None, "sha256": None},
+        "reason": None,
     }
 
 
@@ -404,6 +453,9 @@ def init_facts(manifest_value: str, run_value: str, output_value: str) -> int:
         "observed_at": _now(),
         "source": "prepared-run",
         "lanes": [_initial_lane_fact(manifest, lane) for lane in manifest["lanes"]],
+        "checkpoints": [
+            _initial_checkpoint_fact(checkpoint) for checkpoint in manifest["checkpoints"]
+        ],
     }
     _write_json_exclusive(output, document)
     print(f"PASS: initialized status facts for {len(document['lanes'])} lanes at {output}")
@@ -441,10 +493,10 @@ def _validate_facts(
     manifest: dict[str, Any],
     expected_ref: dict[str, str],
     run_dir: Path,
-) -> dict[str, dict[str, Any]]:
+) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
     _require_keys(
         document,
-        {"profile", "schema_version", "kind", "manifest_ref", "observed_at", "source", "lanes"},
+        {"profile", "schema_version", "kind", "manifest_ref", "observed_at", "source", "lanes", "checkpoints"},
         "status facts",
     )
     if document["profile"] != PROFILE or document["schema_version"] != SCHEMA_VERSION:
@@ -471,6 +523,7 @@ def _validate_facts(
                 "workspace",
                 "worker_report",
                 "evidence",
+                "progress",
                 "acceptance_state",
                 "integration_state",
                 "review_state",
@@ -537,6 +590,36 @@ def _validate_facts(
             str(run_dir),
             required=evidence_state == "valid",
         )
+        progress = _require_keys(
+            item["progress"],
+            {
+                "phase",
+                "phase_started_at",
+                "last_material_progress_at",
+                "material_delta",
+                "next_bounded_action",
+                "stalled_reason",
+            },
+            f"{label}.progress",
+        )
+        _string(progress["phase"], f"{label}.progress.phase", nullable=True)
+        _timestamp(
+            progress["phase_started_at"],
+            f"{label}.progress.phase_started_at",
+            nullable=True,
+        )
+        _timestamp(
+            progress["last_material_progress_at"],
+            f"{label}.progress.last_material_progress_at",
+            nullable=True,
+        )
+        _string(progress["material_delta"], f"{label}.progress.material_delta", nullable=True)
+        _string(
+            progress["next_bounded_action"],
+            f"{label}.progress.next_bounded_action",
+            nullable=True,
+        )
+        _string(progress["stalled_reason"], f"{label}.progress.stalled_reason", nullable=True)
         acceptance = _enum(item["acceptance_state"], ACCEPTANCE_STATES, f"{label}.acceptance_state")
         integration = _enum(item["integration_state"], INTEGRATION_STATES, f"{label}.integration_state")
         review = _enum(item["review_state"], REVIEW_STATES, f"{label}.review_state")
@@ -556,7 +639,46 @@ def _validate_facts(
     if set(facts) != set(expected_lanes):
         missing = sorted(set(expected_lanes) - set(facts))
         raise TeamStatusError(f"status facts: missing lanes: {missing}")
-    return facts
+    checkpoint_values = document["checkpoints"]
+    if not isinstance(checkpoint_values, list):
+        raise TeamStatusError("status facts.checkpoints: must be an array")
+    expected_checkpoints = {
+        checkpoint["checkpoint_id"]: checkpoint for checkpoint in manifest["checkpoints"]
+    }
+    checkpoints: dict[str, dict[str, Any]] = {}
+    for index, value in enumerate(checkpoint_values):
+        label = f"status facts.checkpoints[{index}]"
+        item = _require_keys(
+            value,
+            {"checkpoint_id", "state", "observed_at", "evidence", "reason"},
+            label,
+        )
+        checkpoint_id = _string(item["checkpoint_id"], f"{label}.checkpoint_id")
+        assert isinstance(checkpoint_id, str)
+        if checkpoint_id not in expected_checkpoints or checkpoint_id in checkpoints:
+            raise TeamStatusError(f"{label}: unknown or duplicate checkpoint_id {checkpoint_id!r}")
+        state = _enum(item["state"], CHECKPOINT_STATES, f"{label}.state")
+        _timestamp(item["observed_at"], f"{label}.observed_at", nullable=True)
+        checkpoint_evidence = _require_keys(
+            item["evidence"], {"state", "path", "sha256"}, f"{label}.evidence"
+        )
+        checkpoint_evidence_state = _enum(
+            checkpoint_evidence["state"], EVIDENCE_STATES, f"{label}.evidence.state"
+        )
+        _validate_ref_file(
+            checkpoint_evidence,
+            f"{label}.evidence",
+            str(run_dir),
+            required=checkpoint_evidence_state == "valid",
+        )
+        _string(item["reason"], f"{label}.reason", nullable=True)
+        if state == "accepted" and checkpoint_evidence_state != "valid":
+            raise TeamStatusError(f"{label}: accepted checkpoint requires valid evidence")
+        checkpoints[checkpoint_id] = item
+    if set(checkpoints) != set(expected_checkpoints):
+        missing = sorted(set(expected_checkpoints) - set(checkpoints))
+        raise TeamStatusError(f"status facts: missing checkpoints: {missing}")
+    return facts, checkpoints
 
 
 def _worker_receipts(
@@ -630,13 +752,132 @@ def _worker_receipts(
     return receipts
 
 
+def _backbrief_receipts(
+    run_dir: Path,
+    manifest: dict[str, Any],
+    expected_ref: dict[str, str],
+    worker_receipts: dict[str, dict[str, Any]],
+    run_artifacts: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    directory = run_dir / "backbrief-receipts"
+    if directory.is_symlink() or not directory.is_dir():
+        raise TeamStatusError("backbrief-receipts: missing or unsafe directory")
+    lanes = {lane["lane_id"]: lane for lane in manifest["lanes"]}
+    dispatch_lanes = {
+        item["lane_id"]: item for item in (run_artifacts.get("dispatch") or {}).get("lanes", [])
+    }
+    receipts: dict[str, dict[str, Any]] = {}
+    for path in directory.iterdir():
+        if path.suffix != ".json" or path.stem not in lanes:
+            raise TeamStatusError(f"backbrief-receipts: unexpected entry {path.name!r}")
+        receipt = _load_json(path, f"backbrief receipt {path.stem}")
+        lane = lanes[path.stem]
+        dispatch_lane = dispatch_lanes.get(path.stem)
+        if dispatch_lane is None:
+            raise TeamStatusError(f"backbrief receipt {path.stem}: dispatch lane is missing")
+        if (
+            receipt.get("profile") != TEAM_RUN_PROFILE
+            or receipt.get("kind") != "worker-backbrief-receipt"
+            or receipt.get("lane_id") != path.stem
+            or receipt.get("role") != lane["role"]
+            or receipt.get("brief_ref") != dispatch_lane["brief_ref"]
+        ):
+            raise TeamStatusError(f"backbrief receipt {path.stem}: identity differs from manifest/dispatch")
+        _validate_manifest_ref(
+            receipt.get("manifest_ref"), expected_ref, f"backbrief receipt {path.stem}.manifest_ref"
+        )
+        status = _enum(
+            receipt.get("status"),
+            {"passed", "needs-input", "failed"},
+            f"backbrief receipt {path.stem}.status",
+        )
+        preflight = worker_receipts.get(path.stem)
+        preflight_path = run_dir / "worker-receipts" / f"{path.stem}.json"
+        expected_preflight_ref = None if preflight is None else {
+            "path": str(preflight_path.resolve()),
+            "sha256": _sha256_file(preflight_path),
+        }
+        if preflight is None or preflight.get("status") != "passed":
+            raise TeamStatusError(f"backbrief receipt {path.stem}: passed worker preflight is missing")
+        if receipt.get("preflight_ref") != expected_preflight_ref:
+            raise TeamStatusError(f"backbrief receipt {path.stem}: preflight reference changed")
+        input_ref = receipt.get("input_ref")
+        if not isinstance(input_ref, dict) or set(input_ref) != {"path", "sha256"}:
+            raise TeamStatusError(f"backbrief receipt {path.stem}: input_ref is invalid")
+        _validate_ref_file(
+            input_ref,
+            f"backbrief receipt {path.stem}.input_ref",
+            str(run_dir),
+            required=True,
+        )
+        acknowledgement = receipt.get("acknowledgement")
+        if not isinstance(acknowledgement, dict):
+            raise TeamStatusError(f"backbrief receipt {path.stem}: acknowledgement is invalid")
+        input_document = _load_json(input_ref["path"], f"backbrief input {path.stem}")
+        if input_document != acknowledgement:
+            raise TeamStatusError(
+                f"backbrief receipt {path.stem}: acknowledgement differs from input bytes"
+            )
+        expected_ack = {
+            "requirement_ids": lane["requirement_ids"],
+            "ownership": lane["ownership"],
+            "gate_ids": [gate["gate_id"] for gate in lane["gates"]],
+            "does_not_cover": lane["does_not_cover"],
+        }
+        if status != "failed":
+            for field, expected in expected_ack.items():
+                if acknowledgement.get(field) != expected:
+                    raise TeamStatusError(
+                        f"backbrief receipt {path.stem}: acknowledgement {field} differs from manifest"
+                    )
+        assumptions = acknowledgement.get("assumptions")
+        questions = acknowledgement.get("open_questions")
+        if status == "passed" and (assumptions or questions):
+            raise TeamStatusError(
+                f"backbrief receipt {path.stem}: passed receipt cannot contain assumptions/questions"
+            )
+        if status == "passed" and (
+            receipt.get("errors")
+            or not isinstance(receipt.get("checks"), dict)
+            or not receipt["checks"]
+            or not all(value is True for value in receipt["checks"].values())
+        ):
+            raise TeamStatusError(
+                f"backbrief receipt {path.stem}: passed receipt has errors or failed checks"
+            )
+        if status == "needs-input" and not (assumptions or questions):
+            raise TeamStatusError(
+                f"backbrief receipt {path.stem}: needs-input receipt has no disclosed assumption/question"
+            )
+        if status == "failed" and (
+            not receipt.get("errors")
+            or not isinstance(receipt.get("checks"), dict)
+            or all(value is True for value in receipt["checks"].values())
+        ):
+            raise TeamStatusError(
+                f"backbrief receipt {path.stem}: failed receipt lacks errors or a failed check"
+            )
+        receipts[path.stem] = receipt
+    return receipts
+
+
+def _elapsed_minutes(now_value: str, earlier_value: str) -> float:
+    def parse(value: str) -> _datetime.datetime:
+        return _datetime.datetime.fromisoformat(value[:-1] + "+00:00" if value.endswith("Z") else value)
+
+    return max(0.0, (parse(now_value) - parse(earlier_value)).total_seconds() / 60.0)
+
+
 def _status_reason_and_action(
     lane: dict[str, Any],
     fact: dict[str, Any],
     receipt: dict[str, Any] | None,
+    backbrief_receipt: dict[str, Any] | None,
     parent_passed: bool,
     dispatch_ready: bool,
     blocking_dependencies: list[str],
+    blocking_checkpoints: list[str],
+    observed_at: str,
 ) -> tuple[str, str, str | None]:
     lane_id = lane["lane_id"]
     task_state = fact["task"]["state"]
@@ -654,6 +895,10 @@ def _status_reason_and_action(
         return "blocked", fact["blocked_reason"], "resolve the recorded blocker through a successor action"
     if receipt is not None and receipt["status"] == "failed":
         return "preflight-failed", "worker preflight receipt failed", "inspect the worker receipt and stop this task"
+    if backbrief_receipt is not None and backbrief_receipt["status"] == "failed":
+        return "backbrief-failed", "worker backbrief receipt failed", "inspect the backbrief receipt and stop this task"
+    if backbrief_receipt is not None and backbrief_receipt["status"] == "needs-input":
+        return "needs-input", "worker backbrief disclosed assumptions or open questions", "resolve them through an accepted brief or successor"
     if review == "changes-requested":
         return "changes-requested", "review requested changes", "route the review facts to the owning worker"
     at_handoff_boundary = (
@@ -696,12 +941,34 @@ def _status_reason_and_action(
     if task_state in {"active", "idle"}:
         if receipt is None:
             return "preflight", "task exists but has no worker preflight receipt", "run the recorded worker preflight argv"
-        return "working", "task is active with a passed worker preflight", "wait for a state transition or blocker"
+        if backbrief_receipt is None:
+            return "backbrief-required", "task passed preflight but has no backbrief receipt", "complete the recorded worker backbrief before implementation"
+        progress = fact["progress"]
+        if (
+            progress["phase"] is None
+            or progress["phase_started_at"] is None
+            or progress["last_material_progress_at"] is None
+            or progress["material_delta"] is None
+            or progress["next_bounded_action"] is None
+        ):
+            return "checkpoint-required", "active task has no complete material-progress checkpoint", "write a new immutable progress fact and stop until it is visible"
+        policy = lane["progress_policy"]
+        if _elapsed_minutes(observed_at, progress["last_material_progress_at"]) > policy["heartbeat_minutes"]:
+            return "checkpoint-required", "material-progress heartbeat exceeded the manifest interval", "checkpoint and stop before continuing"
+        if _elapsed_minutes(observed_at, progress["phase_started_at"]) > policy["max_turn_minutes"]:
+            return "checkpoint-required", "turn phase exceeded the manifest wall-clock budget", "checkpoint and stop before continuing"
+        return "working", "task has passed preflight/backbrief and a current material-progress fact", "wait for the next bounded transition or blocker"
     if blocking_dependencies:
         return (
             "waiting-dependency",
             f"waiting for dependencies: {', '.join(blocking_dependencies)}",
             "wait until every dependency is accepted or integrated",
+        )
+    if blocking_checkpoints:
+        return (
+            "waiting-checkpoint",
+            f"waiting for accepted checkpoints: {', '.join(blocking_checkpoints)}",
+            "accept or reject the exact checkpoint evidence before dispatch",
         )
     if dispatch_ready:
         return (
@@ -716,9 +983,12 @@ def _run_status(lanes: list[dict[str, Any]]) -> str:
     statuses = [lane["status"] for lane in lanes]
     if any(status == "preparation-failed" for status in statuses):
         return "preparation-failed"
-    if any(status in {"blocked", "preflight-failed", "changes-requested"} for status in statuses):
+    if any(status in {"blocked", "preflight-failed", "backbrief-failed", "changes-requested"} for status in statuses):
         return "blocked"
-    if any(status in {"needs-input", "needs-evidence", "no-signal"} for status in statuses):
+    if any(
+        status in {"needs-input", "needs-evidence", "no-signal", "backbrief-required", "checkpoint-required"}
+        for status in statuses
+    ):
         return "needs-input"
     if any(status in {"working", "preflight", "integrating", "review-pending"} for status in statuses):
         return "working"
@@ -730,6 +1000,8 @@ def _run_status(lanes: list[dict[str, Any]]) -> str:
         return "ready-for-dispatch"
     if any(status == "waiting-dependency" for status in statuses):
         return "waiting-dependency"
+    if any(status == "waiting-checkpoint" for status in statuses):
+        return "waiting-checkpoint"
     return "planned"
 
 
@@ -741,8 +1013,13 @@ def render(manifest_value: str, run_value: str, facts_value: str, output_value: 
     run_artifacts = _load_run_artifacts(manifest, run_dir, expected_ref)
     facts_path = _validate_facts_path(run_dir, facts_value)
     facts_document = _load_json(facts_path, "status facts")
-    facts = _validate_facts(facts_document, manifest, expected_ref, run_dir)
+    facts, checkpoint_facts = _validate_facts(
+        facts_document, manifest, expected_ref, run_dir
+    )
     receipts = _worker_receipts(run_dir, manifest, expected_ref, run_artifacts)
+    backbrief_receipts = _backbrief_receipts(
+        run_dir, manifest, expected_ref, receipts, run_artifacts
+    )
     output = _validate_output(manifest, run_dir, output_value, "output")
 
     parent_passed = run_artifacts["parent"]["status"] == "passed"
@@ -756,18 +1033,34 @@ def render(manifest_value: str, run_value: str, facts_value: str, output_value: 
             for dependency in lane["depends_on"]
             if facts[dependency]["acceptance_state"] != "accepted"
         ]
+        blocking_checkpoints = [
+            checkpoint["checkpoint_id"]
+            for checkpoint in manifest["checkpoints"]
+            if lane_id in checkpoint["before_lanes"]
+            and checkpoint_facts[checkpoint["checkpoint_id"]]["state"] != "accepted"
+        ]
         status, reason, next_action = _status_reason_and_action(
             lane,
             facts[lane_id],
             receipts.get(lane_id),
+            backbrief_receipts.get(lane_id),
             parent_passed,
             dispatch_ready,
             blocking,
+            blocking_checkpoints,
+            facts_document["observed_at"],
         )
         receipt_ref = None
         receipt_path = run_dir / "worker-receipts" / f"{lane_id}.json"
         if lane_id in receipts:
             receipt_ref = {"path": str(receipt_path.resolve()), "sha256": _sha256_file(receipt_path)}
+        backbrief_ref = None
+        backbrief_path = run_dir / "backbrief-receipts" / f"{lane_id}.json"
+        if lane_id in backbrief_receipts:
+            backbrief_ref = {
+                "path": str(backbrief_path.resolve()),
+                "sha256": _sha256_file(backbrief_path),
+            }
         derived.append(
             {
                 "lane_id": lane_id,
@@ -776,9 +1069,12 @@ def render(manifest_value: str, run_value: str, facts_value: str, output_value: 
                 "reason": reason,
                 "depends_on": copy.deepcopy(lane["depends_on"]),
                 "blocking_dependencies": blocking,
+                "blocking_checkpoints": blocking_checkpoints,
                 "task": copy.deepcopy(facts[lane_id]["task"]),
                 "workspace": copy.deepcopy(facts[lane_id]["workspace"]),
+                "progress": copy.deepcopy(facts[lane_id]["progress"]),
                 "worker_receipt_ref": receipt_ref,
+                "backbrief_receipt_ref": backbrief_ref,
                 "next_action": next_action,
             }
         )
@@ -798,6 +1094,10 @@ def render(manifest_value: str, run_value: str, facts_value: str, output_value: 
         "facts_ref": {"path": str(facts_path.resolve()), "sha256": _sha256_file(facts_path)},
         "run_status": _run_status(derived),
         "counts": counts,
+        "checkpoints": [
+            copy.deepcopy(checkpoint_facts[checkpoint["checkpoint_id"]])
+            for checkpoint in manifest["checkpoints"]
+        ],
         "lanes": derived,
         "next_actions": next_actions,
     }

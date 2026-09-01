@@ -77,3 +77,11 @@
 2. reviewer 能从 passed integration target 自动获得 exact preflight；
 3. capability failure/manual fallback/conditional live blocker 能进入 canonical facts/router/finish；
 4. 全链不需要手工伪造 candidate 或绕开 canonical phase。
+
+## 2026-09-01 追加结论
+
+上述“产品交付边界”是早期candidate时点，已被后续事实替代但不删除。最新integration HEAD为`0edecbc90fe94f2b0901227b0e53066b4f6f646c`；DeepSeek live、115/115 tests、UIA、package/clean-install已有证据，但正式发布仍受Android baseline mismatch、系统辅助accessibility、AI Native product-surface覆盖和用户视觉验收阻塞。
+
+九小时主turn与最终代码审计新增了三个比T-001/T-002更上游的问题：全局requirement可在lane拆分后成为ownership orphan；worker/组件Gate可以全绿而真实AI用户链路未覆盖；canonical facts可以停止更新而主任务继续大量实现和GUI Gate。D-046至D-049因此新增0.1.3 requirement coverage、worker backbrief、stage checkpoint和material-progress协议，并通过九组144项源码回归与临时package验证。
+
+成熟度仍为`incubating`。0.1.3没有安装、没有live fact collector，也没有Desktop worker backbrief/checkpoint forward test；不能把源码协议改进写成现有产品任务已自动获得heartbeat或Team端到端能力。

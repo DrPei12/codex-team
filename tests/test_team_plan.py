@@ -33,6 +33,13 @@ def lane(
         "task_title": f"Demo | {lane_id.title()}",
         "lifecycle": "one-shot",
         "objective": f"Complete the {lane_id} responsibility.",
+        "requirement_ids": ["REQ-001"],
+        "does_not_cover": ["Responsibilities assigned to other lanes."],
+        "progress_policy": {
+            "heartbeat_minutes": 20,
+            "max_turn_minutes": 90,
+            "on_limit": "checkpoint-stop",
+        },
         "depends_on": depends_on,
         "workspace": {
             "mode": "read-only" if role == "reviewer" else "permanent-worktree",
@@ -65,6 +72,11 @@ def valid_manifest() -> dict:
     reviewer = lane("reviewer", "reviewer", ["integrator"], [])
     reviewer["workspace"]["path"] = integrator["workspace"]["path"]
     reviewer["workspace"]["base_revision"] = integrator["workspace"]["base_revision"]
+    integrator["requirement_ids"] = ["REQ-001", "REQ-002"]
+    reviewer["requirement_ids"] = ["REQ-001", "REQ-002"]
+    core = lane("core", "implementer", [], ["outputguard/jsonl.py", "tests/test_jsonl.py"])
+    cli = lane("cli", "implementer", [], ["outputguard/cli.py", "tests/test_jsonl_cli.py"])
+    cli["requirement_ids"] = ["REQ-002"]
     return {
         "profile": "codex-multitask-team-plan",
         "schema_version": "0.1",
@@ -110,9 +122,42 @@ def valid_manifest() -> dict:
             "invariants": ["one physical line produces one result", "batch remains unchanged"],
             "forbidden_changes": ["sealed evaluator", "public contract"],
         },
+        "requirements": [
+            {
+                "requirement_id": "REQ-001",
+                "statement": "one physical line produces one result",
+                "contract_invariant": True,
+                "implementation_kind": "change",
+                "owner_lanes": ["core"],
+                "owned_paths": ["outputguard/jsonl.py"],
+                "gate_ids": ["core-gate", "public-suite"],
+                "reviewer_lane": "reviewer",
+            },
+            {
+                "requirement_id": "REQ-002",
+                "statement": "batch remains unchanged",
+                "contract_invariant": True,
+                "implementation_kind": "change",
+                "owner_lanes": ["cli"],
+                "owned_paths": ["outputguard/cli.py"],
+                "gate_ids": ["cli-gate", "public-suite"],
+                "reviewer_lane": "reviewer",
+            },
+        ],
+        "checkpoints": [
+            {
+                "checkpoint_id": "vertical-slice-accepted",
+                "after_lanes": ["core", "cli"],
+                "before_lanes": ["integrator"],
+                "requirement_ids": ["REQ-001", "REQ-002"],
+                "acceptance_owner": "orchestrator",
+                "evidence_required": ["exact candidate refs", "representative behavior"],
+                "resume_requires_acceptance": True,
+            }
+        ],
         "lanes": [
-            lane("core", "implementer", [], ["outputguard/jsonl.py", "tests/test_jsonl.py"]),
-            lane("cli", "implementer", [], ["outputguard/cli.py", "tests/test_jsonl_cli.py"]),
+            core,
+            cli,
             integrator,
             reviewer,
         ],
@@ -331,6 +376,7 @@ def test_ownership_accepts_exact_file_and_explicit_recursive_directory(tmp_path:
     exact_file.parent.mkdir(parents=True)
     exact_file.write_text("design\n", encoding="utf-8")
     manifest["lanes"][0]["ownership"]["write_paths"] = [r"docs\design\README"]
+    manifest["requirements"][0]["owned_paths"] = ["docs/design/README"]
     result = run_cli(tmp_path, manifest, "validate")
     assert result.returncode == 0, result.stderr
 
@@ -344,10 +390,12 @@ def test_ownership_accepts_existing_and_future_bare_subtree_roots(tmp_path: Path
     directory = project / "docs" / "design" / "pc-ai-native-v1"
     directory.mkdir(parents=True)
     manifest["lanes"][0]["ownership"]["write_paths"] = ["docs/design/pc-ai-native-v1"]
+    manifest["requirements"][0]["owned_paths"] = ["docs/design/pc-ai-native-v1"]
     result = run_cli(tmp_path, manifest, "validate")
     assert result.returncode == 0, result.stderr
 
     manifest["lanes"][0]["ownership"]["write_paths"] = ["docs/design/future-subtree"]
+    manifest["requirements"][0]["owned_paths"] = ["docs/design/future-subtree"]
     result = run_cli(tmp_path, manifest, "validate")
     assert result.returncode == 0, result.stderr
 
@@ -418,6 +466,50 @@ def test_integration_order_must_respect_dependencies(tmp_path: Path) -> None:
     assert "integration_order" in result.stderr
 
 
+def test_requirement_owned_path_without_a_listed_owner_is_rejected(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["requirements"][0]["owned_paths"] = ["services/ai/workflow.py"]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "exactly one listed writable owner" in result.stderr
+
+
+def test_verification_only_requirement_has_gate_and_reviewer_without_write_path(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["requirements"][0]["implementation_kind"] = "verification-only"
+    manifest["requirements"][0]["owned_paths"] = []
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 0, result.stderr
+
+
+def test_contract_invariant_without_requirement_coverage_is_rejected(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["requirements"][0]["contract_invariant"] = False
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "contract invariant coverage differs" in result.stderr
+
+
+def test_checkpoint_must_precede_the_gated_lane(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["checkpoints"][0]["after_lanes"] = ["reviewer"]
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "after_lanes must precede before_lanes" in result.stderr
+
+
+def test_progress_policy_rejects_turn_budget_shorter_than_heartbeat(tmp_path: Path) -> None:
+    manifest = valid_manifest()
+    manifest["lanes"][0]["progress_policy"] = {
+        "heartbeat_minutes": 60,
+        "max_turn_minutes": 30,
+        "on_limit": "checkpoint-stop",
+    }
+    result = run_cli(tmp_path, manifest, "validate")
+    assert result.returncode == 1
+    assert "greater than or equal to heartbeat_minutes" in result.stderr
+
+
 def test_project_generates_briefs_from_one_canonical_manifest(tmp_path: Path) -> None:
     manifest = valid_manifest()
     manifest["workspace_policy"]["artifact_root"] = str(tmp_path)
@@ -451,6 +543,10 @@ def test_project_generates_briefs_from_one_canonical_manifest(tmp_path: Path) ->
     assert core["execution_surface"] == manifest["lanes"][0]["execution_surface"]
     assert core["task_title"] == manifest["lanes"][0]["task_title"]
     assert core["lifecycle"] == manifest["lanes"][0]["lifecycle"]
+    assert core["requirement_ids"] == ["REQ-001"]
+    assert core["requirements"][0]["owned_paths"] == ["outputguard/jsonl.py"]
+    assert core["progress_policy"] == manifest["lanes"][0]["progress_policy"]
+    assert core["exit_checkpoints"][0]["checkpoint_id"] == "vertical-slice-accepted"
 
 
 def test_projection_must_stay_under_artifact_root(tmp_path: Path) -> None:
@@ -529,6 +625,11 @@ def main() -> int:
         test_visible_task_title_is_required_and_prompt_titles_are_rejected,
         test_internal_subagent_requires_null_title_and_one_shot_lifecycle,
         test_integration_order_must_respect_dependencies,
+        test_requirement_owned_path_without_a_listed_owner_is_rejected,
+        test_verification_only_requirement_has_gate_and_reviewer_without_write_path,
+        test_contract_invariant_without_requirement_coverage_is_rejected,
+        test_checkpoint_must_precede_the_gated_lane,
+        test_progress_policy_rejects_turn_budget_shorter_than_heartbeat,
         test_project_generates_briefs_from_one_canonical_manifest,
         test_projection_must_stay_under_artifact_root,
         test_git_branch_and_timestamp_rules_are_fail_closed,

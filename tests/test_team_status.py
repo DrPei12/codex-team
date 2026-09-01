@@ -132,6 +132,47 @@ def create_passed_worker_receipt(fixture: dict, lane_id: str) -> Path:
     return receipt
 
 
+def create_passed_backbrief(fixture: dict, lane_id: str) -> Path:
+    result, receipt = TEAM_RUN_TESTS.run_worker_backbrief(
+        fixture,
+        run_root=Path(fixture["run_root"]),
+        lane_id=lane_id,
+        cwd=Path(fixture[lane_id]),
+    )
+    if result.returncode != 0:
+        raise AssertionError(f"worker backbrief fixture failed:\n{result.stderr}")
+    return receipt
+
+
+def set_current_progress(document: dict, lane_id: str) -> None:
+    timestamp = document["observed_at"]
+    lane_facts(document, lane_id)["progress"] = {
+        "phase": "implementation",
+        "phase_started_at": timestamp,
+        "last_material_progress_at": timestamp,
+        "material_delta": "commit:test-material-delta",
+        "next_bounded_action": "Run the lane Gate once.",
+        "stalled_reason": None,
+    }
+
+
+def accept_checkpoint(fixture: dict, document: dict, checkpoint_id: str) -> None:
+    artifact_dir = Path(fixture["run_root"]) / "status-inputs"
+    artifact_dir.mkdir(exist_ok=True)
+    evidence = artifact_dir / f"{checkpoint_id}.json"
+    evidence.write_text(
+        json.dumps({"checkpoint_id": checkpoint_id, "result": "accepted"}) + "\n",
+        encoding="utf-8",
+    )
+    checkpoint = next(
+        item for item in document["checkpoints"] if item["checkpoint_id"] == checkpoint_id
+    )
+    checkpoint["state"] = "accepted"
+    checkpoint["observed_at"] = document["observed_at"]
+    checkpoint["evidence"] = {"state": "valid", "path": str(evidence), "sha256": sha256(evidence)}
+    checkpoint["reason"] = "Representative behavior and exact candidate refs were accepted."
+
+
 def attach_completed_artifacts(fixture: dict, document: dict, lane_id: str, *, accepted: bool = False) -> None:
     run_root = Path(fixture["run_root"])
     artifact_dir = run_root / "status-inputs"
@@ -224,7 +265,7 @@ def test_bound_task_without_receipt_is_preflight(tmp_path: Path) -> None:
     assert statuses(read_json(output))["core"] == "preflight"
 
 
-def test_passed_receipt_and_active_task_is_working(tmp_path: Path) -> None:
+def test_passed_preflight_without_backbrief_requires_acknowledgement(tmp_path: Path) -> None:
     fixture = create_status_fixture(tmp_path)
     create_passed_worker_receipt(fixture, "core")
     document, facts = copy_facts(fixture, "facts-working.json")
@@ -238,8 +279,50 @@ def test_passed_receipt_and_active_task_is_working(tmp_path: Path) -> None:
     result, output = render(fixture, facts, "working-status.json")
     assert result.returncode == 0, result.stderr
     snapshot = read_json(output)
+    assert snapshot["run_status"] == "needs-input"
+    assert statuses(snapshot)["core"] == "backbrief-required"
+
+
+def test_passed_backbrief_and_current_progress_is_working(tmp_path: Path) -> None:
+    fixture = create_status_fixture(tmp_path)
+    create_passed_worker_receipt(fixture, "core")
+    create_passed_backbrief(fixture, "core")
+    document, facts = copy_facts(fixture, "facts-working-current.json")
+    bind_task(
+        lane_facts(document, "core"),
+        "core",
+        fixture["manifest"]["task_project"]["project_id"],
+        "active",
+    )
+    set_current_progress(document, "core")
+    write_json(facts, document)
+    result, output = render(fixture, facts, "working-current-status.json")
+    assert result.returncode == 0, result.stderr
+    snapshot = read_json(output)
     assert snapshot["run_status"] == "working"
     assert statuses(snapshot)["core"] == "working"
+
+
+def test_stale_material_progress_requires_checkpoint_stop(tmp_path: Path) -> None:
+    fixture = create_status_fixture(tmp_path)
+    create_passed_worker_receipt(fixture, "core")
+    create_passed_backbrief(fixture, "core")
+    document, facts = copy_facts(fixture, "facts-stale-progress.json")
+    bind_task(
+        lane_facts(document, "core"),
+        "core",
+        fixture["manifest"]["task_project"]["project_id"],
+        "active",
+    )
+    set_current_progress(document, "core")
+    progress = lane_facts(document, "core")["progress"]
+    progress["phase_started_at"] = "2026-08-24T10:00:00-04:00"
+    progress["last_material_progress_at"] = "2026-08-24T10:00:00-04:00"
+    document["observed_at"] = "2026-08-24T13:00:00-04:00"
+    write_json(facts, document)
+    result, output = render(fixture, facts, "stale-progress-status.json")
+    assert result.returncode == 0, result.stderr
+    assert statuses(read_json(output))["core"] == "checkpoint-required"
 
 
 def test_failed_worker_receipt_blocks_lane(tmp_path: Path) -> None:
@@ -265,6 +348,33 @@ def test_failed_worker_receipt_blocks_lane(tmp_path: Path) -> None:
     snapshot = read_json(output)
     assert snapshot["run_status"] == "blocked"
     assert statuses(snapshot)["core"] == "preflight-failed"
+
+
+def test_failed_backbrief_receipt_blocks_lane_without_becoming_invalid_input(tmp_path: Path) -> None:
+    fixture = create_status_fixture(tmp_path)
+    create_passed_worker_receipt(fixture, "core")
+    result, receipt = TEAM_RUN_TESTS.run_worker_backbrief(
+        fixture,
+        run_root=Path(fixture["run_root"]),
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        tamper_requirement_ids=True,
+    )
+    assert result.returncode == 1
+    assert read_json(receipt)["status"] == "failed"
+    document, facts = copy_facts(fixture, "facts-failed-backbrief.json")
+    bind_task(
+        lane_facts(document, "core"),
+        "core",
+        fixture["manifest"]["task_project"]["project_id"],
+        "active",
+    )
+    write_json(facts, document)
+    rendered, output = render(fixture, facts, "failed-backbrief-status.json")
+    assert rendered.returncode == 0, rendered.stderr
+    snapshot = read_json(output)
+    assert snapshot["run_status"] == "blocked"
+    assert statuses(snapshot)["core"] == "backbrief-failed"
 
 
 def test_completed_task_without_valid_evidence_needs_evidence(tmp_path: Path) -> None:
@@ -362,8 +472,20 @@ def test_accepted_dependencies_unlock_integrator_only(tmp_path: Path) -> None:
     result, output = render(fixture, facts, "accepted-status.json")
     assert result.returncode == 0, result.stderr
     current = statuses(read_json(output))
-    assert current["integrator"] == "ready-for-dispatch"
+    assert current["integrator"] == "waiting-checkpoint"
     assert current["reviewer"] == "waiting-dependency"
+
+    document, accepted_facts = copy_facts(fixture, "facts-checkpoint-accepted.json")
+    for lane_id in ("core", "cli"):
+        bind_task(lane_facts(document, lane_id), lane_id, project_id, "completed")
+        attach_completed_artifacts(fixture, document, lane_id, accepted=True)
+    accept_checkpoint(fixture, document, "vertical-slice-accepted")
+    write_json(accepted_facts, document)
+    result, accepted_output = render(
+        fixture, accepted_facts, "checkpoint-accepted-status.json"
+    )
+    assert result.returncode == 0, result.stderr
+    assert statuses(read_json(accepted_output))["integrator"] == "ready-for-dispatch"
 
 
 def test_unaccepted_archived_dependency_does_not_unlock(tmp_path: Path) -> None:
@@ -516,8 +638,11 @@ def main() -> int:
         test_initial_status_respects_dependencies,
         test_failed_parent_run_renders_preparation_failed,
         test_bound_task_without_receipt_is_preflight,
-        test_passed_receipt_and_active_task_is_working,
+        test_passed_preflight_without_backbrief_requires_acknowledgement,
+        test_passed_backbrief_and_current_progress_is_working,
+        test_stale_material_progress_requires_checkpoint_stop,
         test_failed_worker_receipt_blocks_lane,
+        test_failed_backbrief_receipt_blocks_lane_without_becoming_invalid_input,
         test_completed_task_without_valid_evidence_needs_evidence,
         test_valid_completed_report_is_handoff_ready,
         test_completed_dirty_workspace_blocks_handoff,

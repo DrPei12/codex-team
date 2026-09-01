@@ -2,10 +2,10 @@
 
 ## Snapshot
 
-- 日期：2026-08-30
-- 阶段：`M1.6 — Live task lifecycle and localized title contract`
-- 状态：ClothingRecycler live run证明早期可见task并行、后期internal subagent收敛总体合理，但暴露sidebar任务命名和归档治理缺失。D-040至D-042的0.1.1 identity修复已在branch `codex/team-v011-live-fixes`通过130项回归；本轮接受D-043/D-044/D-045，为0.1.2增加user locale、execution surface、独立task title、lifecycle和逐lane disposition，九组133项回归全绿。13条历史任务已中文重命名并归档，active主编排未中断；7个skill仍为`incubating`，0.1.2尚未安装或Desktop live forward-test，`main`未合并
-- 当前源码基线：branch `codex/team-v012-lifecycle` 基于 `ffc01b1`；0.1.1核心修复commit `85baabe`，lifecycle sweep before snapshot commit `931c350`；plugin builder基线`e4fa221`；`main`仍为`db3b810`
+- 日期：2026-09-01
+- 阶段：`M1.7 — Requirement coverage, backbrief, and checkpoint contract`
+- 状态：ClothingRecycler最终暴露AI Native ownership orphan、组件Gate未覆盖真实AI用户链路、九小时工作未进入canonical Team facts和长时间marker缺失；主turn后来于11:01完成并给出final，该时间线已追加纠正。D-046至D-049已接受；0.1.3 candidate新增requirement coverage lattice、worker backbrief、stage checkpoint和manifest-specific progress budgets。九组144项源码回归、7/7 packaged skill quick validation及最终临时0.1.3 bundle self-check全绿；7个skill继续`incubating`，0.1.3未安装或Desktop live forward-test，`main`未合并
+- 当前源码基线：branch `codex/team-v012-lifecycle`，本轮0.1.3实现基于实验审计commit `3563dbe`继续；0.1.1核心修复commit `85baabe`，0.1.2 lifecycle commit `d43aa9c`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
 - 研究起点 Git 基线：`35bec95`
@@ -99,6 +99,11 @@
 - [x] 接受 D-044：finish输出逐lane task disposition；本轮按before snapshot/rollback纪律中文重命名并归档13条历史任务，主编排保持active
 - [x] 接受 D-045：required标题/生命周期协议构建版本升为`0.1.2`；不覆盖当前installed 0.1.0
 - [x] D-043/D-044/D-045后九组Team回归共133项全绿；team-plan/run/finish quick validation和临时0.1.2 bundle self-check通过
+- [x] 接受D-046：manifest required requirement coverage lattice阻断ownership orphan、contract invariant缺失、unknown Gate和objective/forbidden path冲突
+- [x] 接受D-047：prepare生成hash-bound worker backbrief template/argv；passed/needs-input/failed receipt阻止多级handoff静默丢失requirement
+- [x] 接受D-048：stage checkpoint与lane material-progress facts进入status；依赖accepted但checkpoint pending时仍不得dispatch，heartbeat/turn limit使用manifest配置并checkpoint-stop
+- [x] 接受D-049：新required协议构建版本升为0.1.3；不覆盖当前installed 0.1.0
+- [x] D-046至D-049后九组Team回归共144项全绿；最终临时0.1.3 package为37-file/7-entrypoint自检通过，7/7 packaged skills quick validation通过
 
 ## 纵向切片清单（已完成与未完成）
 
@@ -125,18 +130,18 @@
 
 ## 下一里程碑建议
 
-`M1.5 — Forward-test repaired canonical integrate/reviewer path`
+`M1.8 — 0.1.3 controlled live successor and fact collector`
 
 产物：
 
-1. 保留 ClothingRecycler 原 manifest、ownership candidate failure、手工 fallback、两轮 review 与 repair lineage，不把它改写成 canonical 端到端成功；
-2. 对 D-040 用同类裸 subtree manifest 重跑 plan → integrate/recover candidate，证明修复覆盖真实 RED；
-3. 对 D-041 运行一个 passed integration Gate → Desktop reviewer preflight → exact-target review 的最小 forward test；
-4. 在受控 snapshot/rollback 下重建并验证 plugin，再决定是否更新当前安装；源码测试通过不等于旧 task/cache 已刷新；
-5. 设计 capability-failure/evidence-only recovery、manual fallback 与 conditional live blocker 的 canonical facts/finish 语义；
-6. 实现独立 Codex-native observation adapter：只读 list/read/wait、Git 与 artifact，写新 immutable facts，不发送消息；
-7. 将 OutputGuard 与 ClothingRecycler 都保留为已见 failure corpus，选择新的 blind benchmark 做主要对照；
-8. 只有 canonical live integrate/reviewer/finish forward test 与 blind benchmark 均成立后，才讨论 skill 晋升。
+1. 保留 ClothingRecycler 原manifest、stale facts、手工fallback、九小时turn、UI/AI Native缺口和Android blocker，不改写成canonical成功；
+2. 先为ClothingRecycler successor生成0.1.3 plan-only manifest，用requirement coverage证明AI workflow owner、代表性UI owner、Android verification-only owner和Gate/reviewer闭合；未通过不得dispatch；
+3. 在独立临时fixture或新任务中forward-test一次真实worker preflight→backbrief，验证Desktop prompt/路径/receipt，而不先改产品；
+4. 实现只读Codex-native fact collector：读取list/read/wait、Git与artifact，写新immutable progress/checkpoint facts，不发送消息或改变task；
+5. 为产品 successor设置AI Native vertical slice与Dashboard/AI/operation-dialog视觉checkpoint；高级模型和用户先验收代表性证据，再允许扩展页面与昂贵系统Gate；
+6. 单独解决Android baseline来源/审计/rebaseline授权，不能由Team skill静默改写；
+7. 在受控snapshot/rollback下验证0.1.3安装、新任务discovery与explicit load；源码/package测试不等于installed runtime已升级；
+8. 只有0.1.3 live checkpoint/backbrief、canonical integrate/reviewer/finish和新的blind benchmark都成立后，才讨论skill晋升。
 
 已有 capability evidence 是安全输入，不再要求先补齐全部产品行为。纵向切片依赖某个 unknown 时才做对应 probe，并把未覆盖组合继续标为 unknown。
 
@@ -154,6 +159,10 @@
 - 已验证 repo marketplace、同版重安和卸载；未验证 plugin cachebuster、异版升级、禁用和新旧会话版本选择；
 - D-040/D-041 目前只在源码 fixture、离线端到端和临时 plugin package 中验证；当前安装 cache 与既有 live task 仍可能运行旧 v0.1 bytes，未做升级/cachebuster；
 - D-043/D-044新增required manifest字段，旧0.1.0/0.1.1 artifact/runtime不应被假定兼容；当前活动ClothingRecycler task没有热加载0.1.2证据；
+- D-046至D-048新增required requirements/checkpoints/progress/backbrief字段；0.1.3只在源码、临时Git fixture和no-overwrite package验证，当前installed 0.1.0与历史ClothingRecycler artifacts均不会自动升级；
+- stage checkpoint当前由manifest/status/router正常路径约束；纯skill不是权限系统，调用者绕过canonical workflow直接调用phase helper时不会得到后台强制拦截；
+- 仍没有Codex-native live fact collector，Desktop task不会自动写material-progress或checkpoint facts；heartbeat/turn budget长期准确率与notification行为未知；
+- ClothingRecycler当前idle且无进程残留，但正式发布仍受Android baseline mismatch、系统辅助accessibility Gate、AI Native product-surface覆盖和用户视觉验收阻塞；
 - 负触发任务没有直接 skill-invocation telemetry，只能根据最终行为与无 bundle output 判定“相符”；隐式路由也只有一条高匹配样本；
 - 一条卸载后 worktree task 只返回 client ID 而未得 thread ID，不计入验收；6 条可读测试任务保留 idle，本轮无 archive 授权；
 - 本轮 managed worktree 已移出 Git registry，但 4 个产品管理容器目录仍存在且为空；plugin marketplace cache 父目录也存在但为空，本轮不手工删除这些容器；
@@ -184,4 +193,4 @@
 
 ## 完成 Phase 0 的判定
 
-Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.6；仍然没有`stable` skill，但已有七个`incubating` Team skill、离线主链、可移动plugin、repo marketplace、真实安装/发现证据和一轮有失败边界的Desktop live多任务观察。D-040至D-045源码修订通过133项回归，临时0.1.2 package自检通过，且完成一次真实rename/archive sweep；修正版尚未安装或Desktop live forward-test。`team-plan`已在`main`，其余套件位于`codex/team-v01`及当前候选分支，`main`未合并。不能把手工fallback写成canonical全链已验证，也不能声称长期标题语言准确、自动归档或worktree cleanup稳定。
+Phase 0 已在根提交 `35bec95` 完成。当前已进入 M1.7；仍然没有`stable` skill，但已有七个`incubating` Team skill、离线主链、可移动plugin、repo marketplace、真实0.1.0安装/发现证据和一轮有失败边界的Desktop live多任务观察。D-040至D-049源码修订后九组144项回归全绿，最终临时0.1.3 package自检与7/7 skill validation通过；0.1.3尚未安装或Desktop live forward-test。`team-plan`已在`main`，其余套件位于候选分支，`main`未合并。不能把手工fallback写成canonical全链已验证，也不能声称live heartbeat、自动checkpoint、长期标题语言、归档或worktree cleanup稳定。

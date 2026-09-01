@@ -26,6 +26,11 @@ facts artifact.
 
 4. Inspect lane reasons and next actions. A ready lane still requires explicit
    authority before task creation; a blocked or failed-preflight lane must stop.
+   A lane gated by an unaccepted stage checkpoint remains
+   `waiting-checkpoint`. An active lane without a passed backbrief or current
+   material-progress fact becomes `backbrief-required` or
+   `checkpoint-required`; the configured limit action is always
+   non-destructive `checkpoint-stop`.
 
 Read [status-derivation.md](references/status-derivation.md) when adding a fact
 collector, interpreting precedence, or changing dependency behavior.

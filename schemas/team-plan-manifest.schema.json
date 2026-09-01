@@ -20,6 +20,8 @@
     "runtime",
     "workspace_policy",
     "contract",
+    "requirements",
+    "checkpoints",
     "lanes",
     "integration_order",
     "global_gates",
@@ -76,6 +78,16 @@
     },
     "contract": {
       "$ref": "#/$defs/contract"
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/requirement"}
+    },
+    "checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/checkpoint"}
     },
     "lanes": {
       "type": "array",
@@ -182,6 +194,10 @@
       "pattern": "^(?!\\.?$)(?![A-Za-z]:)(?![\\\\/])(?!.*\\.\\.(?:[\\\\/]|$))(?:.*\\S.*)$"
     },
     "gate_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "requirement_id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
     },
@@ -380,6 +396,91 @@
         }
       }
     },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "statement",
+        "contract_invariant",
+        "implementation_kind",
+        "owner_lanes",
+        "owned_paths",
+        "gate_ids",
+        "reviewer_lane"
+      ],
+      "properties": {
+        "requirement_id": {"$ref": "#/$defs/requirement_id"},
+        "statement": {"$ref": "#/$defs/nonempty_string"},
+        "contract_invariant": {"type": "boolean"},
+        "implementation_kind": {"enum": ["change", "verification-only"]},
+        "owner_lanes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/lane_id"}
+        },
+        "owned_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/relative_path"}
+        },
+        "gate_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/gate_id"}
+        },
+        "reviewer_lane": {"$ref": "#/$defs/lane_id"}
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpoint_id",
+        "after_lanes",
+        "before_lanes",
+        "requirement_ids",
+        "acceptance_owner",
+        "evidence_required",
+        "resume_requires_acceptance"
+      ],
+      "properties": {
+        "checkpoint_id": {"$ref": "#/$defs/gate_id"},
+        "after_lanes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/lane_id"}
+        },
+        "before_lanes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/lane_id"}
+        },
+        "requirement_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/requirement_id"}
+        },
+        "acceptance_owner": {"enum": ["orchestrator", "reviewer", "user"]},
+        "evidence_required": {"$ref": "#/$defs/nonempty_strings"},
+        "resume_requires_acceptance": {"const": true}
+      }
+    },
+    "progress_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heartbeat_minutes", "max_turn_minutes", "on_limit"],
+      "properties": {
+        "heartbeat_minutes": {"type": "integer", "minimum": 1},
+        "max_turn_minutes": {"type": "integer", "minimum": 1},
+        "on_limit": {"const": "checkpoint-stop"}
+      }
+    },
     "lane": {
       "type": "object",
       "additionalProperties": false,
@@ -390,6 +491,9 @@
         "task_title",
         "lifecycle",
         "objective",
+        "requirement_ids",
+        "does_not_cover",
+        "progress_policy",
         "depends_on",
         "workspace",
         "ownership",
@@ -425,6 +529,14 @@
         "objective": {
           "$ref": "#/$defs/nonempty_string"
         },
+        "requirement_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/requirement_id"}
+        },
+        "does_not_cover": {"$ref": "#/$defs/strings"},
+        "progress_policy": {"$ref": "#/$defs/progress_policy"},
         "depends_on": {
           "$ref": "#/$defs/strings"
         },

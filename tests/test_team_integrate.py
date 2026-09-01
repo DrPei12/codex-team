@@ -58,6 +58,12 @@ def create_handoff_fixture(
     manifest = fixture["manifest"]
     if core_write_paths is not None:
         manifest["lanes"][0]["ownership"]["write_paths"] = core_write_paths
+        coverage_root = core_write_paths[0].replace("\\", "/")
+        if any(token in coverage_root for token in ("*", "?", "[")):
+            coverage_root = coverage_root.split("*", 1)[0].rstrip("/") + "/coverage-probe"
+        elif "." not in coverage_root.rsplit("/", 1)[-1]:
+            coverage_root = coverage_root.rstrip("/") + "/coverage-probe"
+        manifest["requirements"][0]["owned_paths"] = [coverage_root]
     if core_forbidden_paths is not None:
         manifest["lanes"][0]["ownership"]["forbidden_paths"] = core_forbidden_paths
     for lane_item in manifest["lanes"]:
@@ -74,6 +80,11 @@ def create_handoff_fixture(
         }
         for index, command in enumerate(commands, start=1)
     ]
+    integration_gate_ids = [gate["gate_id"] for gate in manifest["global_gates"]]
+    for requirement in manifest["requirements"]:
+        requirement["gate_ids"] = [
+            gate_id for gate_id in requirement["gate_ids"] if gate_id != "public-suite"
+        ] + integration_gate_ids
     write_json(Path(fixture["manifest_path"]), manifest)
     shutil.rmtree(Path(fixture["briefs"]))
     projection = run_command(

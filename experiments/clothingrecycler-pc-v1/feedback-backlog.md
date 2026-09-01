@@ -147,6 +147,8 @@
 
 ### T-016 长 turn 需要 material-progress heartbeat 与 checkpoint
 
+**状态：Source contract fixed / live collector not implemented。** D-048已接受；manifest/status/runtime和定向回归已完成，尚无Desktop live forward test。
+
 **证据：** 产品主编排的同一可见 turn 从 `2026-08-30T01:44:16-04:00` 持续到至少 `10:59:27-04:00`。Codex 原生读取始终只有 `active/inProgress`，`latestAssistantMessage` 和 `latestToolMarker` 均为空；与此同时 exact integration 分支新增 25 个提交并形成测试、live、截图、打包和安装回执。当前观察面无法区分有效执行、等待、重复 Gate 和卡死。
 
 **影响：** 用户在超过 9 小时内无法判断是否需要介入；中断可能损失有效执行，不中断又可能放任无收益循环。`active` 只能表示生命周期状态，不能代表 material progress。
@@ -169,6 +171,8 @@
 
 ### T-018 Plan 必须证明 requirement-to-owner-to-Gate 覆盖闭合
 
+**状态：Source fixed / not deployed。** D-046已接受；schema、validator、brief projection和负例已完成，当前installed plugin仍为0.1.0。
+
 **证据：** ClothingRecycler manifest 把“WinUI 与 AI 共用 dispatcher/catalog”列为全局 invariant，`ui-adoption` objective 也要求 move AI tools onto dispatcher；但 application-core、business-adapters 和 ui-adoption 都 forbidden `PC/Services/Ai`，provider-security 又不拥有 `AiWorkflowToolService.cs`。该核心文件成为 ownership orphan。最终只完成了页面 handoff后的两条共享 dispatcher slice，通用 AI catalog tool surface 没有实现。
 
 **影响：** 每条 lane 都可以在自身 ownership 内“完成”，全局 contract 仍会落空。自然语言 objective 与机器 ownership冲突时，worker无法安全补齐，只能形成局部替代实现。
@@ -178,6 +182,8 @@
 **变更等级：** plan/schema/integration 协议扩展；实施前需决策日志、状态页和负例测试。
 
 ### T-019 Handoff 需要 hash-bound backbrief 与 delta，而不是自由文本复制
+
+**状态：Source fixed / not deployed。** D-047已接受；template/input/receipt/dispatch binding和passed/needs-input/failed回归已完成，尚无真实worker forward test。
 
 **证据：** 本 run 的长期 requirement、lane brief、successor delta 和用户最新 UI/copy要求分散在 manifest、product docs、recovery brief和主任务消息中。最新九小时 turn 没有可见 task prompt、assistant marker或 canonical facts，无法审核内部 subagent实际消费了哪些版本。ownership orphan又证明仅把全局 invariant写在 manifest并不足以让接收任务理解/执行。
 
@@ -190,6 +196,8 @@
 ## P2：主编排职责与阶段检查点
 
 ### T-020 主任务不能把开发、修复、GUI QA、打包和发布吞进一个 turn
+
+**状态：Source checkpoint policy fixed / live orchestration not verified。** D-048已接受；stage checkpoint和progress policy已进入manifest/status，但没有live collector或后台scheduler。
 
 **证据：** 最新主 turn耗时 9小时17分41秒，期间集成分支新增25个提交并执行UIA、截图、live业务、打包和clean-install，但canonical Team facts停留在前一天。turn完成后仍无assistant/tool marker。工作有实质产出，却不具备Team topology、阶段receipt或用户可见checkpoints。
 
@@ -207,6 +215,6 @@
 4. 补 T-008/T-009/T-010/T-011 的可观测性和治理材料。
 5. 将 T-012/T-013/T-014/T-015 纳入下一版 UI/secret/status contract，避免本次用户否决再次发生。
 6. 先把 T-016/T-017 作为 receipt/backlog 设计做 controlled forward test；在没有多个 GUI run 样本前，不固化 silent interval、launch 次数或自动中断策略。
-7. 优先设计 T-018 的 coverage lattice 和 T-019 backbrief，因为它们直接解释了本次 AI Native requirement 丢失；随后用 T-020 的阶段 checkpoint做一次新的 controlled successor，不继续复用九小时单 turn模式。
+7. T-018/T-019/T-020源码合同已完成；下一步先做0.1.3 plan-only与worker backbrief最小live forward test，再决定是否创建ClothingRecycler controlled successor，不继续复用九小时单turn模式。
 
 在 T-001/T-002 完成 live forward test 前，不应声称 Team v0.1 的 live `integrate -> review -> finish` 已验证。
