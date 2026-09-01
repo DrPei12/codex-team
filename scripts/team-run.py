@@ -754,8 +754,14 @@ def _validate_reviewer_plan(
     if lane is None or lane["role"] != "integrator" or lane_id not in reviewer_lane["depends_on"]:
         raise TeamRunError("gate_receipt: integration plan is not the reviewer's integrator dependency")
     workspace = integration_lane.get("workspace")
-    if workspace != lane["workspace"] or _normal_path(workspace.get("path", "")) != _normal_path(
-        reviewer_lane["workspace"]["path"]
+    if (
+        not isinstance(workspace, dict)
+        or workspace.get("branch") != lane["workspace"]["branch"]
+        or workspace.get("base_revision") != lane["workspace"]["base_revision"]
+        or workspace.get("clean_start_required") != lane["workspace"]["clean_start_required"]
+        or workspace.get("mode") != lane["workspace"]["mode"]
+        or not _same_path(workspace.get("path", ""), lane["workspace"]["path"])
+        or not _same_path(workspace.get("path", ""), reviewer_lane["workspace"]["path"])
     ):
         raise TeamRunError("gate_receipt: integration plan workspace differs from manifest/reviewer")
     plan_base = _validate_commit_tree(
@@ -807,7 +813,7 @@ def _validate_reviewer_plan(
             or candidate_document.get("manifest_ref") != manifest_ref
             or candidate_document.get("lane_id") != lane_id
             or not isinstance(workspace, dict)
-            or _normal_path(workspace.get("path", "")) != _normal_path(lane["workspace"]["path"])
+            or not _same_path(workspace.get("path", ""), lane["workspace"]["path"])
             or workspace.get("branch") != lane["workspace"]["branch"]
             or workspace.get("base_revision") != lane["workspace"]["base_revision"]
             or candidate.get("commit") != workspace.get("head")
@@ -894,7 +900,7 @@ def _validate_reviewer_apply_receipt(
         raise TeamRunError("gate_receipt: integration apply identity/status is invalid")
     if document.get("plan_ref") != plan_ref:
         raise TeamRunError("gate_receipt: integration apply does not bind the canonical plan")
-    if _normal_path(document.get("workspace", "")) != _normal_path(reviewer_lane["workspace"]["path"]):
+    if not _same_path(document.get("workspace", ""), reviewer_lane["workspace"]["path"]):
         raise TeamRunError("gate_receipt: integration apply workspace differs from reviewer workspace")
     before = _validate_commit_tree(document.get("before"), "integration apply before")
     after = _validate_commit_tree(document.get("after"), "integration apply after")

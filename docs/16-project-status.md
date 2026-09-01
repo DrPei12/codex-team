@@ -4,7 +4,7 @@
 
 - 日期：2026-09-01
 - 阶段：`M1.8 — Public GitHub release`
-- 状态：`DrPei12/codex-team` public main、v0.1.0–v0.1.4 annotated tags/releases与assets已发布，private vulnerability reporting已启用。0.1.3 CI暴露brief containment alias，0.1.4 CI进一步暴露worker workspace identity；D-052已接受，0.1.5改用filesystem samefile identity并正在追加发布。7个skill继续`incubating`，没有live fact collector或Desktop backbrief/checkpoint forward test
+- 状态：`DrPei12/codex-team` public main、v0.1.0–v0.1.5 annotated tags/releases与assets已发布，private vulnerability reporting已启用。0.1.3–0.1.5三轮CI依次暴露brief、worker和integration阶段的Windows alias差异；D-053已接受，0.1.6统一所有phase的filesystem identity并正在追加发布。7个skill继续`incubating`，没有live fact collector或Desktop backbrief/checkpoint forward test
 - 当前源码基线：branch `codex/team-v012-lifecycle`，本轮0.1.3实现基于实验审计commit `3563dbe`继续；0.1.1核心修复commit `85baabe`，0.1.2 lifecycle commit `d43aa9c`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
@@ -109,7 +109,9 @@
 - [x] D-051本地受影响回归通过：team-status 24/24、plugin 9/9、离线端到端/schema 1/1；总测试数145
 - [x] 发布0.1.4并保留第二次CI失败证据；不移动0.1.3/0.1.4 tags
 - [x] D-052本地九组回归146项全绿，离线主链16份artifact通过schema
-- [ ] 发布0.1.5 filesystem-identity fix并取得新的GitHub Actions green run
+- [x] 发布0.1.5并保留第三次CI失败证据；不移动0.1.3–0.1.5 tags
+- [x] D-053本地九组回归148项全绿，离线主链16份artifact通过schema
+- [ ] 发布0.1.6 unified filesystem-identity fix并取得public main/tag CI green
 
 ## 纵向切片清单（已完成与未完成）
 

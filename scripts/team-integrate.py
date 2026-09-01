@@ -205,7 +205,7 @@ def candidate(
 
     observed = _observe_git(lane["workspace"]["path"])
     expected_branch = lane["workspace"]["branch"]
-    if _normal_path(observed["path"]) != _normal_path(lane["workspace"]["path"]):
+    if not TEAM_PLAN._paths_same_existing(observed["path"], lane["workspace"]["path"]):
         raise TeamIntegrateError(f"lane {lane_id}: workspace path mismatch")
     if observed["branch"] != expected_branch:
         raise TeamIntegrateError(f"lane {lane_id}: branch mismatch")
@@ -273,7 +273,9 @@ def _validate_candidate_document(
     if lane["role"] != "implementer":
         raise TeamIntegrateError(f"candidate {path.name}: lane is not an implementer")
     workspace = document.get("workspace", {})
-    if _normal_path(workspace.get("path", "")) != _normal_path(lane["workspace"]["path"]):
+    if not TEAM_PLAN._paths_same_existing(
+        workspace.get("path", ""), lane["workspace"]["path"]
+    ):
         raise TeamIntegrateError(f"candidate {lane_id}: workspace differs from manifest")
     if workspace.get("branch") != lane["workspace"]["branch"]:
         raise TeamIntegrateError(f"candidate {lane_id}: branch differs from manifest")

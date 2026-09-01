@@ -48,8 +48,28 @@ def create_blocked_fixture(
     core_write_paths: list[str] | None = None,
     core_forbidden_paths: list[str] | None = None,
     changed_path: str = "src/core.py",
+    core_workspace_alias: bool = False,
 ) -> dict:
     fixture = RUN_SUPPORT.create_fixture(tmp_path)
+    if core_workspace_alias:
+        manifest = fixture["manifest"]
+        manifest["lanes"][0]["workspace"]["path"] = str(
+            RUN_SUPPORT.windows_short_path(Path(fixture["core"]))
+        )
+        write_json(Path(fixture["manifest_path"]), manifest)
+        shutil.rmtree(Path(fixture["briefs"]))
+        projection = run_command(
+            [
+                sys.executable,
+                str(RUN_SUPPORT.TEAM_PLAN),
+                "project",
+                str(fixture["manifest_path"]),
+                "--out",
+                str(fixture["briefs"]),
+            ],
+            cwd=ROOT,
+        )
+        assert projection.returncode == 0, projection.stderr
     if core_write_paths is not None or core_forbidden_paths is not None:
         manifest = fixture["manifest"]
         if core_write_paths is not None:
@@ -172,6 +192,13 @@ def test_dirty_candidate_freezes_patch_and_snapshot(tmp_path: Path) -> None:
     assert candidate["changed_files"] == ["src/core.py"]
     assert Path(candidate["patch_ref"]["path"]).is_file()
     assert Path(candidate["snapshot_ref"]["path"]).is_file()
+
+
+def test_dirty_candidate_accepts_existing_workspace_alias(tmp_path: Path) -> None:
+    fixture = create_blocked_fixture(tmp_path, core_workspace_alias=True)
+    result, output = create_candidate(fixture, mode="dirty")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["src/core.py"]
 
 
 def test_dirty_candidate_accepts_explicit_recursive_directory_glob(tmp_path: Path) -> None:
@@ -392,6 +419,7 @@ def main() -> int:
     tests_without_tmp = [test_entrypoints_exist]
     tests_with_tmp = [
         test_dirty_candidate_freezes_patch_and_snapshot,
+        test_dirty_candidate_accepts_existing_workspace_alias,
         test_dirty_candidate_accepts_explicit_recursive_directory_glob,
         test_dirty_candidate_accepts_descendant_of_bare_ownership_root,
         test_dirty_candidate_normalizes_windows_alias_and_case,

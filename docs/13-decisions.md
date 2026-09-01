@@ -435,3 +435,13 @@
 - 决策：新增`_paths_same_existing`，已存在路径优先用`os.path.samefile`；containment从symlink-resolved child向父目录逐级samefile匹配root。不存在的未来路径仍使用原canonical lexical/realpath规则。Worker parent/preflight的cwd、Git root、common-dir及status workspace facts复用该身份语义。
 - 安全边界：child先解析symlink target再遍历parents，避免“root内symlink指向root外”因lexical parent误放行；missing/symlink/hash/forbidden检查不删除。
 - 版本与证据：builder升为0.1.5；新增真实NTFS short-path workspace preflight回归，九组本地回归共146项全绿，离线主链16份artifact通过schema。0.1.3/0.1.4 tags不移动；必须由新的public CI green完成验收。
+- 后续观察：0.1.5 public CI越过plan/run/status，在`team-integrate candidate`仍因同类lexical workspace比较失败。0.1.5 tag/asset保持不动并标为known issue。
+
+## D-053：Filesystem identity统一覆盖所有candidate/reviewer phase，以0.1.6追加发布
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：连续public CI表明局部修复会把同类alias failure推迟到下一phase；0.1.5失败点为`team-integrate.py` candidate workspace比较，finish全部用例因此在准备阶段停止。
+- 决策：plan/run/status/integrate/recover与reviewer plan/apply/candidate lineage统一复用`_paths_same_existing`；manifest-owned非path字段仍逐项exact比较，不以samefile跳过branch/base/mode/clean政策。新增integrate/recover existing-workspace-alias回归。
+- 版本与证据：builder升为0.1.6；九组本地回归共148项全绿，离线主链16份artifact通过schema。0.1.3–0.1.5 tags不移动；0.1.6必须取得public main/tag CI green。
+- 限制：filesystem identity只适用于已存在路径；不存在future path继续使用root/nearest-existing-parent规则。该修复不增加网络、task或cleanup权限。

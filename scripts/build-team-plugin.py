@@ -14,7 +14,7 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "0.1.5"
+PLUGIN_VERSION = "0.1.6"
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAMES = (
     "team",

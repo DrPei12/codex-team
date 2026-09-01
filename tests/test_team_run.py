@@ -41,6 +41,17 @@ def git(cwd: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def windows_short_path(path: Path) -> Path:
+    buffer = ctypes.create_unicode_buffer(32768)
+    length = ctypes.windll.kernel32.GetShortPathNameW(str(path), buffer, len(buffer))
+    if length == 0 or length >= len(buffer):
+        raise AssertionError("Windows short-path alias is required for path identity test")
+    alias = Path(buffer.value)
+    if str(alias).casefold() == str(path).casefold():
+        raise AssertionError("fixture path did not produce a distinct Windows short-path alias")
+    return alias
+
+
 def lane(
     root: Path,
     base_commit: str,
@@ -674,15 +685,7 @@ def test_worker_preflight_passes_in_assigned_workspace(tmp_path: Path) -> None:
 
 def test_worker_preflight_accepts_existing_workspace_alias(tmp_path: Path) -> None:
     fixture = create_fixture(tmp_path)
-    buffer = ctypes.create_unicode_buffer(32768)
-    length = ctypes.windll.kernel32.GetShortPathNameW(
-        str(Path(fixture["core"])), buffer, len(buffer)
-    )
-    if length == 0 or length >= len(buffer):
-        raise AssertionError("Windows short-path alias is required for workspace identity test")
-    alias = Path(buffer.value)
-    if str(alias).casefold() == str(Path(fixture["core"])).casefold():
-        raise AssertionError("fixture path did not produce a distinct Windows short-path alias")
+    alias = windows_short_path(Path(fixture["core"]))
     manifest = fixture["manifest"]
     assert isinstance(manifest, dict)
     manifest["lanes"][0]["workspace"]["path"] = str(alias)

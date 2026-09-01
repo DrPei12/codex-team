@@ -202,7 +202,7 @@ def candidate(
     output = _validate_output(manifest, run_dir, output_value, "output")
     lane = _lane(manifest, lane_id)
     observed = _observe_git(lane["workspace"]["path"])
-    if TEAM_PLAN._normal_path(observed["path"]) != TEAM_PLAN._normal_path(lane["workspace"]["path"]):
+    if not TEAM_PLAN._paths_same_existing(observed["path"], lane["workspace"]["path"]):
         raise TeamRecoverError("candidate: workspace path mismatch")
     if lane["workspace"]["branch"] is not None and observed["branch"] != lane["workspace"]["branch"]:
         raise TeamRecoverError("candidate: workspace branch mismatch")
@@ -314,7 +314,9 @@ def _validate_candidate(
     _validate_manifest_ref(document.get("manifest_ref"), expected_ref, "recovery candidate.manifest_ref")
     lane = _lane(manifest, document.get("lane_id"))
     workspace = document.get("workspace", {})
-    if TEAM_PLAN._normal_path(workspace.get("path", "")) != TEAM_PLAN._normal_path(lane["workspace"]["path"]):
+    if not TEAM_PLAN._paths_same_existing(
+        workspace.get("path", ""), lane["workspace"]["path"]
+    ):
         raise TeamRecoverError("recovery candidate: workspace differs from manifest")
     if workspace.get("base_commit") != lane["workspace"]["base_revision"]:
         raise TeamRecoverError("recovery candidate: base differs from manifest")

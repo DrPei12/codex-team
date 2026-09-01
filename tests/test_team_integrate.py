@@ -53,9 +53,14 @@ def create_handoff_fixture(
     team_run_path: Path | None = None,
     team_status_path: Path | None = None,
     lane_metadata: dict[str, dict[str, object]] | None = None,
+    core_workspace_alias: bool = False,
 ) -> dict:
     fixture = RUN_SUPPORT.create_fixture(tmp_path)
     manifest = fixture["manifest"]
+    if core_workspace_alias:
+        manifest["lanes"][0]["workspace"]["path"] = str(
+            RUN_SUPPORT.windows_short_path(Path(fixture["core"]))
+        )
     if core_write_paths is not None:
         manifest["lanes"][0]["ownership"]["write_paths"] = core_write_paths
         coverage_root = core_write_paths[0].replace("\\", "/")
@@ -261,6 +266,17 @@ def test_candidate_binds_git_report_and_evidence(tmp_path: Path) -> None:
     assert candidate["workspace"]["head"] == RUN_SUPPORT.git(Path(fixture["core"]), "rev-parse", "HEAD")
     assert candidate["changed_files"] == ["src/core.py"]
     assert candidate["workspace"]["ordinary_status"] == []
+
+
+def test_candidate_accepts_existing_workspace_alias(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(
+        tmp_path,
+        ("core",),
+        core_workspace_alias=True,
+    )
+    result, output = build_candidate(fixture, "core")
+    assert result.returncode == 0, result.stderr
+    assert read_json(output)["changed_files"] == ["src/core.py"]
 
 
 def test_candidate_accepts_explicit_recursive_directory_glob(tmp_path: Path) -> None:
@@ -618,6 +634,7 @@ def main() -> int:
     tests_without_tmp = [test_entrypoints_exist]
     tests_with_tmp = [
         test_candidate_binds_git_report_and_evidence,
+        test_candidate_accepts_existing_workspace_alias,
         test_candidate_accepts_explicit_recursive_directory_glob,
         test_candidate_accepts_descendant_of_bare_ownership_root,
         test_candidate_normalizes_windows_alias_and_case,

@@ -6,6 +6,13 @@
 
 - 尚无已承诺内容。
 
+## [0.1.6] - 2026-09-01
+
+### Fixed
+
+- Filesystem identity matching now covers integration and recovery candidate paths plus reviewer plan/apply lineage.
+- Plan, run, status, integrate, and recover share the same existing-path alias semantics.
+
 ## [0.1.5] - 2026-09-01
 
 ### Fixed
@@ -61,7 +68,8 @@
 - Deterministic skills-only plugin builder、bundle manifest/self-check 与 repo marketplace。
 - 首次真实安装、discovery、explicit load、implicit routing 与卸载回滚证据。
 
-[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/DrPei12/codex-team/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/DrPei12/codex-team/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/DrPei12/codex-team/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/DrPei12/codex-team/compare/v0.1.2...v0.1.3
