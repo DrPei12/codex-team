@@ -113,6 +113,10 @@ def _real_path(value: str) -> str:
     return TEAM_PLAN._real_path(value)
 
 
+def _same_path(left: str, right: str) -> bool:
+    return TEAM_PLAN._paths_same_existing(left, right)
+
+
 def _validate_output_path(manifest: dict[str, Any], output_value: str) -> Path:
     output_text = _absolute_path(output_value, "output")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
@@ -266,8 +270,9 @@ def _parent_preflight(
             "branch_matches_base": project_observed["branch"] == manifest["base"]["branch"],
             "clean_start": not project_observed["ordinary_status"] if project_clean_required else True,
             "head_matches_base": project_observed["head"] == manifest["base"]["commit"],
-            "path_matches_git_root": _normal_path(project_observed["top_level"])
-            == _normal_path(project_observed["path"]),
+            "path_matches_git_root": _same_path(
+                project_observed["top_level"], project_observed["path"]
+            ),
             "tree_matches_base": project_observed["tree"] == manifest["base"]["tree"],
         }
     except TeamRunError as exc:
@@ -297,10 +302,11 @@ def _parent_preflight(
                 "branch_matches": expected["branch"] is None or observed["branch"] == expected["branch"],
                 "clean_start": not observed["ordinary_status"] if expected["clean_start_required"] else True,
                 "common_dir_matches_task_project": project_common is not None
-                and _normal_path(observed["common_dir"]) == _normal_path(project_common),
+                and _same_path(observed["common_dir"], project_common),
                 "head_matches": observed["head"] == expected["head"],
-                "path_matches_git_root": _normal_path(observed["top_level"])
-                == _normal_path(observed["path"]),
+                "path_matches_git_root": _same_path(
+                    observed["top_level"], observed["path"]
+                ),
             }
         except TeamRunError as exc:
             observed = _failed_observation(expected["path"], str(exc))
@@ -1204,13 +1210,14 @@ def worker_preflight(
         checks = {
             "branch_matches": expected["branch"] is None or observed["branch"] == expected["branch"],
             "clean_start": not observed["ordinary_status"] if expected["clean_start_required"] else True,
-            "common_dir_matches_task_project": _normal_path(observed["common_dir"])
-            == _normal_path(task_project["common_dir"]),
-            "cwd_matches_workspace": _normal_path(_real_path(str(cwd)))
-            == _normal_path(_real_path(expected["path"])),
+            "common_dir_matches_task_project": _same_path(
+                observed["common_dir"], task_project["common_dir"]
+            ),
+            "cwd_matches_workspace": _same_path(str(cwd), expected["path"]),
             "head_matches": observed["head"] == expected["head"],
-            "path_matches_git_root": _normal_path(observed["top_level"])
-            == _normal_path(observed["path"]),
+            "path_matches_git_root": _same_path(
+                observed["top_level"], observed["path"]
+            ),
         }
         if lane["role"] == "reviewer":
             reviewer_gate_checks["gate_target_head_matches_workspace"] = (

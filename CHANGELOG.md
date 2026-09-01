@@ -6,6 +6,13 @@
 
 - 尚无已承诺内容。
 
+## [0.1.5] - 2026-09-01
+
+### Fixed
+
+- Existing workspace and Git common-directory identities now use filesystem `samefile` checks, so Windows short/long aliases compare by object identity instead of display text.
+- Existing-path containment walks resolved parents with `samefile`, retaining symlink escape protection.
+
 ## [0.1.4] - 2026-09-01
 
 ### Fixed
@@ -54,7 +61,8 @@
 - Deterministic skills-only plugin builder、bundle manifest/self-check 与 repo marketplace。
 - 首次真实安装、discovery、explicit load、implicit routing 与卸载回滚证据。
 
-[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/DrPei12/codex-team/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/DrPei12/codex-team/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/DrPei12/codex-team/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/DrPei12/codex-team/compare/v0.1.1...v0.1.2

@@ -563,7 +563,7 @@ def _validate_facts(
         )
         workspace_path = _string(workspace["path"], f"{label}.workspace.path")
         assert isinstance(workspace_path, str)
-        if _normal_path(workspace_path) != _normal_path(lane["workspace"]["path"]):
+        if not TEAM_PLAN._paths_same_existing(workspace_path, lane["workspace"]["path"]):
             raise TeamStatusError(f"{label}.workspace.path: differs from manifest")
         head = _string(workspace["head"], f"{label}.workspace.head", nullable=True)
         if head is not None and (len(head) != 40 or any(ch not in "0123456789abcdef" for ch in head)):

@@ -425,3 +425,13 @@
 - 决策：file ref只在lexical containment与resolved-real containment均失败时拒绝；后续symlink/missing/hash校验保持不变。新增目录alias正向回归，真实逃逸负例继续保留。
 - 版本：已公开的`v0.1.3` tag/asset不移动；builder升为`0.1.4`，新release记录修复并将0.1.3标为历史已知问题。
 - 本地证据：受影响的team-status 24/24、plugin 9/9与离线端到端/schema 1/1通过；总回归数量由144增至145。首次CI失败不能写成0.1.3 green；0.1.4必须在新的GitHub Actions run通过后才完成public工程发布验收。
+- 后续观察：0.1.4 public CI越过brief containment后，在worker preflight仍报告`workspace path mismatch`；Python `realpath`没有可靠展开runner短路径。0.1.4 tag/asset保持不动并标为known issue。
+
+## D-052：已存在Windows路径使用filesystem identity，0.1.5继续追加而不移动旧tag
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：0.1.4 public CI证明resolved-path字符串仍不足以统一`RUNNER~1`与长路径；worker cwd、manifest workspace和Git common-dir指向同一对象却比较失败。
+- 决策：新增`_paths_same_existing`，已存在路径优先用`os.path.samefile`；containment从symlink-resolved child向父目录逐级samefile匹配root。不存在的未来路径仍使用原canonical lexical/realpath规则。Worker parent/preflight的cwd、Git root、common-dir及status workspace facts复用该身份语义。
+- 安全边界：child先解析symlink target再遍历parents，避免“root内symlink指向root外”因lexical parent误放行；missing/symlink/hash/forbidden检查不删除。
+- 版本与证据：builder升为0.1.5；新增真实NTFS short-path workspace preflight回归，九组本地回归共146项全绿，离线主链16份artifact通过schema。0.1.3/0.1.4 tags不移动；必须由新的public CI green完成验收。

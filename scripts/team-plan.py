@@ -191,7 +191,9 @@ def _absolute_path(value: Any, path: str, *, root: str | None = None, label: str
     text = _string(value, path)
     if not _path_is_absolute(text):
         _fail(path, f"{label} must be absolute")
-    if root is not None and not _path_is_within(text, root):
+    if root is not None and not (
+        _path_is_within(text, root) or _real_path_is_within(text, root)
+    ):
         _fail(path, f"{label} is outside experiment_root")
     return text
 
@@ -362,6 +364,31 @@ def _real_path(value: str) -> str:
     return _normal_path(os.path.realpath(value))
 
 
+def _paths_same_existing(left: str, right: str) -> bool:
+    try:
+        if os.path.exists(left) and os.path.exists(right):
+            return os.path.samefile(left, right)
+    except OSError:
+        pass
+    return _normal_path(_real_path(left)) == _normal_path(_real_path(right))
+
+
+def _existing_path_is_within(child: str, root: str) -> bool:
+    if not (os.path.exists(child) and os.path.exists(root)):
+        return False
+    candidate = Path(os.path.realpath(child))
+    while True:
+        try:
+            if os.path.samefile(candidate, root):
+                return True
+        except OSError:
+            return False
+        parent = candidate.parent
+        if parent == candidate:
+            return False
+        candidate = parent
+
+
 def _path_is_ancestor_or_descendant(left: str, right: str) -> bool:
     return _path_is_within(left, right) or _path_is_within(right, left)
 
@@ -383,6 +410,10 @@ def _paths_overlap(left: str, right: str) -> bool:
 def _real_path_is_within(child: str, root: str) -> bool:
     """Resolve existing path components without requiring a future leaf."""
 
+    if _existing_path_is_within(child, root):
+        return True
+    if _existing_path_is_within(_nearest_existing_path(child), root):
+        return True
     return _path_is_within(_real_path(child), _real_path(root))
 
 
@@ -801,7 +832,10 @@ def validate_manifest(manifest: Any) -> None:
                     f"{lane_path}.workspace.path",
                     "mutable workspace overlaps task_project.path",
                 )
-            if not _path_is_within(workspace_path, worktree_root):
+            if not (
+                _path_is_within(workspace_path, worktree_root)
+                or _real_path_is_within(workspace_path, worktree_root)
+            ):
                 _fail(
                     f"{lane_path}.workspace.path",
                     "mutable workspace is outside worktree_root",

@@ -230,6 +230,7 @@ def test_ref_file_accepts_real_path_alias_within_allowed_root(tmp_path: Path) ->
         raise AssertionError(f"directory symlink setup required for alias test: {exc}") from exc
     artifact = real_root / "brief.json"
     artifact.write_text('{"kind":"brief"}\n', encoding="utf-8")
+    assert TEAM_STATUS_RUNTIME.TEAM_PLAN._paths_same_existing(str(real_root), str(alias_root))
     TEAM_STATUS_RUNTIME._validate_ref_file(
         {"path": str(artifact), "sha256": sha256(artifact)},
         "alias fixture",

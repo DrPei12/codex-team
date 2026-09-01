@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import ctypes
 import json
 import os
 import shutil
@@ -671,6 +672,52 @@ def test_worker_preflight_passes_in_assigned_workspace(tmp_path: Path) -> None:
     assert all(receipt["checks"].values())
 
 
+def test_worker_preflight_accepts_existing_workspace_alias(tmp_path: Path) -> None:
+    fixture = create_fixture(tmp_path)
+    buffer = ctypes.create_unicode_buffer(32768)
+    length = ctypes.windll.kernel32.GetShortPathNameW(
+        str(Path(fixture["core"])), buffer, len(buffer)
+    )
+    if length == 0 or length >= len(buffer):
+        raise AssertionError("Windows short-path alias is required for workspace identity test")
+    alias = Path(buffer.value)
+    if str(alias).casefold() == str(Path(fixture["core"])).casefold():
+        raise AssertionError("fixture path did not produce a distinct Windows short-path alias")
+    manifest = fixture["manifest"]
+    assert isinstance(manifest, dict)
+    manifest["lanes"][0]["workspace"]["path"] = str(alias)
+    Path(fixture["manifest_path"]).write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
+    shutil.rmtree(Path(fixture["briefs"]))
+    projected = run_command(
+        [
+            sys.executable,
+            str(TEAM_PLAN),
+            "project",
+            str(fixture["manifest_path"]),
+            "--out",
+            str(fixture["briefs"]),
+        ],
+        cwd=ROOT,
+    )
+    assert projected.returncode == 0, projected.stderr
+    run_root = Path(fixture["artifact_root"]) / "run-worker-alias"
+    prepared = run_prepare(fixture, run_root)
+    parent_receipt = run_root / "parent-preflight-receipt.json"
+    detail = parent_receipt.read_text(encoding="utf-8") if parent_receipt.is_file() else ""
+    assert prepared.returncode == 0, prepared.stderr + detail
+    receipt_path = run_root / "worker-receipts" / "core.json"
+    result = run_worker_preflight(
+        fixture,
+        lane_id="core",
+        cwd=Path(fixture["core"]),
+        receipt=receipt_path,
+    )
+    assert result.returncode == 0, result.stderr
+    assert read_json(receipt_path)["checks"]["cwd_matches_workspace"] is True
+
+
 def test_worker_backbrief_passes_only_with_exact_scope_acknowledgement(tmp_path: Path) -> None:
     fixture = create_fixture(tmp_path)
     run_root = Path(fixture["artifact_root"]) / "run-backbrief-pass"
@@ -1185,6 +1232,7 @@ def main() -> int:
         test_ignored_inventory_is_recorded_without_failing,
         test_prepare_refuses_existing_output,
         test_worker_preflight_passes_in_assigned_workspace,
+        test_worker_preflight_accepts_existing_workspace_alias,
         test_worker_backbrief_passes_only_with_exact_scope_acknowledgement,
         test_worker_backbrief_open_question_stops_as_needs_input,
         test_worker_backbrief_rejects_requirement_loss,
