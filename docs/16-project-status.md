@@ -4,7 +4,7 @@
 
 - 日期：2026-09-01
 - 阶段：`M1.8 — Public GitHub release`
-- 状态：`DrPei12/codex-team` public main、v0.1.0–v0.1.6 annotated tags/releases与assets已发布，private vulnerability reporting已启用。0.1.3–0.1.6四轮CI依次暴露brief、worker、integration workspace和artifact containment的Windows alias差异；D-054已接受，0.1.7统一所有run/artifact resolved boundary并正在追加发布。7个skill继续`incubating`，没有live fact collector或Desktop backbrief/checkpoint forward test
+- 状态：`DrPei12/codex-team` public main、v0.1.0–v0.1.7 annotated tags/releases与assets已发布，private vulnerability reporting已启用。0.1.7 CI已通过finish/integrate并证明path修复有效，随后因runner cp1252 stdout打印Unicode path失败；D-055已接受，0.1.8显式UTF-8 CI正在追加发布。7个skill继续`incubating`，没有live fact collector或Desktop backbrief/checkpoint forward test
 - 当前源码基线：branch `codex/team-v012-lifecycle`，本轮0.1.3实现基于实验审计commit `3563dbe`继续；0.1.1核心修复commit `85baabe`，0.1.2 lifecycle commit `d43aa9c`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
@@ -113,7 +113,8 @@
 - [x] D-053本地九组回归148项全绿，离线主链16份artifact通过schema
 - [x] 发布0.1.6并保留第四次CI失败证据；不移动0.1.3–0.1.6 tags
 - [x] D-054本地九组回归149项全绿，离线主链16份artifact通过schema
-- [ ] 发布0.1.7 unified containment fix并取得public main/tag CI green
+- [x] 发布0.1.7并保留第五次CI失败证据；path phases已通过，失败为cp1252输出编码
+- [ ] 发布0.1.8 UTF-8 CI fix并取得public main/tag CI green
 
 ## 纵向切片清单（已完成与未完成）
 

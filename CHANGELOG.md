@@ -6,6 +6,12 @@
 
 - 尚无已承诺内容。
 
+## [0.1.8] - 2026-09-01
+
+### Fixed
+
+- Windows CI now forces Python UTF-8 mode and UTF-8 stdio, preventing successful commands from failing while printing Unicode paths on a cp1252 runner console.
+
 ## [0.1.7] - 2026-09-01
 
 ### Fixed
@@ -75,7 +81,8 @@
 - Deterministic skills-only plugin builder、bundle manifest/self-check 与 repo marketplace。
 - 首次真实安装、discovery、explicit load、implicit routing 与卸载回滚证据。
 
-[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/DrPei12/codex-team/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/DrPei12/codex-team/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/DrPei12/codex-team/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/DrPei12/codex-team/compare/v0.1.4...v0.1.5

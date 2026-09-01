@@ -455,3 +455,12 @@
 - 决策：所有phase的run_dir、report/evidence、candidate、proof、Gate、status、finish、router与未来output path统一使用`_real_path_is_within`。已存在路径通过symlink-resolved parent + samefile校验；不存在路径通过nearest existing parent绑定root。删除phase-local lexical-only containment分叉。
 - 回归：新增short-path run-root integration candidate测试，连同workspace alias tests；九组本地回归149项全绿，离线主链16份artifact通过schema。Symlink escape与outside-root负例保持通过。
 - 版本：builder升为0.1.7；0.1.3–0.1.6 tags不移动。Public main/tag CI必须green后才完成发布验收。
+- 后续观察：0.1.7 public CI通过finish12和integrate19，随后team-plan成功projection在`print(...output)`阶段因runner cp1252 stdout无法编码Unicode path而失败；协议命令本身已成功。0.1.7 tag/asset保持不动并标为known issue。
+
+## D-055：Public Windows CI显式启用Python UTF-8，以0.1.8取得tag级release Gate
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：0.1.7 CI唯一失败为`UnicodeEncodeError: cp1252`，发生在成功写出brief后的状态打印；本地Codex PowerShell使用UTF-8未复现。
+- 决策：Windows CI job设置`PYTHONUTF8=1`和`PYTHONIOENCODING=utf-8`，不修改task/Git/artifact协议语义。Builder升为0.1.8，使tag自身包含CI环境修复；0.1.7不移动。
+- 验收：0.1.8本地保持九组149项全绿；public main与tag run都必须完成九组测试和plugin build/self-check。仅main green或仅手工rerun不足。
