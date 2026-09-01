@@ -103,7 +103,7 @@ def _validate_output(manifest: dict[str, Any], run_dir: Path, value: str, label:
 
 def _validate_run_file(run_dir: Path, value: str, label: str) -> Path:
     path_text = TEAM_PLAN._absolute_path(value, label, label=label)
-    if not TEAM_PLAN._path_is_within(path_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_dir)):
         raise TeamRecoverError(f"{label}: path is outside run_dir")
     path = Path(path_text)
     if path.is_symlink() or not path.is_file():
@@ -399,7 +399,7 @@ def prepare(
     candidate_document = _validate_candidate(candidate_path, manifest, run_dir, expected_ref)
 
     proofs_text = TEAM_PLAN._absolute_path(proofs_value, "proofs", label="proofs")
-    if not TEAM_PLAN._path_is_within(proofs_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(proofs_text, str(run_dir)):
         raise TeamRecoverError("proofs: directory is outside run_dir")
     proofs_dir = Path(proofs_text)
     if proofs_dir.is_symlink() or not proofs_dir.is_dir():
@@ -482,7 +482,7 @@ def project(plan_value: str, output_value: str) -> int:
     for index, proof_ref in enumerate(reused_proofs):
         _validate_bound_file_ref(run_dir, proof_ref, f"reused proof {index}")
     output_text = TEAM_PLAN._absolute_path(output_value, "output", label="output")
-    if not TEAM_PLAN._path_is_within(output_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(output_text, str(run_dir)):
         raise TeamRecoverError("output: recovery brief must be inside plan run directory")
     output = Path(output_text)
     if output.exists():

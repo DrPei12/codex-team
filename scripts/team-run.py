@@ -121,7 +121,7 @@ def _validate_output_path(manifest: dict[str, Any], output_value: str) -> Path:
     output_text = _absolute_path(output_value, "output")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
     experiment_root = manifest["workspace_policy"]["experiment_root"]
-    if not TEAM_PLAN._path_is_within(output_text, artifact_root):
+    if not TEAM_PLAN._real_path_is_within(output_text, artifact_root):
         raise TeamRunError(f"output: {output_text} is outside artifact_root")
     if TEAM_PLAN._paths_overlap(output_text, manifest["task_project"]["path"]):
         raise TeamRunError("output: overlaps task_project.path")
@@ -147,7 +147,7 @@ def _validate_briefs(
     briefs_text = _absolute_path(briefs_value, "briefs")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
     experiment_root = manifest["workspace_policy"]["experiment_root"]
-    if not TEAM_PLAN._path_is_within(briefs_text, artifact_root):
+    if not TEAM_PLAN._real_path_is_within(briefs_text, artifact_root):
         raise TeamRunError(f"briefs: {briefs_text} is outside artifact_root")
     TEAM_PLAN._check_output_parent_real_path(briefs_text, artifact_root, experiment_root)
     briefs = Path(briefs_text)
@@ -661,7 +661,7 @@ def _validate_receipt_path(manifest: dict[str, Any], receipt_value: str) -> Path
     receipt_text = _absolute_path(receipt_value, "receipt")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
     experiment_root = manifest["workspace_policy"]["experiment_root"]
-    if not TEAM_PLAN._path_is_within(receipt_text, artifact_root):
+    if not TEAM_PLAN._real_path_is_within(receipt_text, artifact_root):
         raise TeamRunError(f"receipt: {receipt_text} is outside artifact_root")
     TEAM_PLAN._check_output_parent_real_path(receipt_text, artifact_root, experiment_root)
     receipt = Path(receipt_text)
@@ -711,7 +711,7 @@ def _validate_gate_file_ref(value: Any, run_root: Path, label: str) -> Path:
         path_text = _absolute_path(value["path"], f"gate_receipt.{label}.path")
     except TEAM_PLAN.ManifestError as exc:
         raise TeamRunError(f"gate_receipt: {label}.path must be absolute") from exc
-    if not TEAM_PLAN._path_is_within(path_text, str(run_root)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_root)):
         raise TeamRunError(f"gate_receipt: {label} is outside the current worker run")
     path = Path(path_text)
     if path.is_symlink() or not path.is_file():
@@ -1034,7 +1034,7 @@ def _load_reviewer_gate_receipt(
         raise TeamRunError(f"gate_receipt: invalid path: {exc}") from exc
     artifact_root = manifest["workspace_policy"]["artifact_root"]
     experiment_root = manifest["workspace_policy"]["experiment_root"]
-    if not TEAM_PLAN._path_is_within(gate_text, artifact_root):
+    if not TEAM_PLAN._real_path_is_within(gate_text, artifact_root):
         raise TeamRunError(f"gate_receipt: {gate_text} is outside artifact_root")
     try:
         TEAM_PLAN._check_output_parent_real_path(gate_text, artifact_root, experiment_root)
@@ -1045,7 +1045,7 @@ def _load_reviewer_gate_receipt(
     canonical_gate_path = run_root / "gate-receipt.json"
     if _normal_path(gate_text) != _normal_path(str(canonical_gate_path)):
         raise TeamRunError("gate_receipt: reviewer must bind canonical gate-receipt.json")
-    if not TEAM_PLAN._path_is_within(gate_text, str(run_root)):
+    if not TEAM_PLAN._real_path_is_within(gate_text, str(run_root)):
         raise TeamRunError("gate_receipt: outside the current worker run")
     if not TEAM_PLAN._real_path_is_within(str(run_root), artifact_root):
         raise TeamRunError("gate_receipt: current worker run escapes artifact_root")
@@ -1370,7 +1370,7 @@ def worker_backbrief(
     if (
         template_path.is_symlink()
         or not template_path.is_file()
-        or not TEAM_PLAN._path_is_within(str(template_path), str(run_root))
+        or not TEAM_PLAN._real_path_is_within(str(template_path), str(run_root))
         or _sha256_file(template_path) != template_ref["sha256"]
     ):
         raise TeamRunError("dispatch backbrief template is missing, unsafe, or changed")

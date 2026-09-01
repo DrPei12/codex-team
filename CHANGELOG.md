@@ -6,6 +6,13 @@
 
 - 尚无已承诺内容。
 
+## [0.1.7] - 2026-09-01
+
+### Fixed
+
+- All run/artifact containment checks now use the shared resolved filesystem boundary, including future output paths via their nearest existing parent.
+- Short/long Windows aliases no longer fail report, evidence, candidate, proof, Gate, status, finish, or router containment checks.
+
 ## [0.1.6] - 2026-09-01
 
 ### Fixed
@@ -68,7 +75,8 @@
 - Deterministic skills-only plugin builder、bundle manifest/self-check 与 repo marketplace。
 - 首次真实安装、discovery、explicit load、implicit routing 与卸载回滚证据。
 
-[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/DrPei12/codex-team/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/DrPei12/codex-team/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/DrPei12/codex-team/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/DrPei12/codex-team/compare/v0.1.3...v0.1.4

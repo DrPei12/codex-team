@@ -315,7 +315,7 @@ def test_worktree_root_real_path_must_stay_in_experiment_root(tmp_path: Path) ->
     manifest["lanes"][3]["workspace"]["path"] = manifest["lanes"][2]["workspace"]["path"]
     result = run_cli(tmp_path, manifest, "validate")
     assert result.returncode == 1
-    assert "real path" in result.stderr and "experiment_root" in result.stderr
+    assert "real path" in result.stderr and "experiment_root" in result.stderr, result.stderr
 
 
 def test_lane_workspace_symlink_alias_is_rejected(tmp_path: Path) -> None:

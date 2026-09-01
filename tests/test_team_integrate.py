@@ -54,6 +54,7 @@ def create_handoff_fixture(
     team_status_path: Path | None = None,
     lane_metadata: dict[str, dict[str, object]] | None = None,
     core_workspace_alias: bool = False,
+    run_root_alias: bool = False,
 ) -> dict:
     fixture = RUN_SUPPORT.create_fixture(tmp_path)
     manifest = fixture["manifest"]
@@ -105,7 +106,12 @@ def create_handoff_fixture(
     )
     if projection.returncode != 0:
         raise AssertionError(f"team-plan reprojection failed:\n{projection.stderr}")
-    run_root = Path(fixture["artifact_root"]) / "status-run"
+    run_parent = (
+        RUN_SUPPORT.windows_short_path(Path(fixture["artifact_root"]))
+        if run_root_alias
+        else Path(fixture["artifact_root"])
+    )
+    run_root = run_parent / "status-run"
     prepared = run_command(
         [
             sys.executable,
@@ -277,6 +283,18 @@ def test_candidate_accepts_existing_workspace_alias(tmp_path: Path) -> None:
     result, output = build_candidate(fixture, "core")
     assert result.returncode == 0, result.stderr
     assert read_json(output)["changed_files"] == ["src/core.py"]
+
+
+def test_candidate_accepts_existing_run_root_alias(tmp_path: Path) -> None:
+    fixture = create_handoff_fixture(
+        tmp_path,
+        ("core", "cli"),
+        run_root_alias=True,
+    )
+    for lane_id in ("core", "cli"):
+        result, output = build_candidate(fixture, lane_id)
+        assert result.returncode == 0, result.stderr
+        assert read_json(output)["lane_id"] == lane_id
 
 
 def test_candidate_accepts_explicit_recursive_directory_glob(tmp_path: Path) -> None:
@@ -635,6 +653,7 @@ def main() -> int:
     tests_with_tmp = [
         test_candidate_binds_git_report_and_evidence,
         test_candidate_accepts_existing_workspace_alias,
+        test_candidate_accepts_existing_run_root_alias,
         test_candidate_accepts_explicit_recursive_directory_glob,
         test_candidate_accepts_descendant_of_bare_ownership_root,
         test_candidate_normalizes_windows_alias_and_case,

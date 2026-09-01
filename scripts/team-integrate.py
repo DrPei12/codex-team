@@ -143,7 +143,7 @@ def _file_ref(path: Path) -> dict[str, str]:
 
 def _validate_ref(path_value: str, expected_digest: str, run_dir: Path, label: str) -> Path:
     path_text = TEAM_PLAN._absolute_path(path_value, label, label=label)
-    if not TEAM_PLAN._path_is_within(path_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_dir)):
         raise TeamIntegrateError(f"{label}: path is outside current run_dir")
     path = Path(path_text)
     if path.is_symlink() or not path.is_file():
@@ -314,7 +314,7 @@ def _validate_candidate_document(
 
 def _load_status_snapshot(path_value: str, run_dir: Path, expected_ref: dict[str, str]) -> tuple[Path, dict[str, Any]]:
     path_text = TEAM_PLAN._absolute_path(path_value, "status", label="status")
-    if not TEAM_PLAN._path_is_within(path_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_dir)):
         raise TeamIntegrateError("status: snapshot is outside run_dir")
     path = Path(path_text)
     snapshot = _load_json(path, "status snapshot")
@@ -339,7 +339,7 @@ def prepare(
     status_path, snapshot = _load_status_snapshot(status_value, run_dir, expected_ref)
     output = _validate_output(manifest, run_dir, output_value, "output")
     candidates_text = TEAM_PLAN._absolute_path(candidates_value, "candidates", label="candidates")
-    if not TEAM_PLAN._path_is_within(candidates_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(candidates_text, str(run_dir)):
         raise TeamIntegrateError("candidates: directory is outside run_dir")
     candidates_dir = Path(candidates_text)
     if candidates_dir.is_symlink() or not candidates_dir.is_dir():
@@ -443,7 +443,7 @@ def _load_plan(
     expected_ref: dict[str, str],
 ) -> tuple[Path, dict[str, Any]]:
     path_text = TEAM_PLAN._absolute_path(plan_value, "plan", label="plan")
-    if not TEAM_PLAN._path_is_within(path_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_dir)):
         raise TeamIntegrateError("plan: outside run_dir")
     path = Path(path_text)
     document = _load_json(path, "integration plan")
@@ -551,7 +551,7 @@ def _load_apply_receipt(
     expected_ref: dict[str, str],
 ) -> tuple[Path, dict[str, Any]]:
     path_text = TEAM_PLAN._absolute_path(value, "apply_receipt", label="apply_receipt")
-    if not TEAM_PLAN._path_is_within(path_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_dir)):
         raise TeamIntegrateError("apply receipt: outside run_dir")
     path = Path(path_text)
     document = _load_json(path, "apply receipt")

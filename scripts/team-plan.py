@@ -420,15 +420,12 @@ def _real_path_is_within(child: str, root: str) -> bool:
 def _check_output_parent_real_path(output: str, artifact_root: str, experiment_root: str) -> None:
     """Reject symlink/junction escapes before creating any output directory."""
 
-    experiment_real = _real_path(experiment_root)
     artifact_anchor = _nearest_existing_path(artifact_root)
-    artifact_anchor_real = _real_path(artifact_anchor)
-    if not _path_is_within(artifact_anchor_real, experiment_real):
+    if not _real_path_is_within(artifact_anchor, experiment_root):
         _fail("output", "artifact_root real path escapes experiment_root")
 
     output_parent = _nearest_existing_path(output)
-    output_parent_real = _real_path(output_parent)
-    if not _path_is_within(output_parent_real, artifact_anchor_real):
+    if not _real_path_is_within(output_parent, artifact_anchor):
         _fail("output", "existing parent real path escapes artifact_root")
 
 
@@ -691,10 +688,16 @@ def validate_manifest(manifest: Any) -> None:
         root=experiment_root,
         label="task project path",
     )
-    if not _path_is_within(worktree_root, experiment_root):
-        _fail("workspace_policy.worktree_root", "worktree_root is outside experiment_root")
-    if not _path_is_within(artifact_root, experiment_root):
-        _fail("workspace_policy.artifact_root", "artifact_root is outside experiment_root")
+    if not _real_path_is_within(worktree_root, experiment_root):
+        _fail(
+            "workspace_policy.worktree_root",
+            "worktree_root real path is outside experiment_root",
+        )
+    if not _real_path_is_within(artifact_root, experiment_root):
+        _fail(
+            "workspace_policy.artifact_root",
+            "artifact_root real path is outside experiment_root",
+        )
     if not _real_path_is_within(worktree_root, experiment_root):
         _fail(
             "workspace_policy.worktree_root",
@@ -1228,7 +1231,7 @@ def project_manifest(manifest: dict[str, Any], output_value: str) -> int:
     lanes = manifest["lanes"]
     artifact_root = manifest["workspace_policy"]["artifact_root"]
     output_text = _absolute_path(output_value, "output", label="output")
-    if not _path_is_within(output_text, artifact_root):
+    if not _real_path_is_within(output_text, artifact_root):
         raise ManifestError(f"output: {output_text} is outside artifact_root")
     if _normal_path(output_text) == _normal_path(manifest["task_project"]["path"]):
         raise ManifestError("output: must not equal task_project.path")

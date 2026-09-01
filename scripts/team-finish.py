@@ -122,7 +122,7 @@ def _run_git(path: Path, *args: str) -> str:
 
 def _validate_run_file(run_dir: Path, value: str, label: str) -> Path:
     path_text = TEAM_PLAN._absolute_path(value, label, label=label)
-    if not TEAM_PLAN._path_is_within(path_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(path_text, str(run_dir)):
         raise TeamFinishError(f"{label}: path is outside run_dir")
     path = Path(path_text)
     if path.is_symlink() or not path.is_file():

@@ -445,3 +445,13 @@
 - 决策：plan/run/status/integrate/recover与reviewer plan/apply/candidate lineage统一复用`_paths_same_existing`；manifest-owned非path字段仍逐项exact比较，不以samefile跳过branch/base/mode/clean政策。新增integrate/recover existing-workspace-alias回归。
 - 版本与证据：builder升为0.1.6；九组本地回归共148项全绿，离线主链16份artifact通过schema。0.1.3–0.1.5 tags不移动；0.1.6必须取得public main/tag CI green。
 - 限制：filesystem identity只适用于已存在路径；不存在future path继续使用root/nearest-existing-parent规则。该修复不增加网络、task或cleanup权限。
+- 后续观察：0.1.6 public CI越过workspace identity，在candidate `report_ref` containment仍因short/long run-root表示失败。0.1.6 tag/asset保持不动并标为known issue。
+
+## D-054：所有run/artifact containment统一为resolved boundary，以0.1.7追加发布
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：0.1.6 public CI失败于`candidate cli.report_ref: path is outside current run_dir`。Workspace identity已正确，但integrate/recover/finish/run/status/router仍有phase-local lexical-only containment。
+- 决策：所有phase的run_dir、report/evidence、candidate、proof、Gate、status、finish、router与未来output path统一使用`_real_path_is_within`。已存在路径通过symlink-resolved parent + samefile校验；不存在路径通过nearest existing parent绑定root。删除phase-local lexical-only containment分叉。
+- 回归：新增short-path run-root integration candidate测试，连同workspace alias tests；九组本地回归149项全绿，离线主链16份artifact通过schema。Symlink escape与outside-root负例保持通过。
+- 版本：builder升为0.1.7；0.1.3–0.1.6 tags不移动。Public main/tag CI必须green后才完成发布验收。

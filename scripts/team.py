@@ -101,7 +101,7 @@ def _file_ref(path: Path) -> dict[str, str]:
 def _planned_run_path(manifest: dict[str, Any], run_value: str) -> Path:
     path_text = TEAM_PLAN._absolute_path(run_value, "run_dir", label="run_dir")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
-    if not TEAM_PLAN._path_is_within(path_text, artifact_root):
+    if not TEAM_PLAN._real_path_is_within(path_text, artifact_root):
         raise TeamRouterError("run_dir: outside artifact_root")
     path = Path(path_text)
     if path.exists():

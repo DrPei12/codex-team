@@ -190,7 +190,7 @@ def _validate_manifest_ref(value: Any, expected: dict[str, str], label: str) -> 
 def _validate_run_dir(manifest: dict[str, Any], run_value: str) -> Path:
     run_text = TEAM_PLAN._absolute_path(run_value, "run_dir", label="run_dir")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
-    if not TEAM_PLAN._path_is_within(run_text, artifact_root):
+    if not TEAM_PLAN._real_path_is_within(run_text, artifact_root):
         raise TeamStatusError(f"run_dir: {run_text} is outside artifact_root")
     run_dir = Path(run_text)
     if run_dir.is_symlink() or not run_dir.is_dir():
@@ -202,7 +202,7 @@ def _validate_run_dir(manifest: dict[str, Any], run_value: str) -> Path:
 
 def _validate_output(manifest: dict[str, Any], run_dir: Path, output_value: str, label: str) -> Path:
     output_text = TEAM_PLAN._absolute_path(output_value, label, label=label)
-    if not TEAM_PLAN._path_is_within(output_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(output_text, str(run_dir)):
         raise TeamStatusError(f"{label}: must be inside run_dir")
     TEAM_PLAN._check_output_parent_real_path(
         output_text,
@@ -219,7 +219,7 @@ def _validate_output(manifest: dict[str, Any], run_dir: Path, output_value: str,
 
 def _validate_facts_path(run_dir: Path, facts_value: str) -> Path:
     facts_text = TEAM_PLAN._absolute_path(facts_value, "facts", label="facts")
-    if not TEAM_PLAN._path_is_within(facts_text, str(run_dir)):
+    if not TEAM_PLAN._real_path_is_within(facts_text, str(run_dir)):
         raise TeamStatusError("facts: must be inside run_dir")
     facts = Path(facts_text)
     if facts.is_symlink() or not facts.is_file():
