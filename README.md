@@ -9,7 +9,7 @@ Codex Team 是一个只面向 Codex 的 manifest-driven 多任务工程系统。
 
 ## 当前版本
 
-最新版本：`0.1.8`。
+最新版本：`0.1.9`。
 
 - 需求覆盖矩阵：`requirement -> owner -> path -> Gate -> reviewer`；
 - `change` 与 `verification-only` requirement；

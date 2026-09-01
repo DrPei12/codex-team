@@ -464,3 +464,12 @@
 - 触发证据：0.1.7 CI唯一失败为`UnicodeEncodeError: cp1252`，发生在成功写出brief后的状态打印；本地Codex PowerShell使用UTF-8未复现。
 - 决策：Windows CI job设置`PYTHONUTF8=1`和`PYTHONIOENCODING=utf-8`，不修改task/Git/artifact协议语义。Builder升为0.1.8，使tag自身包含CI环境修复；0.1.7不移动。
 - 验收：0.1.8本地保持九组149项全绿；public main与tag run都必须完成九组测试和plugin build/self-check。仅main green或仅手工rerun不足。
+- 后续观察：0.1.8 CI越过UTF-8、finish/integrate/plan，在packaged reviewer preflight因`plan_ref must bind canonical integration-plan.json`失败。Receipt显示cwd/common-dir均通过，剩余差异是同一canonical file的短/长路径字符串。
+
+## D-056：Canonical file使用filesystem identity，以0.1.9完成packaged reviewer路径
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：本机将TEMP切换为真实8.3短路径后复现0.1.8 CI；reviewer receipt仅canonical plan/apply/Gate file identity失败，其余路径检查通过。
+- 决策：`team-run`新增`_same_canonical_path`。已存在canonical files用samefile；尚未创建的exclusive output要求filename case-insensitive相同且parent samefile。Candidate、plan、apply、gate与backbrief canonical路径复用，branch/base/mode/hash仍独立exact校验。
+- 回归与版本：8.3 TEMP下packaged plugin 9/9通过，team-run30/30与离线端到端/schema1/1通过；builder升为0.1.9。0.1.3–0.1.8 tags不移动；public main/tag CI必须green。

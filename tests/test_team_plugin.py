@@ -92,7 +92,7 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = read_json(plugin / ".codex-plugin" / "plugin.json")
     assert manifest["name"] == PLUGIN_NAME
-    assert manifest["version"] == "0.1.8"
+    assert manifest["version"] == "0.1.9"
     assert manifest["skills"] == "./skills/"
     assert {path.name for path in (plugin / "skills").iterdir() if path.is_dir()} == SKILLS
     runtime = plugin / "skills" / "team" / "scripts"
@@ -316,7 +316,10 @@ def test_packaged_integrate_and_finish_runtime(tmp_path: Path) -> None:
         ],
         cwd=Path(fixture["integrator"]),
     )
-    assert reviewer_preflight.returncode == 0, reviewer_preflight.stderr
+    reviewer_detail = (
+        reviewer_receipt.read_text(encoding="utf-8") if reviewer_receipt.is_file() else ""
+    )
+    assert reviewer_preflight.returncode == 0, reviewer_preflight.stderr + reviewer_detail
     reviewer_document = read_json(reviewer_receipt)
     assert reviewer_document["status"] == "passed"
     assert reviewer_document["target"] == read_json(gate_receipt)["target"]

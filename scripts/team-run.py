@@ -117,6 +117,17 @@ def _same_path(left: str, right: str) -> bool:
     return TEAM_PLAN._paths_same_existing(left, right)
 
 
+def _same_canonical_path(left: str | Path, right: str | Path) -> bool:
+    left_path = Path(left)
+    right_path = Path(right)
+    if left_path.exists() and right_path.exists():
+        return _same_path(str(left_path), str(right_path))
+    return (
+        left_path.name.casefold() == right_path.name.casefold()
+        and _same_path(str(left_path.parent), str(right_path.parent))
+    )
+
+
 def _validate_output_path(manifest: dict[str, Any], output_value: str) -> Path:
     output_text = _absolute_path(output_value, "output")
     artifact_root = manifest["workspace_policy"]["artifact_root"]
@@ -802,7 +813,7 @@ def _validate_reviewer_plan(
             candidate_ref, run_root, f"plan candidates[{index}].candidate_ref"
         )
         expected_candidate_path = run_root / "candidates" / f"{lane_id}.json"
-        if candidate_path != expected_candidate_path:
+        if not _same_canonical_path(candidate_path, expected_candidate_path):
             raise TeamRunError(f"gate_receipt: plan candidates[{index}] is not canonical")
         candidate_document = _load_json(candidate_path, f"integration candidate {lane_id}")
         workspace = candidate_document.get("workspace")
@@ -1043,7 +1054,7 @@ def _load_reviewer_gate_receipt(
 
     run_root = _receipt_run_root(worker_receipt_path)
     canonical_gate_path = run_root / "gate-receipt.json"
-    if _normal_path(gate_text) != _normal_path(str(canonical_gate_path)):
+    if not _same_canonical_path(gate_text, canonical_gate_path):
         raise TeamRunError("gate_receipt: reviewer must bind canonical gate-receipt.json")
     if not TEAM_PLAN._real_path_is_within(gate_text, str(run_root)):
         raise TeamRunError("gate_receipt: outside the current worker run")
@@ -1093,9 +1104,9 @@ def _load_reviewer_gate_receipt(
     apply_path = _validate_gate_file_ref(
         document["apply_receipt_ref"], run_root, "apply_receipt_ref"
     )
-    if plan_path != run_root / "integration-plan.json":
+    if not _same_canonical_path(plan_path, run_root / "integration-plan.json"):
         raise TeamRunError("gate_receipt: plan_ref must bind canonical integration-plan.json")
-    if apply_path != run_root / "integration-apply.json":
+    if not _same_canonical_path(apply_path, run_root / "integration-apply.json"):
         raise TeamRunError("gate_receipt: apply_receipt_ref must bind canonical integration-apply.json")
     plan_ref = {"path": str(plan_path.resolve()), "sha256": _sha256_file(plan_path)}
     apply_ref = {"path": str(apply_path.resolve()), "sha256": _sha256_file(apply_path)}
@@ -1281,7 +1292,7 @@ def _canonical_run_file(path_value: str, receipt_path: Path, directory: str, lan
     path_text = _absolute_path(path_value, label)
     run_root = receipt_path.parent.parent
     expected = run_root / directory / f"{lane_id}.json"
-    if _normal_path(path_text) != _normal_path(str(expected)):
+    if not _same_canonical_path(path_text, expected):
         raise TeamRunError(f"{label}: must be the current run's canonical {directory}/{lane_id}.json")
     if not TEAM_PLAN._real_path_is_within(str(expected.parent), str(run_root)):
         raise TeamRunError(f"{label}: canonical parent escapes the current run")
