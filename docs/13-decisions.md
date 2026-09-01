@@ -411,8 +411,17 @@
 - 状态：Accepted
 - 用户授权：将当前项目作为正式工程发布到GitHub public，包括所有历史版本、tags和GitHub Releases。
 - 发布源：正式remote `https://github.com/DrPei12/codex-team`；release main使用当前0.1.3候选的完整祖先历史。所有8条本地branch refs均为release HEAD祖先，因此推送main即可包含32个可达提交；不额外公开冗余branch refs或dangling/unreachable Git对象。
-- 历史tag：`v0.1.0`绑定`6f817c8b292eedc9a1bea6385410ce92bec44ef7`，`v0.1.1`绑定`931c3504237afcc508ad5c659da87c6728f37707`，`v0.1.2`绑定`3563dbe3c0a32132c1ce234b52477a0d64f63ac1`；`v0.1.3`绑定本次public-release文档提交。Tags使用annotated identity，不移动历史版本。
+- 历史tag：`v0.1.0`绑定`6f817c8b292eedc9a1bea6385410ce92bec44ef7`，`v0.1.1`绑定`931c3504237afcc508ad5c659da87c6728f37707`，`v0.1.2`绑定`3563dbe3c0a32132c1ce234b52477a0d64f63ac1`；`v0.1.3`绑定首个public-release文档提交。Tags使用annotated identity，不移动历史版本；发布后fix使用新tag。
 - Release资产：每个tag从其exact commit运行对应version builder/self-check，上传`codex-team-vX.Y.Z.zip`和`SHA256SUMS.txt`；release正文使用repo-local `docs/releases/`，不把后续能力追溯写入旧版本。
 - 安全边界：全可达历史按GitHub PAT、OpenAI-style key、AWS key、private key、Bearer、password/API-key assignment规则扫描；唯一`sk-`命中是`multitask-verification-evidence`字符片段误报，commit messages无命中。实验材料包含本机路径和不可外部访问的Codex task/thread IDs；用户已明确授权完整历史public，API Key/Authorization/private key不在发布历史。
 - 许可证：本轮不替用户选择MIT/Apache等法律许可。仓库public但无`LICENSE`，README明确公开可读不等于授予复制、修改、分发或商业使用权。
 - CI：public main/tag/PR使用Windows、Python 3.12，执行九组Team回归和plugin build/self-check。首次GitHub Actions结果是发布后独立事实，不在push前预宣称green。
+
+## D-051：Windows resolved-path alias 修复以0.1.4追加发布，不移动0.1.3 tag
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 触发证据：首次public CI在GitHub Windows runner上将同一临时目录同时表示为`C:\Users\RUNNER~1\...`与解析后的长路径。`team-status._validate_ref_file`先做纯lexical containment，错误返回`brief_ref: path is outside allowed root`；本地普通长路径未触发。
+- 决策：file ref只在lexical containment与resolved-real containment均失败时拒绝；后续symlink/missing/hash校验保持不变。新增目录alias正向回归，真实逃逸负例继续保留。
+- 版本：已公开的`v0.1.3` tag/asset不移动；builder升为`0.1.4`，新release记录修复并将0.1.3标为历史已知问题。
+- 本地证据：受影响的team-status 24/24、plugin 9/9与离线端到端/schema 1/1通过；总回归数量由144增至145。首次CI失败不能写成0.1.3 green；0.1.4必须在新的GitHub Actions run通过后才完成public工程发布验收。

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -28,6 +29,18 @@ def load_team_run_tests():
 
 
 TEAM_RUN_TESTS = load_team_run_tests()
+
+
+def load_team_status_runtime():
+    spec = importlib.util.spec_from_file_location("team_status_runtime", TEAM_STATUS)
+    if spec is None or spec.loader is None:
+        raise AssertionError(f"cannot load team-status runtime: {TEAM_STATUS}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+TEAM_STATUS_RUNTIME = load_team_status_runtime()
 
 
 def run_command(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -205,6 +218,24 @@ def test_entrypoints_exist() -> None:
     assert SCHEMA.is_file()
     assert SKILL.is_file()
     assert OPENAI_YAML.is_file()
+
+
+def test_ref_file_accepts_real_path_alias_within_allowed_root(tmp_path: Path) -> None:
+    real_root = tmp_path / "real-artifact-root"
+    real_root.mkdir()
+    alias_root = tmp_path / "artifact-root-alias"
+    try:
+        os.symlink(real_root, alias_root, target_is_directory=True)
+    except OSError as exc:
+        raise AssertionError(f"directory symlink setup required for alias test: {exc}") from exc
+    artifact = real_root / "brief.json"
+    artifact.write_text('{"kind":"brief"}\n', encoding="utf-8")
+    TEAM_STATUS_RUNTIME._validate_ref_file(
+        {"path": str(artifact), "sha256": sha256(artifact)},
+        "alias fixture",
+        str(alias_root),
+        required=True,
+    )
 
 
 def test_initial_status_respects_dependencies(tmp_path: Path) -> None:
@@ -635,6 +666,7 @@ def main() -> int:
     failures = 0
     tests_without_tmp = [test_entrypoints_exist]
     tests_with_tmp = [
+        test_ref_file_accepts_real_path_alias_within_allowed_root,
         test_initial_status_respects_dependencies,
         test_failed_parent_run_renders_preparation_failed,
         test_bound_task_without_receipt_is_preflight,

@@ -4,7 +4,7 @@
 
 - 日期：2026-09-01
 - 阶段：`M1.8 — Public GitHub release`
-- 状态：D-046至D-049的0.1.3 candidate已通过九组144项源码回归、7/7 packaged skill quick validation及最终临时bundle self-check；D-050已接受，将32个可达提交与0.1.0–0.1.3 annotated tags/releases发布到`DrPei12/codex-team` public。Public release文档、changelog、安全/贡献政策和Windows CI正在本轮冻结；remote push、release assets与首次Actions结果尚待验证。7个skill继续`incubating`，0.1.3未安装或Desktop live forward-test
+- 状态：`DrPei12/codex-team` public main、v0.1.0–v0.1.3 annotated tags/releases与assets已发布，private vulnerability reporting已启用。首次Windows CI暴露short/long temp-path alias false rejection并失败；D-051已接受，0.1.4修复与回归正在追加发布。7个skill继续`incubating`，没有live fact collector或Desktop backbrief/checkpoint forward test
 - 当前源码基线：branch `codex/team-v012-lifecycle`，本轮0.1.3实现基于实验审计commit `3563dbe`继续；0.1.1核心修复commit `85baabe`，0.1.2 lifecycle commit `d43aa9c`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
@@ -105,7 +105,9 @@
 - [x] 接受D-049：新required协议构建版本升为0.1.3；不覆盖当前installed 0.1.0
 - [x] D-046至D-049后九组Team回归共144项全绿；最终临时0.1.3 package为37-file/7-entrypoint自检通过，7/7 packaged skills quick validation通过
 - [x] 接受D-050：冻结public仓库名、完整可达历史、0.1.0–0.1.3 tag commit、release asset与无许可证边界
-- [ ] 创建并验证GitHub public remote、main/tags、四个Releases、资产hash、private vulnerability reporting与首次CI
+- [x] 创建并验证GitHub public remote、main、v0.1.0–v0.1.3 tags/Releases/assets与private vulnerability reporting
+- [x] D-051本地受影响回归通过：team-status 24/24、plugin 9/9、离线端到端/schema 1/1；总测试数145
+- [ ] 发布0.1.4 path-alias fix并取得新的GitHub Actions green run
 
 ## 纵向切片清单（已完成与未完成）
 

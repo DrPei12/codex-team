@@ -6,6 +6,13 @@
 
 - 尚无已承诺内容。
 
+## [0.1.4] - 2026-09-01
+
+### Fixed
+
+- Team status file references now accept Windows short/long path aliases when both resolve inside the same allowed artifact root.
+- Real-path containment remains fail-closed for paths that actually escape the run root.
+
 ## [0.1.3] - 2026-09-01
 
 ### Added
@@ -47,7 +54,8 @@
 - Deterministic skills-only plugin builder、bundle manifest/self-check 与 repo marketplace。
 - 首次真实安装、discovery、explicit load、implicit routing 与卸载回滚证据。
 
-[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/DrPei12/codex-team/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/DrPei12/codex-team/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/DrPei12/codex-team/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/DrPei12/codex-team/compare/v0.1.0...v0.1.1

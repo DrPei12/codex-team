@@ -479,7 +479,10 @@ def _validate_ref_file(
             return
     assert path_value is not None and digest is not None
     path_text = TEAM_PLAN._absolute_path(path_value, f"{label}.path", label=f"{label}.path")
-    if not TEAM_PLAN._path_is_within(path_text, allowed_root):
+    if not (
+        TEAM_PLAN._path_is_within(path_text, allowed_root)
+        or TEAM_PLAN._real_path_is_within(path_text, allowed_root)
+    ):
         raise TeamStatusError(f"{label}: path is outside allowed root")
     path = Path(path_text)
     if path.is_symlink() or not path.is_file():

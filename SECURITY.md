@@ -6,8 +6,8 @@
 
 | Version | Supported |
 | --- | --- |
-| 0.1.3 | Yes |
-| 0.1.0–0.1.2 | No |
+| 0.1.4 | Yes |
+| 0.1.0–0.1.3 | No |
 
 ## Reporting a vulnerability
 

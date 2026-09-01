@@ -9,7 +9,7 @@ Codex Team 是一个只面向 Codex 的 manifest-driven 多任务工程系统。
 
 ## 当前版本
 
-最新版本：`0.1.3`。
+最新版本：`0.1.4`。
 
 - 需求覆盖矩阵：`requirement -> owner -> path -> Gate -> reviewer`；
 - `change` 与 `verification-only` requirement；
@@ -18,7 +18,7 @@ Codex Team 是一个只面向 Codex 的 manifest-driven 多任务工程系统。
 - manifest-specific heartbeat、turn budget 与 stage checkpoint；
 - exact candidate、ordered integration、Gate receipt 与 reviewer exact target；
 - non-destructive finish 与 bounded recovery；
-- 7 个 `incubating` skills，144 项源码回归和 16 份离线端到端 artifact schema 验证。
+- 7 个 `incubating` skills，145 项源码回归和 16 份离线端到端 artifact schema 验证。
 
 成熟度仍为 `incubating`。当前没有后台 scheduler、自动 live fact collector、自动任务中断/重派或长期稳定性保证。
 
