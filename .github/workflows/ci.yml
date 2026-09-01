@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependency
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check jsonschema
+
+      - name: Configure Git identity for fixture repositories
+        shell: pwsh
+        run: |
+          git config --global user.name 'Codex Team CI'
+          git config --global user.email 'codex-team-ci@example.invalid'
+
+      - name: Run Team regression suites
+        shell: pwsh
+        run: |
+          $tests = @(
+            'test_team_finish.py',
+            'test_team_integrate.py',
+            'test_team_plan.py',
+            'test_team_plugin.py',
+            'test_team_recover.py',
+            'test_team_router.py',
+            'test_team_run.py',
+            'test_team_status.py',
+            'test_team_v01.py'
+          )
+          foreach ($test in $tests) {
+            python -B "tests\$test"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Build and verify plugin
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP 'codex-team'
+          python -B scripts\build-team-plugin.py --out $output
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B "$output\skills\team\scripts\bundle-self-check.py" "$output\skills\team"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

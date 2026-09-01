@@ -404,3 +404,15 @@
 - 决策：D-046至D-048新增required manifest/brief/dispatch/status字段和新backbrief artifact，plugin版本从`0.1.2`升为`0.1.3`。旧0.1.0–0.1.2 runtime不得读取新manifest并假定兼容；新runtime也不把旧facts自动升级为新事实。
 - 授权边界：允许源码、测试和临时no-overwrite package验证；不自动授权更新当前installed 0.1.0、创建新的ClothingRecycler任务、热刷新旧task、删除cache或恢复产品发布执行。真实安装升级与live forward test仍需要独立snapshot/rollback。
 - 临时证据：最终no-overwrite package位于`C:\Users\lenovo\AppData\Local\Temp\codex-team-forward-bf7e83a782b54ea1b2dfa990c42812e3\codex-team`；version `0.1.3`，37-file/7-entrypoint bundle self-check与7/7 packaged skill quick validation通过，bundle manifest SHA-256为`e2dd456c0a2427d32bae5181cef9994a1c464e4f57f789e6508b29197e95afac`。此前`0431…`和`f871…`包分别早于verification-only/backbrief绑定和failed-backbrief status修正，只保留为中间产物，不是最终证据。该路径不是已安装状态。
+
+## D-050：以 `DrPei12/codex-team` public 仓库发布完整可达历史与0.1.x releases
+
+- 日期：2026-09-01
+- 状态：Accepted
+- 用户授权：将当前项目作为正式工程发布到GitHub public，包括所有历史版本、tags和GitHub Releases。
+- 发布源：正式remote `https://github.com/DrPei12/codex-team`；release main使用当前0.1.3候选的完整祖先历史。所有8条本地branch refs均为release HEAD祖先，因此推送main即可包含32个可达提交；不额外公开冗余branch refs或dangling/unreachable Git对象。
+- 历史tag：`v0.1.0`绑定`6f817c8b292eedc9a1bea6385410ce92bec44ef7`，`v0.1.1`绑定`931c3504237afcc508ad5c659da87c6728f37707`，`v0.1.2`绑定`3563dbe3c0a32132c1ce234b52477a0d64f63ac1`；`v0.1.3`绑定本次public-release文档提交。Tags使用annotated identity，不移动历史版本。
+- Release资产：每个tag从其exact commit运行对应version builder/self-check，上传`codex-team-vX.Y.Z.zip`和`SHA256SUMS.txt`；release正文使用repo-local `docs/releases/`，不把后续能力追溯写入旧版本。
+- 安全边界：全可达历史按GitHub PAT、OpenAI-style key、AWS key、private key、Bearer、password/API-key assignment规则扫描；唯一`sk-`命中是`multitask-verification-evidence`字符片段误报，commit messages无命中。实验材料包含本机路径和不可外部访问的Codex task/thread IDs；用户已明确授权完整历史public，API Key/Authorization/private key不在发布历史。
+- 许可证：本轮不替用户选择MIT/Apache等法律许可。仓库public但无`LICENSE`，README明确公开可读不等于授予复制、修改、分发或商业使用权。
+- CI：public main/tag/PR使用Windows、Python 3.12，执行九组Team回归和plugin build/self-check。首次GitHub Actions结果是发布后独立事实，不在push前预宣称green。

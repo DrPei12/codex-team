@@ -1,77 +1,111 @@
-# Codex 多任务工程系统
+# Codex Team
 
-一个面向 Codex 的社区开源研究与 skills 工程：调查多任务、subagent、Git worktree、直接任务通信、验收证据与生命周期治理已经能做到什么，再把可复现的方法、失败边界和工具化实践分享出来。
+[![Release](https://img.shields.io/github/v/release/DrPei12/codex-team)](https://github.com/DrPei12/codex-team/releases)
+[![CI](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml/badge.svg)](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml)
 
-它不是商业产品，也不以“发明新范式”作为成立条件。项目可以广泛吸收、复现和组合已有实践，但只有经过当前 Codex 环境实测的能力才会晋升为稳定 skill。当前已实现 Team v0.1 离线完整工作流和可移动 skills-only plugin；在记录环境中完成两次真实安装/重装/卸载，新任务发现并显式加载 7 个 skill，且一条高匹配请求隐式选中总入口。长期触发准确率、版本升级和真实 worker 生命周期仍未验证，七个 skill 保持 `incubating`。
+Codex Team 是一个只面向 Codex 的 manifest-driven 多任务工程系统。它把需求覆盖、任务切分、workspace/文件所有权、worker 预检、证据交接、阶段检查点、集成、独立审查、完成与恢复固化为七个可移动 skills 和一套可验证的本地 artifact 协议。
 
-## 项目要解决什么
+项目不会因为“可以并行”就创建更多任务。只有共享契约、依赖、owner、输入输出、Gate 与集成点足够清楚时才允许并行。
 
-单个 Codex 任务可以完成复杂工程，但大型开发仍会遇到四类上限：
+## 当前版本
 
-1. 功能没有按依赖和共享契约正确拆分，可并行工作被迫串行，或错误并行造成返工；
-2. 多条 session 缺少清楚的文件/资源所有权、任务状态和集成顺序；
-3. 多任务之间靠自由文本交接，证据、责任和状态容易丢失；
-4. 并行数量增加后，Git 冲突、重复测试、等待、任务堆积和上下文干扰抵消收益。
+最新版本：`0.1.3`。
 
-本项目不把“多开几个 Agent”当作答案，而是研究、验证并逐步工具化下面这套方法：
+- 需求覆盖矩阵：`requirement -> owner -> path -> Gate -> reviewer`；
+- `change` 与 `verification-only` requirement；
+- visible task / internal subagent、用户语言标题与任务生命周期；
+- worker preflight 与 hash-bound backbrief；
+- manifest-specific heartbeat、turn budget 与 stage checkpoint；
+- exact candidate、ordered integration、Gate receipt 与 reviewer exact target；
+- non-destructive finish 与 bounded recovery；
+- 7 个 `incubating` skills，144 项源码回归和 16 份离线端到端 artifact schema 验证。
 
-- 一个高能力主编排者负责目标、架构、切分、风险和最终整合；
-- 若干长期任务像项目成员一样拥有独立历史和可隔离的工作环境；
-- 每个任务内部可以使用短命 subagent 搜索、分析或实现小单元；
-- Git、测试报告和结构化 artifact 承担事实传递，任务消息只负责协调；
-- 验收按风险分层，避免昂贵测试机械地执行两遍；
-- 完成的临时任务归档，长期职责任务保留，老化任务可通过 handoff 轮换。
+成熟度仍为 `incubating`。当前没有后台 scheduler、自动 live fact collector、自动任务中断/重派或长期稳定性保证。
 
-## 范围
+## 七个 skills
 
-只面向 Codex。不会设计“平台无关核心”、adapter 层或 Claude Code 兼容预留。如果未来需要 Claude Code 版本，应作为独立项目重新设计。
+- [`team`](skills/team/SKILL.md)：只读路由到下一 canonical phase；
+- [`team-plan`](skills/team-plan/SKILL.md)：验证 requirement coverage、DAG、ownership、Gate 和 checkpoint；
+- [`team-run`](skills/team-run/SKILL.md)：生成 preregistration、preflight、prompt/dispatch 与 worker backbrief；
+- [`team-status`](skills/team-status/SKILL.md)：从 immutable facts 派生 lane/checkpoint 状态；
+- [`team-integrate`](skills/team-integrate/SKILL.md)：冻结候选、按 manifest 顺序集成并运行 exact-target Gate；
+- [`team-finish`](skills/team-finish/SKILL.md)：审计最终 Git/artifact/task disposition，不自动清理；
+- [`team-recover`](skills/team-recover/SKILL.md)：冻结失败候选并准备一个有界 successor。
 
-Claude Agent Teams、oh-my-codex、gstack、Superpowers、Gas Town、Agent Orchestrator、CCPM、Parallel Code/Conductor 和相关论文可以作为 prior art 与实验参照，但不是本项目要兼容的运行目标，也不是需要击败的竞争对象。项目规模可以随可靠能力累积而扩大；边界来自 Codex plugin/skills 能承载什么，而不是预先规定一个最小目录。
+## 构建 plugin
 
-## 当前成果
+要求：Python 3.12+、Git、Windows PowerShell（完整回归目前只在 Windows 验证）。
 
-- 项目章程、概念模型和术语体系；
-- worker 角色、执行环境与历史来源的分层分类；
-- 多种编排范式及默认混合工作流；
-- 基于 A2A 语义的任务、消息和 artifact 模型；
-- proof-carrying handoff 与分层验收策略；
-- 模型、thinking、上下文和任务生命周期策略；
-- 大型 skills 套件的信息架构与渐进式披露原则；
-- 评测路线、决策日志、开放问题和完整讨论记录；
-- 对原生产品、社区实践、长时多 Agent 实验和 skills 实证研究的 [prior-art 与能力上限调查](docs/research/prior-art-and-capability-limits.md)；
-- 对 gstack、Superpowers、oh-my-codex 固定源码快照的 [大型工程方法提炼](docs/research/large-skill-suite-engineering-methods.md)；
-- 区分声明与行为观测的 [Codex capability contract](docs/18-capability-contract.md)、静态环境快照、只读探针和 validator；
-- 首轮隔离行为 [pilot](docs/research/capability-pilot-2026-08-12.md)：两个外部 worktree、三个会话、idle message/wait 与 same-directory fork；
-- 首个 worker profile [对照](docs/research/profile-comparison-2026-08-12.md)：粗暴关闭用户配置不仅未降本，还使 verifier 失败并把输入放大约 5.2 倍；
-- 已冻结的 OutputGuard JSONL benchmark、反作弊边界和失败记录；第一次 CLI 混合试跑因真实 worker 环境与 Git preflight 失败而停止，没有形成对照结论；
-- D-023 Desktop-first 执行规则；Desktop local 任务已完成只读、Git index/ref 写入、完整 public pytest、Ruff、mypy 外置缓存、离线 package build 和 assigned worktree marker commit 资格检查；
-- 已冻结并实际执行的 [OutputGuard 首个 Desktop 纵向切片计划](docs/19-outputguard-vertical-slice-plan.md)，以及 session plan、roster、task brief、worker report、integration queue 的最小 JSON Schema、样例和 fail-closed validator；
-- [Run02–Run10 全流程实录](docs/research/outputguard-vertical-slice-2026-08-15.md)：最终 exact tree 通过 public Gate、fresh Reviewer 和单次 sealed evaluator `37/37`，同时保留每个 blocked run、一个 low finding 和 29 个 ignored bytecode 残留的限制。
-- 首个 `incubating` workflow skill：[`team-plan`](skills/team-plan/SKILL.md)、canonical manifest schema、标准库 validator/projector 和 19 项边界回归；一次 fresh forward test 生成 1 份 manifest 与 4 份 digest-bound task brief，详见 [team-plan v0.1 实录](docs/research/team-plan-v0.1-2026-08-15.md)。
-- 第二个 `incubating` workflow skill：[`team-run`](skills/team-run/SKILL.md) 的非 live 准备层；它生成 preregistration、run-local roots、parent/worker preflight receipt、分层 prompt 和 dispatch bundle，11 项真实临时 Git/worktree 回归通过，但不创建 Codex task。详见 [team-run v0.1 实录](docs/research/team-run-v0.1-2026-08-24.md)。
-- 第三个 `incubating` workflow skill：[`team-status`](skills/team-status/SKILL.md) 的只读派生层；它从 manifest-bound facts/receipts/report/evidence 计算 lane 状态、依赖阻塞和下一动作，18 项回归通过，但不读取 live Codex task。详见 [team-status v0.1 实录](docs/research/team-status-v0.1-2026-08-24.md)。
-- [`team-integrate`](skills/team-integrate/SKILL.md) 的 exact candidate、manifest-order 集成和显式授权 Gate，12 项回归通过；详见 [team-integrate v0.1 实录](docs/research/team-integrate-v0.1-2026-08-25.md)。
-- [`team-finish`](skills/team-finish/SKILL.md) 的 review binding、ordinary/ignored/operation-residue audit 和非破坏性 milestone result，11 项回归通过；详见 [team-finish v0.1 实录](docs/research/team-finish-v0.1-2026-08-25.md)。
-- [`team-recover`](skills/team-recover/SKILL.md) 的 exact commit/dirty candidate、immutable predecessor、proof 复用、单一新事实和有界 successor brief，10 项回归通过；详见 [team-recover v0.1 实录](docs/research/team-recover-v0.1-2026-08-25.md)。
-- 统一 [`team`](skills/team/SKILL.md) 只读路由入口与一条离线端到端主链；八组共 90 项回归和 16 份端到端 schema artifact 全部通过。详见 [Team v0.1 验收](docs/research/team-v0.1-2026-08-25.md)。
-- 确定性 [`codex-team` plugin builder](scripts/build-team-plugin.py)：将 7 个 skill、7 个 runtime 入口和 7 份 runtime schema 构建为可移动 skills-only plugin；8 项打包/隔离运行测试与原有 90 项一起得到 `98 passed, 0 failed`。详见 [plugin packaging v0.1 验收](docs/research/team-plugin-packaging-v0.1-2026-08-25.md)。
-- Repo marketplace 与真实安装验收：`codex-team@codex-team-local` 在 Codex CLI `0.146.0` 中两次安装/enabled 并成功回滚；新任务发现 7 个 skill，7-skill 显式调用矩阵和一条隐式路由通过，两条卸载后新任务均返回 `ABSENT`。详见 [真实安装与触发验收](docs/research/team-plugin-live-install-v0.1-2026-08-26.md)。
+```powershell
+$buildRoot = Join-Path $env:TEMP ('codex-team-build-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $buildRoot | Out-Null
+$output = Join-Path $buildRoot 'codex-team'
+python -B scripts\build-team-plugin.py --out $output
+python -B "$output\skills\team\scripts\bundle-self-check.py" "$output\skills\team"
+```
 
-## 从哪里开始读
+Builder 不覆盖已存在的输出目录。生成包包含 7 个 skills、7 个 runtime 入口、7 份 schema 与 SHA-256 bundle manifest。
+
+## 本地 marketplace 安装
+
+仓库 marketplace 指向 Git-ignored 的 `plugins/codex-team`，因此先构建到该路径，再安装：
+
+```powershell
+New-Item -ItemType Directory -Path "$PWD\plugins" -Force | Out-Null
+python -B scripts\build-team-plugin.py --out "$PWD\plugins\codex-team"
+codex plugin marketplace add . --json
+codex plugin add codex-team@codex-team-local --json
+```
+
+卸载：
+
+```powershell
+codex plugin remove codex-team@codex-team-local --json
+codex plugin marketplace remove codex-team-local --json
+```
+
+Codex 的 plugin cache、旧任务和 effective runtime 不保证热刷新。升级前应保存 snapshot/rollback，并用新任务重新验证 discovery、explicit load 与 bundle self-check。
+
+## 验证
+
+```powershell
+$tests = @(
+  'test_team_finish.py',
+  'test_team_integrate.py',
+  'test_team_plan.py',
+  'test_team_plugin.py',
+  'test_team_recover.py',
+  'test_team_router.py',
+  'test_team_run.py',
+  'test_team_status.py',
+  'test_team_v01.py'
+)
+foreach ($test in $tests) {
+  python -B "tests\$test"
+  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+```
+
+## 文档
 
 1. [项目章程](docs/00-project-charter.md)
-2. [概念模型](docs/01-conceptual-model.md)
-3. [默认运行架构](docs/04-default-operating-model.md)
-4. [文档导航](docs/README.md)
-5. [当前状态](docs/16-project-status.md)
-6. [Prior art 与能力上限](docs/research/prior-art-and-capability-limits.md)
+2. [默认运行架构](docs/04-default-operating-model.md)
+3. [决策日志](docs/13-decisions.md)
+4. [当前状态](docs/16-project-status.md)
+5. [Capability contract](docs/18-capability-contract.md)
+6. [ClothingRecycler live 实验](experiments/clothingrecycler-pc-v1/README.md)
+7. [Changelog](CHANGELOG.md)
 
-## 当前阶段
+## 范围与证据边界
 
-`M1.4 — Team plugin install/trigger observed; live task observation next`
+- 只面向 Codex；不提供 Claude Code adapter 或平台无关 runtime。
+- Worker 声称完成不等于验收完成；Git revision、artifact hash、Gate 与 reviewer target必须独立绑定。
+- `requested_model/reasoning` 不等于 effective 配置；不可观测时必须记录 `unknown`。
+- Source fixture、临时 package 和一次受控实验不能证明长期触发、自动恢复或端到端稳定。
+- Superpowers 仅作为历史 prior art 研究对象，不是本项目 runtime 依赖。
 
-截至 2026-08-26，`codex/team-v01` 的 marketplace contract 基线为 `19c8152` / tree `a548cc3`，plugin tests 为 9/9，与原 Team 回归合计 99 项。`codex-team@codex-team-local` 已两次安装为 `0.1.0 installed, enabled`，安装缓存与 repo source 38 文件 hash 一致；6 条可读新任务提供 discovery、7-skill 显式加载、一条隐式路由、行为负触发和两次卸载后 `ABSENT` 证据。最终 plugin 和 marketplace 已从全局 Codex 配置移除，版本缓存已删，repo marketplace/source 保留用于复现。`main` 未合并。
+## 许可证
 
-首个功能 OutputGuard JSONL streaming 已完成一条真实 Desktop recovery lineage。最终 commit `b67c8e` / tree `41de967` 通过 affected tests `64 passed`、完整 public suite `2093 passed / 28 skipped`、Ruff、mypy、离线 build、新 Reviewer 和唯一一次 sealed evaluator `37 passed`。这不是一次无中断四任务成功，也没有证明多任务比 single 更快、更省或更可靠；最终结果复用了前序 run 已验收的 CLI commit 和精确 Core candidate。
+本仓库当前**没有开源许可证**。GitHub public visibility 只表示源码公开可读，不授予复制、修改、分发或商业使用权。若后续决定采用 MIT、Apache-2.0 或其他许可证，将通过独立决策与新版本发布。
 
-Run02–Run10 暴露的 canonical identity、artifact root、所有权、状态、integration/review target、proof-carrying recovery 和分层 cleanliness 已进入 Team v0.1。可移动打包、真实 repo marketplace 安装、新任务 7-skill discovery/显式加载、单次隐式路由和卸载负验证已观察。仍未完成的是版本升级/cachebuster、长期触发准确率、只读 live facts collector、真实 Desktop worker dispatch/handoff/archive 以及公平对照。OutputGuard 只继续作为 failure corpus；skill 的主要边际效用必须转到第二个未见 benchmark。参见[评测路线](docs/12-evaluation-roadmap.md)。
+安全问题请阅读 [SECURITY.md](SECURITY.md)，贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。

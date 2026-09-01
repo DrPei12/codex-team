@@ -3,8 +3,8 @@
 ## Snapshot
 
 - 日期：2026-09-01
-- 阶段：`M1.7 — Requirement coverage, backbrief, and checkpoint contract`
-- 状态：ClothingRecycler最终暴露AI Native ownership orphan、组件Gate未覆盖真实AI用户链路、九小时工作未进入canonical Team facts和长时间marker缺失；主turn后来于11:01完成并给出final，该时间线已追加纠正。D-046至D-049已接受；0.1.3 candidate新增requirement coverage lattice、worker backbrief、stage checkpoint和manifest-specific progress budgets。九组144项源码回归、7/7 packaged skill quick validation及最终临时0.1.3 bundle self-check全绿；7个skill继续`incubating`，0.1.3未安装或Desktop live forward-test，`main`未合并
+- 阶段：`M1.8 — Public GitHub release`
+- 状态：D-046至D-049的0.1.3 candidate已通过九组144项源码回归、7/7 packaged skill quick validation及最终临时bundle self-check；D-050已接受，将32个可达提交与0.1.0–0.1.3 annotated tags/releases发布到`DrPei12/codex-team` public。Public release文档、changelog、安全/贡献政策和Windows CI正在本轮冻结；remote push、release assets与首次Actions结果尚待验证。7个skill继续`incubating`，0.1.3未安装或Desktop live forward-test
 - 当前源码基线：branch `codex/team-v012-lifecycle`，本轮0.1.3实现基于实验审计commit `3563dbe`继续；0.1.1核心修复commit `85baabe`，0.1.2 lifecycle commit `d43aa9c`；`main`仍为`db3b810`
 - 项目目录：`D:\Desktop\Codex多任务工程系统`
 - 范围：Codex only
@@ -104,6 +104,8 @@
 - [x] 接受D-048：stage checkpoint与lane material-progress facts进入status；依赖accepted但checkpoint pending时仍不得dispatch，heartbeat/turn limit使用manifest配置并checkpoint-stop
 - [x] 接受D-049：新required协议构建版本升为0.1.3；不覆盖当前installed 0.1.0
 - [x] D-046至D-049后九组Team回归共144项全绿；最终临时0.1.3 package为37-file/7-entrypoint自检通过，7/7 packaged skills quick validation通过
+- [x] 接受D-050：冻结public仓库名、完整可达历史、0.1.0–0.1.3 tag commit、release asset与无许可证边界
+- [ ] 创建并验证GitHub public remote、main/tags、四个Releases、资产hash、private vulnerability reporting与首次CI
 
 ## 纵向切片清单（已完成与未完成）
 
