@@ -563,11 +563,15 @@ def test_execution_rechecks_authorization_before_creating_workspaces(engine, rep
     assert not any("assigned_package" in turn for turn in script["turns"])
 
 
-@pytest.mark.parametrize("violation", ["ownership", "workspace", "model", "history"])
+@pytest.mark.parametrize("violation", ["ownership", "ignored-ownership", "workspace", "model", "history"])
 def test_worker_identity_and_scope_violations_block(engine, repo, script, violation):
+    if violation == "ignored-ownership":
+        (repo / '.gitignore').write_text('outside.txt\n', encoding='utf-8')
+        git(repo, 'add', '.gitignore')
+        git(repo, '-c', 'user.name=Test', '-c', 'user.email=test@local.invalid', 'commit', '-m', 'Ignore fixture')
     _, rid = prepare(engine, repo, script)
     workspace = Path(engine._run(rid)["packages"]["core"]["workspace"])
-    if violation == "ownership":
+    if violation in {"ownership", "ignored-ownership"}:
         script["worker"] = lambda c: (c.cwd / "outside.txt").write_text("unauthorized", encoding="utf-8")
     elif violation == "workspace":
         script["reported_cwd"] = repo
@@ -580,7 +584,11 @@ def test_worker_identity_and_scope_violations_block(engine, repo, script, violat
         engine._execute_package(rid, script["proposal"]["work_packages"][0])
     result = engine._run(rid)["packages"]["core"]
     assert result["status"] == "blocked"
-    assert result["result"] is None
+    if violation in {"ownership", "ignored-ownership", "history"}:
+        receipt = json.loads(Path(result['result']['path']).read_text(encoding='utf-8'))
+        assert receipt['turn']['status'] == 'completed'
+    else:
+        assert result["result"] is None
     assert workspace.exists()
     assert engine.store.claim(f"package:{rid}:core", "probe")
 
@@ -674,8 +682,12 @@ def test_cross_engine_resume_cannot_replace_live_owner_or_change_status(engine, 
     assert not other.store.claim("run:" + rid, other.owner)
 
 
-@pytest.mark.parametrize("tamper", ["artifact", "source", "digest", "binding"])
+@pytest.mark.parametrize("tamper", ["artifact", "source", "digest", "binding", "ignored-source"])
 def test_checkpoint_rejects_tampered_evidence_or_target(engine, repo, script, tamper):
+    if tamper == 'ignored-source':
+        (repo / '.gitignore').write_text('hidden.db\n', encoding='utf-8')
+        git(repo, 'add', '.gitignore')
+        git(repo, '-c', 'user.name=Test', '-c', 'user.email=test@local.invalid', 'commit', '-m', 'Ignore fixture')
     _, rid = authorize(engine, repo, script)
     engine.start(rid)
     result = finish_background(engine, rid)
@@ -683,6 +695,9 @@ def test_checkpoint_rejects_tampered_evidence_or_target(engine, repo, script, ta
     expected = result["checkpoint_digest"]
     if tamper == "artifact":
         Path(result["evidence"][0]["path"]).write_text("tampered", encoding="utf-8")
+    elif tamper == 'ignored-source':
+        (Path(result['target']['workspace']) / 'hidden.db').write_text('unreviewed bytes', encoding='utf-8')
+        assert git(result['target']['workspace'], 'status', '--porcelain') == ''
     elif tamper == "source":
         (Path(result["target"]["workspace"]) / "verify.py").write_text("raise SystemExit(1)\n", encoding="utf-8")
     elif tamper == "binding":
@@ -693,6 +708,42 @@ def test_checkpoint_rejects_tampered_evidence_or_target(engine, repo, script, ta
     with pytest.raises(ValueError):
         engine.accept_checkpoint(rid, expected)
     assert engine._run(rid)["status"] == "awaiting-user"
+
+
+def test_checkpoint_records_delegated_acceptance_without_claiming_personal_user_action(engine, repo, script):
+    _, rid = authorize(engine, repo, script)
+    engine.start(rid)
+    result = finish_background(engine, rid)
+    assert result['status'] == 'awaiting-user'
+    with pytest.raises(ValueError, match='actor'):
+        engine.accept_checkpoint(rid, result['checkpoint_digest'], actor='unknown')
+    accepted = engine.accept_checkpoint(rid, result['checkpoint_digest'], actor='delegated-operator')['data']
+    assert accepted['status'] == 'completed'
+    assert accepted['accepted_by'] == 'delegated-operator'
+    assert accepted['operator_accepted_at'] == accepted['accepted_at']
+    assert 'user_accepted_at' not in accepted
+    assert engine.store.tail_events(rid, 1)[0]['payload']['actor'] == 'delegated-operator'
+
+
+def test_native_usage_survives_counter_reset_and_deduplicates_replay(engine, repo, script):
+    _, rid = authorize(engine, repo, script, token_budget=100)
+    def usage(turn, total, last):
+        engine._on_event(rid, 'core', {'method':'thread/tokenUsage/updated', 'params':{
+            'threadId':'same-thread','turnId':turn,
+            'tokenUsage':{'total':{'totalTokens':total},'last':{'totalTokens':last}}}})
+    usage('first', 60, 60)
+    usage('first', 60, 60)
+    usage('resumed', 20, 20)
+    usage('first', 60, 60)
+    assert engine._run(rid)['usage_by_thread']['same-thread'] == 80
+    reopened = Engine(engine.root)
+    reopened._on_event(rid, 'core', {'method':'thread/tokenUsage/updated', 'params':{
+        'threadId':'same-thread','turnId':'resumed',
+        'tokenUsage':{'total':{'totalTokens':20},'last':{'totalTokens':20}}}})
+    assert reopened._run(rid)['usage_by_thread']['same-thread'] == 80
+    usage('resumed', 50, 30)
+    assert engine._run(rid)['usage_by_thread']['same-thread'] == 110
+    assert engine._run(rid)['stop_source'] == 'budget'
 
 
 def test_token_usage_is_cumulative_per_thread_and_budget_stops_run(engine, repo, script):
@@ -1134,9 +1185,10 @@ def test_reconcile_rejects_live_owner_without_native_queries(engine, repo, scrip
     assert engine.store.lease_owner("run:" + rid) == "active-controller"
 
 
-def test_reconcile_running_package_can_continue_existing_session(engine, repo, script):
+@pytest.mark.parametrize('package_status', ['running', 'blocked'])
+def test_reconcile_running_package_can_continue_existing_session(engine, repo, script, package_status):
     rid, source, receipt, note = interrupted_source(engine, repo, script)
-    engine._package_update(rid, "core", status="running")
+    engine._package_update(rid, "core", status=package_status)
     engine._update("run", rid, lambda d: d.update(status="running", native_sessions={}))
     script["native"] = {"old-thread": {}}
     result = engine.reconcile(rid)["data"]
@@ -1191,3 +1243,21 @@ def test_reconcile_unconfirmed_native_state_preserves_original_run(engine, repo,
     assert not any(e["type"] == "reconciled" for e in events)
     interruptions = [params for method, params in script["requests"] if method == "turn/interrupt"]
     assert interruptions == ([{"threadId": "registered-supervisor", "turnId": "review-turn"}] if obstruction == "still-active" else [])
+
+
+def test_git_inventory_warning_is_not_a_clean_result(repo, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(runtime.subprocess, 'run', lambda *a, **k: SimpleNamespace(
+        returncode=0, stdout='', stderr="warning: could not open directory 'hidden/': Permission denied"))
+    with pytest.raises(ValueError, match='Permission denied'):
+        git(repo, 'ls-files', '--others', reject_warnings=True)
+
+
+def test_source_inventory_only_exempts_explicit_runtime_scratch(engine, repo, script):
+    _, rid = prepare(engine, repo, script)
+    data=engine._run(rid);workspace=Path(data['integration_workspace'])
+    scratch=workspace/'.team-temporary';scratch.mkdir()
+    (scratch/'test-residue.sqlite3').write_bytes(b'test-owned preserved residue')
+    assert not engine._source_dirty(workspace,data)
+    (workspace/'unreviewed.sqlite3').write_bytes(b'not accepted')
+    assert engine._source_dirty(workspace,data)

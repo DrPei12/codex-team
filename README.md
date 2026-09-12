@@ -9,9 +9,9 @@ Codex Team 是只面向 Codex 的工程协作系统。0.2 Auto 从自然语言�
 
 ## 当前版本
 
-本地开发版本：`0.2.0`，仍为 `incubating`，真实工程验收进行中。仓库记录的上一公开版本为 `0.1.9`；本轮没有发布新Release或更新全局安装。
+本地开发版本：`0.2.0`，仍为 `incubating`，里程碑1–5已完成本地验收。仓库记录的上一公开版本为 `0.1.9`；本轮没有发布新Release或更新全局安装。
 
-0.2新增：真实Codex App Server执行、单/多会话规划、版本化授权、原生沙箱Gate、持久状态与事件、本地中文看板、协作请求、纠偏、暂停/恢复、工作笔记/历史检索、Session接替和中途方向审查。Team核心不依赖第三方Skill或插件。当前已完成CheckCSV真实闭环；LabLedger双会话验收与最终回归仍在进行，见[执行记录](docs/20-team-auto-execution.md)。
+0.2新增：真实Codex App Server执行、单/多会话规划、版本化授权、原生沙箱Gate、持久状态与事件、本地中文看板、协作请求、纠偏、暂停/恢复、工作笔记/历史检索、Session接替和中途方向审查。Team核心不依赖第三方Skill或插件。CheckCSV单会话与LabLedger双会话真实工程闭环均已完成，见[里程碑5验收记录](docs/22-milestone5-acceptance.md)。
 
 以下是保留的0.1.x基础：
 
@@ -60,7 +60,7 @@ python -B scripts\build-team-plugin.py --out $output
 python -B "$output\skills\team\scripts\bundle-self-check.py" "$output\skills\team"
 ```
 
-Builder 不覆盖已存在的输出目录。生成包包含 7 个 skills、7 个 runtime 入口、7 份 schema 与 SHA-256 bundle manifest。
+Builder 不覆盖已存在的输出目录。生成包包含 7 个 skills、8 个 runtime 入口、7 份 schema 与 SHA-256 bundle manifest。
 
 ## 本地 marketplace 安装
 

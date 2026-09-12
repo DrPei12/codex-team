@@ -2,15 +2,14 @@
 
 ## 0.2当前工作状态（2026-09-12）
 
-源基线d3e3589，当前开发分支codex/team-auto-m5。用户授权持续推进至里程碑5；具体进度、原始检索入口及待办见[执行记录](20-team-auto-execution.md)和[工作笔记](work-notes/team-auto-m5.md)。以下旧Snapshot是0.1.x历史记录，不代表0.2当前运行能力。
+里程碑1–5已完成本地验收，到里程碑5停止。0.2仍为incubating，当前成果见[验收记录](22-milestone5-acceptance.md)及[工作笔记](work-notes/team-auto-m5.md)。以下旧Snapshot是0.1.x历史记录。
 
-- Auto运行时、SQLite状态/租约、原生命令、中文看板、笔记/历史、协作/纠偏、暂停恢复、监督和交接代码已实现；最终回归仍待收口。
-- CheckCSV真实单执行会话闭环完成，包含原生沙箱Gate及独立Luna/max审查，保留原预算暂停与恢复历史。
-- LabLedger双会话协作、纠偏、WP2接替已实测；两包已集成到4663e17e。G1/G2/G3通过（6/5/11项），Edge浏览器主流程与390宽窄屏已检查。独立最终审查未结束；本次到7个百分点预算内的集成/视觉检查点停止，不标里程碑5完成。
-- 9月8日原生0.153.4已观察project/import、read和thread项目归属；Desktop saved-project列表尚未显示此原生项目，不宣称侧栏整合完成。
-- 9月8日所有后续Subagent统一Luna/max（D-064）。Team核心不绑定第三方Skill或插件。
-- 0.2尚未对外发布、未更新全局安装，不声称长期稳定或已证明多任务收益。
-- 本次修复中断恢复遗漏工作包状态和看板长请求ID窄屏溢出；Auto整组146项/39子测试、恢复相关10项、后续board/package/legacy plugin相关20项/7子测试通过（这些集合有重叠，不相加）。本地构建51文件、8入口自检通过。
+- Auto、SQLite状态/租约、原生沙箱命令、中文看板、工作笔记/原始历史检索、协作/纠偏、暂停恢复、方向审查和责任接替均有实现与对应证据。
+- CheckCSV真实单会话闭环completed；LabLedger双会话协作、纠偏、WP2接替、集成4663e17e、G1/G2/G3（6/5/11项）、Edge主流程及窄屏验证通过。
+- LabLedger最终独立Luna/max审查approved，11条要求全部满足；2026-09-12 12:06 UTC按用户委托记录delegated-operator接受，Run为completed。用户本人未亲自视觉验收，不作相反声明。
+- 收口修复恢复后的token计数、ignored文件范围检查及Git读取警告、blocked工作包恢复；验证详情和证据索引见验收记录。
+- 当前实验Session/Subagent为Luna/max，核心不依赖第三方Skill或插件。原生项目归属已读回核对，Desktop侧栏展示仍不保证。
+- 未启动里程碑6：正式发布、全局安装升级、收益对照和长期可靠性验证仍需单独推进。账户本轮起点9%，预算最多新增5个百分点；最终读数见验收记录。
 
 ## Snapshot
 

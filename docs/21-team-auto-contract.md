@@ -24,7 +24,7 @@
 - `approve(plan_id:str, expected_digest:str)->dict`：冻结授权并创建run，返回run envelope，尚不执行。digest不匹配抛ValueError。
 - `start(run_id:str)->dict`：启动后台运行，返回run envelope；幂等，同一run不重复派发。
 - `pause(run_id:str)->dict`、`resume(run_id:str)->dict`、`cancel(run_id:str)->dict`。
-- `reconcile(run_id:str)->dict`：无有效运行owner时，保存原状态、核对原生idle及空背景终端和源码快照；原Run及未完成running工作包转paused。保留会话、回合及回执，不推断离线完成。
+- `reconcile(run_id:str)->dict`：无有效运行owner时，保存原状态、核对原生idle及空背景终端和源码快照；原Run及未完成running/blocked工作包转paused。保留会话、回合及回执，不推断离线完成；范围冲突未解决时仍拒绝恢复。
 - `requalify(run_id:str)->dict`：停止态重新资格化已更新解释器，保留旧绑定与验收证据。
 - `supervise(run_id:str)->dict`：停止态独立方向检查，结果是on-track/correctable/needs-user，不能代替最终验收。
 - `replace_session(run_id:str, package_id:str, reason:str)->dict`：校验旧原生中断回执、笔记和当前源码后准备交接；新Session首轮派发验证快照，后续合法修改后的resume不再与最初交接快照比较。
@@ -33,11 +33,15 @@
 - `amend_limits(run_id:str, policy:dict, expected_digest:str)->dict`：停止态版本化修订资源，保留先前方案及证据。
 - `request_collaboration(run_id:str, from_package:str, to_package:str, question:str, *, request_id:str|None=None)->dict`：返回request envelope。
 - `resolve_request(run_id:str, request_id:str, answer:str)->dict`。
-- `accept_checkpoint(run_id:str, expected_digest:str)->dict`：按当前证据digest接受，不进入下一阶段。
+- `accept_checkpoint(run_id:str, expected_digest:str, *, actor:str='user')->dict`：按当前证据digest接受，不进入下一阶段。actor只允许user或delegated-operator；后者仅在调用者已有明确委托时使用，记录operator_accepted_at，不声称用户亲自操作。
 
 Controller错误转HTTP400/409或job失败，禁止虚假success。UI不编辑SQLite或artifact、不执行自由shell。
 
 项目按仓库根复用原生App Server project，线程创建/恢复后校验projectId；实际读回与错误写入事件。同一项目同时最多一个活动Run持有项目资源租约。原生项目不等于Desktop saved-project侧栏展示保证。
+
+用量通知保留threadId/turnId；按每个turn已处理total高水位去重，将新的last.totalTokens增量与去重状态在同一CAS内持久化。恢复后新turn允许计数器重置；已观察行为不保证未收到的通知完整，usage_observability说明观察边界。缺少turn/last的旧记录只保留legacy基数，不静默回填或声称精确成本。
+
+源码范围检查包括Git忽略的未跟踪文件；读取警告视为检查失败。仅显式保留目录.team-temporary及经过格式/源码所有权核对的Python字节码属于运行残留，不能因.gitignore而豁免任意文件。最终Git源码检查不等于证明所有.git内部元数据都未变化；本版核对HEAD/tree和源码边界。
 
 ## Proposal协议（rules.py负责）
 

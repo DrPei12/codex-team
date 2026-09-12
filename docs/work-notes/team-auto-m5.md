@@ -1,49 +1,34 @@
 # Team Auto当前工作笔记
 
-最后核对：2026-09-12。完整目标见[执行记录](../20-team-auto-execution.md)，本笔记是当前导航，原始运行事件、方案和证据不在这里重复转述。
+最后核对：2026-09-12。本笔记只保留当前导航；原始历史在SQLite追加事件、artifact及Git历史中，避免连续压缩摘要。
 
-## 有效目标与约束
+## 当前结论与停止边界
 
-总体完成里程碑1–5；本次最新委托是推进到下一个检查点，额度最多约7个百分点（初始账户本周已用0%）。只做Codex；Team不绑定第三方Skill/插件。实验Session及后续子代理统一Luna/max，历史配置保留。工作区为实验场worktrees/team-auto-m5，源基线d3e3589。
+用户最新委托“完成里程碑5，预算为5%用量”，本轮账户已用起点9%。里程碑1–5已完成本地验收；停止在里程碑5，不派发新的工程实验。正式发布、全局安装升级和收益对照属里程碑6。
 
-## 已确认成果
+仅Codex；Team核心不绑定第三方Skill/插件。当前实验Session及Subagent统一gpt-5.6-luna/max，主任务保持宿主模型。旧模型和失败记录不追溯改写。
 
-- 0.2本地控制程序、SQLite状态、中文看板、Auto入口、可移动构建已存在；尚待最终整体验收。
-- CheckCSV真实run-4a725206cf37完成，集成commit9ef3dc3acb638501d46d7644f8ad64060200266c，原生沙箱Gate和独立审查通过；预算暂停、资源修订、恢复、先前失败均保留。
-- LabLedger真实run-9bf498c1547abacf211c942a两包已提交并集成：WP1为879c843a，WP2为71b5e747；候选commit4663e17ef8536b489f0fdaf6b41b3e9d9c9e9d79，tree fd6075b3242bda9119c68c7fa06f075f983c8707。
-- G1/G2/G3原生沙箱验收通过，分别6/5/11项测试。首轮连接中断、退出未知保留为失败，不冒充通过。
-- 实际Edge浏览器完成新增中文资产、运行记录、标签筛选、历史、JSON下载、刷新保留；1440及390宽度查看。看板笔记及历史检索通过；长协作ID窄屏溢出已修复，390宽度无页面横向溢出。
-- 原生只读写入拒绝、Luna/max子代理调用、既有会话恢复、动态Team工具、沙箱命令与解释器资格化有对应证据。
-- 9月12日重新核对原生idle及空背景终端，修复reconcile遗漏running工作包转paused。恢复相关10项测试通过；此前Auto整组146项及39子测试通过，后续board/package/legacy plugin相关20项及7子测试通过。
-- 实际Codex为0.154.0-alpha.6.2；内置Python3.12.14 hash372c2eae555b344520bf147be0096e009069aeca4e7f78d6aecea6d53158056a，旧绑定留存。
+## 可直接使用的成果
 
-## 当前动作与未完成项
+- 0.2 Auto控制程序、中文看板、SQLite状态/租约、协作请求、方向审查、暂停恢复、责任接替、工作笔记与原始历史检索。
+- CheckCSV run-4a725206cf37：completed，commit 9ef3dc3acb638501d46d7644f8ad64060200266c。
+- LabLedger run-9bf498c1547abacf211c942a：completed，commit 4663e17ef8536b489f0fdaf6b41b3e9d9c9e9d79；G1/G2/G3和真实浏览器通过，最终审查review-46e5615928a8.json为approved。接受者是delegated-operator，非用户亲自点击。
+- 交付与回归结果见[里程碑5验收记录](../22-milestone5-acceptance.md)。协议和边界见D-067/D-068。
 
-1. 最终独立Luna/max审查正在原生线程01a094bf-748b-7063-bfaa-772becff67f0进行；只读取最终回执，不把commentary当结论。
-2. 若最终审查提出修正，按证据在授权边界内修复；预算将尽时受控暂停，不后台继续耗用额度。
-3. 本次构建位于实验根build-checkpoint-20260912/codex-team，供本地检查；不是公开发布或全局安装升级。
-4. 里程碑5尚不能标为全部完成：独立审查接受及项目最终收口仍须有证据。最新停止状态以本笔记后续“本次停止点”为准。
-
-## 检索入口
+## 原始检索入口
 
 实验根：D:/Desktop/Codex多任务工程系统实验场/runs/2026-09-05-team-auto-m5。
-控制状态：其small-state/team.sqlite3；通过team-auto.py的snapshot、notes、history读取，不手工编辑SQLite。
+控制状态：small-state/team.sqlite3。使用team-auto.py的snapshot、notes、history读取，不手工编辑数据库。
 
-- CheckCSV: `snapshot run-4a725206cf37`；`history run-4a725206cf37 预算`。
-- LabLedger: `snapshot run-9bf498c1547abacf211c942a`；`history run-9bf498c1547abacf211c942a 400`。
-- 原始证据：small-state/artifacts/<run-or-plan-id>/；独立capability-*.json；reconcile-result-20260908.json。
-- 本次真实测试：gate-4796d14286c2.json、gate-6c2307bf116f.json、gate-005b87f607db.json，均在LabLedger运行artifact目录。
-- 浏览器：实验根output/playwright/ui-verification-20260912.json及对应PNG/JSON；测试数据只写独立visual-20260912.sqlite3。
-- 原始追加运行日志：checkpoint-run-20260912.log；恢复前快照和新解释器资格化记录保留。
+- CheckCSV：snapshot run-4a725206cf37。
+- LabLedger：snapshot run-9bf498c1547abacf211c942a；history run-9bf498c1547abacf211c942a 400。
+- 原始证据：small-state/artifacts/<run-or-plan-id>/；capability-*.json；原生project/import/read回执。
+- 本次Gate：gate-11614b652ac8.json、gate-670b983218b1.json、gate-3ec5f70cb31a.json。
+- 最终审查原生thread 01a09573-5466-7ec3-941e-6fe1bda3c0a2，turn 01a09573-55db-7d51-bffd-f3ace7181f1e；completed事件#539，检查点#540。
+- 浏览器：output/playwright/ui-verification-20260912.json及桌面/手机PNG，原始事件#470绑定候选commit和hash。
+- 接受：m5-labledger-accepted.json；四个测试残留保存回执native-test-residue-preservation.json。残留仍保留在集成目录.team-temporary/preserved-test-residue-20260912，无用户数据删除。
+- 上轮暂停：事件#475/#476及Git e7e2100中的本工作笔记，保留其未完成审查结论。
 
-## 不应重复或误报
+## 后续恢复时先核对
 
-不重新实现已保留的两个实验产品，不重复同target已有效的昂贵验收；不把旧监督commentary当最终结论；不把source/package通过当安装升级完成；不宣称多任务有普遍收益或无限无人值守稳定。
-
-## 本次停止点（2026-09-12 08:39 UTC）
-
-账户本周已用由0%升至约6%，预留剩余预算收尾。Run已确认paused，owner租约释放；审查线程idle，回合01a094bf-75d5-7380-ab26-528bf71792ab原生interrupted事件#475。不是独立审查通过。两工作包保持completed，集成源码和三份有效Gate证据保留，后续从独立最终审查继续。
-
-浏览器验收事件#470引用原始JSON，hash c59cdec2cfacedbe32ed7a959c6469a0022c21318634e50afdb8fcae670c88df。它是Codex操作者检查，不是用户亲自视觉接受。下一轮须核对来源与当前目标再恢复；不要把中断审查的commentary当最终意见。
-
-本地可移动构建自检通过：51文件、8入口；未发布、未全局安装。完整控制程序的最终审查及里程碑5收口仍未完成。
+当前无继续耗用模型的实验。不要重做已完成产品或重复同一target有效验收。0.154.0-alpha.6.2及Python 3.12.14是本次验证环境；升级后重新资格化。原生历史tokens不完整，账户用量包含其他任务，不能当精确成本。Desktop侧栏、跨环境及长期可靠性尚无保证。
