@@ -92,11 +92,12 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = read_json(plugin / ".codex-plugin" / "plugin.json")
     assert manifest["name"] == PLUGIN_NAME
-    assert manifest["version"] == "0.1.9"
+    assert manifest["version"] == "0.2.0"
     assert manifest["skills"] == "./skills/"
     assert {path.name for path in (plugin / "skills").iterdir() if path.is_dir()} == SKILLS
     runtime = plugin / "skills" / "team" / "scripts"
     assert {path.name for path in runtime.glob("team*.py")} == {
+        "team-auto.py",
         "team.py",
         "team-plan.py",
         "team-run.py",
@@ -105,6 +106,15 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
         "team-finish.py",
         "team-recover.py",
     }
+    source_runtime = ROOT / "team_runtime"
+    expected_auto = {
+        path.relative_to(source_runtime).as_posix(): path.read_bytes()
+        for path in source_runtime.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+        and path.suffix != ".pyc"
+        and (path.suffix == ".py" or path.relative_to(source_runtime).parts[0] == "static")
+    }
+    assert file_bytes(runtime / "team_runtime") == expected_auto
     packaged_text = "\n".join(path.read_text(encoding="utf-8") for path in plugin.rglob("*.md"))
     assert "<TEAM_SKILL_DIR>" in packaged_text
     assert "python scripts/team" not in packaged_text

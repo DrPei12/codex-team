@@ -15,6 +15,7 @@ from typing import Any
 PROFILE = "codex-team-plugin-bundle"
 PLUGIN_NAME = "codex-team"
 RUNTIME_SCRIPTS = (
+    "team-auto.py",
     "team.py",
     "team-plan.py",
     "team-run.py",
@@ -45,7 +46,8 @@ def _sha256(path: Path) -> str:
 
 def _safe_relative(value: str) -> PurePosixPath:
     path = PurePosixPath(value)
-    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+    if (not value or "\\" in value or ":" in value or path.as_posix() != value
+            or path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts)):
         raise BundleCheckError(f"unsafe bundle path: {value!r}")
     return path
 
@@ -67,7 +69,9 @@ def check() -> int:
         safe = _safe_relative(relative)
         expected.add(safe.as_posix())
         path = plugin_root.joinpath(*safe.parts)
-        if path.is_symlink() or not path.is_file():
+        if (path.is_symlink() or not path.is_file()
+                or any(parent.is_symlink() for parent in path.parents if parent != plugin_root)
+                or not path.resolve().is_relative_to(plugin_root)):
             raise BundleCheckError(f"missing or symlinked bundle file: {relative}")
         if _sha256(path) != digest:
             raise BundleCheckError(f"hash mismatch: {relative}")

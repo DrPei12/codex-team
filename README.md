@@ -3,13 +3,17 @@
 [![Release](https://img.shields.io/github/v/release/DrPei12/codex-team)](https://github.com/DrPei12/codex-team/releases)
 [![CI](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml/badge.svg)](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml)
 
-Codex Team 是一个只面向 Codex 的 manifest-driven 多任务工程系统。它把需求覆盖、任务切分、workspace/文件所有权、worker 预检、证据交接、阶段检查点、集成、独立审查、完成与恢复固化为七个可移动 skills 和一套可验证的本地 artifact 协议。
+Codex Team 是只面向 Codex 的工程协作系统。0.2 Auto 从自然语言目标生成可审阅方案，通过本地控制程序组织独立会话，维护工作笔记与可检索历史，并在约定检查点收口。原有七个 skills 和0.1.x证据/集成协议继续保留。
 
 项目不会因为“可以并行”就创建更多任务。只有共享契约、依赖、owner、输入输出、Gate 与集成点足够清楚时才允许并行。
 
 ## 当前版本
 
-最新版本：`0.1.9`。
+本地开发版本：`0.2.0`，仍为 `incubating`，真实工程验收进行中。仓库记录的上一公开版本为 `0.1.9`；本轮没有发布新Release或更新全局安装。
+
+0.2新增：真实Codex App Server执行、单/多会话规划、版本化授权、原生沙箱Gate、持久状态与事件、本地中文看板、协作请求、纠偏、暂停/恢复、工作笔记/历史检索、Session接替和中途方向审查。Team核心不依赖第三方Skill或插件。当前已完成CheckCSV真实闭环；LabLedger双会话验收与最终回归仍在进行，见[执行记录](docs/20-team-auto-execution.md)。
+
+以下是保留的0.1.x基础：
 
 - 需求覆盖矩阵：`requirement -> owner -> path -> Gate -> reviewer`；
 - `change` 与 `verification-only` requirement；
@@ -20,11 +24,23 @@ Codex Team 是一个只面向 Codex 的 manifest-driven 多任务工程系统。
 - non-destructive finish 与 bounded recovery；
 - 7 个 `incubating` skills，149 项源码回归和 16 份离线端到端 artifact schema 验证。
 
-成熟度仍为 `incubating`。当前没有后台 scheduler、自动 live fact collector、自动任务中断/重派或长期稳定性保证。
+长期无人值守可靠性、多任务收益、跨环境兼容和正式安装升级仍须独立验证。运行时必须保留控制程序及其状态目录；界面活跃、测试通过和最终用户接受分别记录。
+
+## Team Auto 本地运行
+
+需要Python 3.12+、Git、已登录的官方Codex。使用与产品仓库分离的状态目录：
+
+```powershell
+python -B scripts/team-auto.py --state "D:/TeamState/my-project" serve
+```
+
+打开 `http://127.0.0.1:8765`，填写仓库路径与目标，审阅方案/资源/权限后运行。新项目可以指定尚未创建的空目录，实际写入在Run授权之后发生。程序调用现有Codex认证，不要求OpenAI API Key或第三方插件。
+
+命令行也可使用 `propose`、`approve`、`run`、`snapshot`、`notes`、`history`、`pause`、`resume`。`reconcile`核对控制器中断后的原生状态；`supervise`检查暂停目标的方向；`replace-session`依据中断回执、源码和笔记转移责任；`requalify`重新资格化更新后的解释器。完整用法见[Auto工作流](skills/team/references/auto-workflow.md)和 `python -B scripts/team-auto.py --help`。
 
 ## 七个 skills
 
-- [`team`](skills/team/SKILL.md)：只读路由到下一 canonical phase；
+- [`team`](skills/team/SKILL.md)：Auto入口；已有0.1.x manifest继续只读路由到下一 canonical phase；
 - [`team-plan`](skills/team-plan/SKILL.md)：验证 requirement coverage、DAG、ownership、Gate 和 checkpoint；
 - [`team-run`](skills/team-run/SKILL.md)：生成 preregistration、preflight、prompt/dispatch 与 worker backbrief；
 - [`team-status`](skills/team-status/SKILL.md)：从 immutable facts 派生 lane/checkpoint 状态；

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a deterministic, relocatable Codex Team skills-only plugin."""
+"""Build a deterministic, relocatable Codex Team plugin with its own runtime."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "0.1.9"
+PLUGIN_VERSION = "0.2.0"
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAMES = (
     "team",
@@ -26,6 +26,7 @@ SKILL_NAMES = (
     "team-recover",
 )
 RUNTIME_SCRIPTS = (
+    "team-auto.py",
     "team.py",
     "team-plan.py",
     "team-run.py",
@@ -135,18 +136,18 @@ def _copy_skill(source: Path, target: Path) -> None:
 def _plugin_manifest() -> dict[str, Any]:
     return {
         "author": {"name": "Codex Multi-task Engineering Project"},
-        "description": "Manifest-driven Codex Team workflows with fail-closed Git and artifact evidence.",
+        "description": "Codex Team Auto execution and legacy manifest workflows with verifiable evidence.",
         "interface": {
             "capabilities": ["Read", "Write"],
             "category": "Developer Tools",
             "defaultPrompt": [
-                "Use Team to route this manifest-driven Codex engineering run.",
+                "Use Team Auto to turn this engineering goal into a proposal and authorized run.",
                 "Use Team Plan to split work only when ownership and dependencies support it.",
                 "Use Team Recover to prepare a bounded successor for this blocked run.",
             ],
             "developerName": "Codex Multi-task Engineering Project",
             "displayName": "Codex Team",
-            "longDescription": "Plan, prepare, observe, integrate, finish, and recover manifest-driven Codex engineering runs with explicit authorization boundaries.",
+            "longDescription": "Turn natural language goals into Codex proposals, authorized runs, live status, and evidence-bound checkpoints. Includes legacy manifest workflows and a bundled Python standard-library controller.",
             "shortDescription": "Evidence-bound Codex team workflows",
         },
         "name": PLUGIN_NAME,
@@ -188,6 +189,21 @@ def _build_into(plugin_root: Path) -> None:
         runtime_root / "bundle-self-check.py",
         "bundle self-check",
     )
+    package = ROOT / "team_runtime"
+    if package.is_symlink() or not package.is_dir():
+        raise PluginBuildError("Team Auto runtime package is missing or symlinked")
+    for required in ("__init__.py", "__main__.py", "cli.py", "engine.py", "codex.py",
+                     "store.py", "rules.py", "history.py", "board.py", "static/index.html",
+                     "static/app.js", "static/styles.css"):
+        _plain_source_file(package / required, "Team Auto runtime")
+    for path in sorted(package.rglob("*")):
+        relative = path.relative_to(package)
+        if path.is_symlink():
+            raise PluginBuildError(f"Team Auto runtime: symlinked resource: {path}")
+        if "__pycache__" in relative.parts or path.suffix == ".pyc":
+            continue
+        if path.is_file() and (path.suffix == ".py" or relative.parts[0] == "static"):
+            _copy_plain_file(path, runtime_root / "team_runtime" / relative, "Team Auto runtime")
     schema_root = skills_root / "team" / "references" / "schemas"
     for filename in RUNTIME_SCHEMAS:
         _copy_plain_file(

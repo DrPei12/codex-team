@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="team-token" content="__TEAM_TOKEN__">
+  <title>Team 控制台</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <p class="eyebrow">CODEX · TEAM AUTO</p>
+        <h1>Team 控制台</h1>
+      </div>
+      <div class="connection" id="connection-status" data-tone="muted">连接中</div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel brief-panel" aria-labelledby="brief-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">01 / Brief</p>
+          <h2 id="brief-title">提交需求</h2>
+        </div>
+        <p class="section-note">先生成方案，再由你审阅授权。</p>
+      </div>
+      <form id="brief-form" class="stack">
+        <label for="repository">仓库路径</label>
+        <input id="repository" name="repository" type="text" autocomplete="off" spellcheck="false" placeholder="例如：D:\\work\\project" required>
+        <label for="brief">Brief</label>
+        <textarea id="brief" name="brief" rows="5" placeholder="描述目标、边界和验收条件" required></textarea>
+        <details class="brief-details"><summary>高级设置 · 模型与运行预算</summary><p class="muted">本地试验默认值，可在生成方案前调整。</p><div class="policy-fields"></div></details>
+        <div class="form-actions">
+          <button class="primary" type="submit">生成方案</button>
+          <span id="propose-status" class="inline-status" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel plans-panel" aria-labelledby="plans-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">02 / Review</p>
+          <h2 id="plans-title">方案审阅</h2>
+        </div>
+        <button id="refresh-button" class="quiet-button" type="button">刷新</button>
+      </div>
+      <div id="plans-list" class="card-list" aria-live="polite"></div>
+      <div id="plan-detail" class="detail empty-state">选择一个方案查看详情。</div>
+    </section>
+
+    <section class="panel runs-panel" aria-labelledby="runs-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">03 / Run</p>
+          <h2 id="runs-title">运行与证据</h2>
+        </div>
+        <div id="snapshot-time" class="section-note">尚未读取</div>
+      </div>
+      <div id="runs-list" class="card-list" aria-live="polite"></div>
+      <div id="run-detail" class="detail empty-state">选择一个运行查看工作包、请求和检查点。</div>
+    </section>
+  </main>
+
+  <footer class="footer">本机服务 · 状态来自 Engine</footer>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

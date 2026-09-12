@@ -482,3 +482,76 @@
 - 历史发布：v0.1.0–v0.1.9共10个annotated tags和10个非draft/non-prerelease Releases；每个release有tag-exact `codex-team-vX.Y.Z.zip`与`SHA256SUMS.txt`，远端assets均为uploaded并带GitHub SHA-256 digest。历史tags不移动，v0.1.3–v0.1.8 known issue与失败CI保留。
 - Release Gate：v0.1.9 commit `a56b0b1d3dc5104171ebed3a28346b58646052a6`的main run `33549040820`与tag run `33549043905`均SUCCESS；九组回归与plugin build/self-check通过。Latest Release为`v0.1.9`，asset digest `sha256:fa7e77273eb148a1c0bc6e5e80834479a497cb937bc5ee5a5dffc883a1a580a2`。
 - 发布边界：远端公开完整可达历史，但没有LICENSE，不授予复用权；本机installed plugin仍为0.1.0，本轮未执行升级/refresh/cache删除。Public release成功不证明Desktop live fact collector、长期scheduler、自动checkpoint或ClothingRecycler产品发布完成。
+
+## D-058：授权推进 Team Auto 到真实工程验收，新增独立0.2运行协议
+
+- 日期：2026-09-05；2026-09-08继续。
+- 状态：Accepted，基于当前主任务用户明确委托。
+- 决策：完成基线/能力、运行控制、Auto闭环、协作纠偏恢复、真实工程验收五个里程碑后停止。以d3e3589建立codex/team-auto-m5隔离工作区，保留0.1.x协议和全部历史证据。
+- 变化：0.2区分项目、方案版本、运行、工作包、执行尝试与Session。支持single-session/multi-session；合理局部假设可披露后执行，目标和风险取舍仍需明确决定。授权绑定方案digest、资源、动作和检查点，授权范围内不逐阶段重复询问。
+- 边界：不把持续执行授权解释为降低验收标准；本轮不做里程碑6的收益证明或正式公开发布。
+
+## D-059：Codex专用本地控制层使用官方App Server stdio
+
+- 日期：2026-09-05。
+- 状态：Accepted。
+- 决策：Team使用Python标准库控制程序、SQLite事务状态/追加事件、独立证据文件和本地HTTP看板。Codex承担真实推理、原生工具和子代理。新0.2范围允许App Server，替代D-023对其Desktop-only限制及D-022/D-032对其纯skills范围限制；旧实验不改写。
+- 原生接口：使用明确的初始化、会话/回合、事件、动态Team控制工具、命令沙箱、纠偏和中断接口。直接调用官方Codex已有认证，不创建API Key，不改Codex内部数据库，不绑定UI抓取或第三方launcher。
+- 实测：9月5日实际执行binary为0.153.0，npm入口为0.152.0，协议分别记录；9月8日实际binary为0.153.4。新会话配置、恢复、动态工具、子代理、原生命令与只读写入拒绝已取得限定条件证据。
+- 限制：App Server有实验/版本边界；会话不承诺出现在Desktop侧栏。本地Team项目登记与Codex saved project不是同一身份。工具返回模型/思考配置和重路由事件属于可观察事实，不假定不可见底层配置。
+
+## D-060：Team核心不绑定第三方Skill或插件
+
+- 日期：2026-09-05。
+- 状态：Accepted，用户追加明确约束。
+- 决策：Auto、状态、协作、监督、交接、验收与恢复只依赖Codex原生能力及Team自身实现。Open Design等不得成为运行前提、固定步骤或验收依赖。0.2不新增第三方运行库、外部前端资源或强制MCP服务。
+- 实施：调用自己提供的team_control动态工具；实验默认关闭会话plugin feature，保留认证、安全与用户执行规则，不使用ignore-user-config裁剪。项目业务本身的可选依赖不等于Team核心依赖。
+- 模型政策：实验创建的Session及其Subagent全部请求gpt-5.6-luna/max；主任务自身实现与审查Subagent按用户授权可用gpt-6-astra/medium。记录请求值、服务报告值、子代理创建参数和重路由，不能以提示词充当执行证据。
+
+## D-061：工作笔记作为当前工作台，原始事实保留可检索历史
+
+- 日期：2026-09-05。
+- 状态：Accepted，用户追加明确要求。
+- 决策：笔记保存当前目标、决定、已核对项、剩余工作、下一步和原始引用；以work_note事件追加，不覆盖旧代。按run/package检索原始事件和笔记，支持中文，输出有界，不把全历史重新注入每个Session。
+- 交接：新Session读取当前代码、有效方案、当前笔记及需要的原始事件。原生中断回执绑定旧package/thread/turn，源快照绑定文件hash；验证通过才转移责任。摘要不成为唯一事实源，旧会话不保持唯一记忆。
+- 边界：文件引用与当下文件有效性分别验证；笔记中的执行者声明不自动成为验收事实。敏感字段与常见凭据模式拒绝或脱敏，不能承诺识别任意无标记秘密。
+
+## D-062：运行控制以持久停止意图、执行租约和原生确认收口
+
+- 日期：2026-09-05；重启语义于2026-09-08补齐。
+- 状态：Accepted。
+- 决策：SQLite CAS和租约限制重复派发；跨进程pause/cancel仅提交持久意图，由执行owner在原生确认后报告停止。resume先取得租约；未知上次回合结果不得直接重派。控制器离线时看板明确状态过期。
+- 恢复：reconcile保留旧快照，核对已登记原生会话idle、背景终端清单和当前源码身份后回到paused；不推测离线期间的进展。旧开发状态缺失计时字段时明确标为未知，保留事件时间，不把离线间隔计为已知执行消耗。
+- 预算：新运行累计已知active时间，确认暂停不计入；Token按可观察线程usage累积并记录缓存输入，不能把Token总数当精确费用。超过限额触发停止；资源修订生成新方案/授权digest并保留原版。
+- 命令：Gate使用原生command/exec沙箱，argv不经过shell；记录实际解释器、hash、环境和退出。terminate应等原执行回执确认；超时/中断即使exit0也不能通过。中途监督属于方向检查，不能替代最终验收。
+
+## D-063：将实际环境失败转成资格检查，不制造通过或无关提交
+
+- 日期：2026-09-05。
+- 状态：Accepted。
+- 证据：原生完整turn读取在记录条件下不支持；未执行turn的空会话可能不持久；用户目录Python在Windows沙箱SpawnChild失败，而Codex自带Python3.12.14成功；unittest的合法-p被早期validator误判。
+- 决策：首轮派发不依赖完整历史读取；仅在无已派发回合且exact clean base时替换未持久空Session。执行前资格化解释器并绑定hash。解释器选项与模块/脚本参数分别解析，修正false negative而非绕过校验。
+- 规划与恢复：每次模型方案尝试保留原输出、校验错误和引用，有限次数纠正。零代码失败合法保留，不要求制造无关commit。已确认失败保留在追加历史，后续成功不改写此前结论。
+- 临时产物：可清理本轮隔离工作区中新生成、未追踪且能匹配owned Python源码与编译格式的字节码缓存；先保存hash/路径回执再逐文件核对清理，不扩展到用户数据或未知残留。
+
+## D-064：所有后续Subagent统一Luna/max
+
+- 日期：2026-09-08。
+- 状态：Accepted，用户最新明确指令，替代D-060中的主任务Subagent可用Astra/medium政策。
+- 决策：实验Session及全部新建/继续执行的Subagent均请求gpt-5.6-luna/max，不再使用Astra子代理。当前主任务不自行更换其宿主模型。已完成的Astra测试/审查保留原始配置和结果，不追溯改写为Luna证据。
+
+## D-065：原生项目绑定以App Server读回为准
+
+- 日期：2026-09-08；2026-09-12重新核对。
+- 状态：Accepted。
+- 观察：原生project/import已创建“Team 实验 · LabLedger”，ID为01a07fe9-6bab-7493-8eb2-312cba28c38c；project/read和thread/read验证项目根及Session归属。证据为实验根native-project-import.json和运行native-project-verified事件。
+- 决策：控制器按仓库根复用原生项目，并验证Session绑定；项目租约防止同一项目重复分配活动运行。接口不支持时明确记录本地分组，不改Codex内部数据库。
+- 限制：原生项目注册和Desktop saved-project侧栏列表是不同的观察面；现有证据不保证侧栏展示。
+
+## D-066：本次推进受7个百分点额度限制，恢复必须同时更新工作包
+
+- 日期：2026-09-12。
+- 状态：Accepted，基于用户最新的下一检查点及7%额度委托。
+- 决策：保留里程碑1–5总体目标，本次推进到最近可验收检查点，最多使用约7个百分点账户额度；开始观察为本周已用0%，按账户读数定期检查并预留停止与记录余量。账户读数存在粒度且包含其他任务，不能当作本任务精确费用。
+- 恢复实测：9月8日后控制进程已结束，原记录仍为running。原生idle及背景终端为空确认后，未完成running工作包也应转为paused，保留thread/turn、源码和旧回执，允许原Session继续。只把Run改paused会使调度器跳过工作包，现已补此状态转换与回归。idle不是工作完成证明。
+- 环境变化：内置Python再次更新，通过requalify重新验证，前一解释器和证据保留；不将旧测试结果移植到新解释器。
