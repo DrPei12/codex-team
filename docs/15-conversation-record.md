@@ -367,3 +367,9 @@ RED baseline 虽然给出了可用的 Core/CLI/Integrator 拆分，却读取了�
 最终 configured marketplace/plugin 无目标，版本 cache 不存在，`codex-team-local` cache 父目录存在但为空。Repo marketplace 文件和 ignored 生成 source 保留。本轮 6 条可读测试任务保留 idle，没有 archive 授权。`git worktree list` 已无本轮 4 个 managed worktree，但 `4d8c/551e/fdba/6387` 容器目录仍存在且为空，本轮不手工删除。
 
 项目因此接受 D-039：当前环境中 repo marketplace 注册、同版重安、新任务 7-skill discovery/显式加载、单次隐式路由和卸载后不发现均已观察。长期触发准确率、旧任务热刷新、版本升级/cachebuster、真实 worker dispatch/handoff/archive 和第二 benchmark 仍未完成，成熟度不晋升。
+
+## 2026-09-13：方向调整前暂停
+
+用户要求先停止推进，记录并提交最新更新，随后调整方向。当前已完成源码基线为a911dbd，里程碑5验收与证据索引见docs/22-milestone5-acceptance.md及evidence/experiments/2026-09-12-team-auto-m5.json。主项目和实验开发工作树在本次记录前均为clean。
+
+本次仅同步工作笔记、状态页、决策D-069和本记录；保留现有实现、实验及交付包，不启动下一阶段。新的方向内容尚未确定，等待用户后续说明。
