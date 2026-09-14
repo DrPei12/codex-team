@@ -1,5 +1,7 @@
 # Team Auto 0.2：模块集成契约
 
+适用版本说明（2026-09-14）：本页继续描述已有0.2实现；固定proposal、工程Gate及原协作行为不代表新版目标。新设计见[自适应执行](25-adaptive-execution-design.md)及[验证与迁移](26-execution-validation-and-migration.md)，实现迁移前不得据新设计改变旧记录语义。
+
 这是本轮实现共享接口，修改由主任务拥有。全部代码Python 3.12标准库，包team_runtime。无跨平台agent抽象。
 
 ## Store
