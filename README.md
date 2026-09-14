@@ -3,7 +3,9 @@
 [![Release](https://img.shields.io/github/v/release/DrPei12/codex-team)](https://github.com/DrPei12/codex-team/releases)
 [![CI](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml/badge.svg)](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml)
 
-Codex Team 是只面向 Codex 的工程协作系统。0.2 Auto 从自然语言目标生成可审阅方案，通过本地控制程序组织独立会话，维护工作笔记与可检索历史，并在约定检查点收口。原有七个 skills 和0.1.x证据/集成协议继续保留。
+Codex Team 的产品方向是只面向 Codex、承接跨领域目标的自适应协作插件。它通过有信息支撑的需求澄清、按需调查和组织执行，推进到可验证的结果。最新目标见[项目定义](docs/23-project-definition-v0.2.zh-CN.md)与[用户方向补充](docs/24-direction-update-2026-09-14.md)。
+
+当前0.2 Auto实现及验证主要覆盖软件工程：从自然语言目标生成可审阅方案，通过本地控制程序组织独立会话，维护工作笔记与可检索历史，并在约定检查点收口。新版跨领域能力和交互仍待实现；原有七个 skills 和0.1.x证据/集成协议继续保留。
 
 项目不会因为“可以并行”就创建更多任务。只有共享契约、依赖、owner、输入输出、Gate 与集成点足够清楚时才允许并行。
 
