@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/DrPei12/codex-team)](https://github.com/DrPei12/codex-team/releases)
 [![CI](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml/badge.svg)](https://github.com/DrPei12/codex-team/actions/workflows/ci.yml)
 
-Codex Team 的产品方向是只面向 Codex、承接跨领域目标的自适应协作插件。它通过有信息支撑的需求澄清、按需调查和组织执行，推进到可验证的结果。最新目标见[项目定义](docs/23-project-definition-v0.2.zh-CN.md)与[用户方向补充](docs/24-direction-update-2026-09-14.md)。
+Codex Team 的产品方向是只面向 Codex、承接跨领域目标的自适应协作插件。它通过自然交流形成对目标的理解，按需调查、提供专业建议并组织执行，推进到可验证的结果。当前目标见[正式项目定义](docs/project-definition.md)，原始方向与讨论依据通过定义末尾的引用检索。
 
 当前0.2 Auto实现及验证主要覆盖软件工程：从自然语言目标生成可审阅方案，通过本地控制程序组织独立会话，维护工作笔记与可检索历史，并在约定检查点收口。新版跨领域能力和交互仍待实现；原有七个 skills 和0.1.x证据/集成协议继续保留。
 
