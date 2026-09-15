@@ -341,8 +341,8 @@ class Runner:
             saved_session = next((s for s in data['sessions'].values() if s.get('member', s['role']) == attempt.get('member', attempt['role']) and s['cwd'] == attempt['cwd']), None)
         report, done, tid, turn_id = "", None, None, None
         before = inventory(cwd) if attempt["writable"] else []
-        self.engine.send_start(self.run_id, aid, self.owner, self.epoch)
         try:
+            self.engine.send_start(self.run_id, aid, self.owner, self.epoch)
             with CodexClient(on_event=lambda event: self.engine.native_event(self.run_id, aid, event),
                              on_request=lambda message: self._request(aid, coordinator, message)) as client:
                 if saved_session:
@@ -393,6 +393,8 @@ class Runner:
             self.engine.complete_attempt(self.run_id, aid, result, outcome=outcome, stopped=True)
             return {"attempt_id": aid, "outcome": outcome, "result": result}
         except BaseException as exc:
+            if self._data()['attempts'][aid]['state'] == 'not-started':
+                return {'attempt_id':aid, 'outcome':'not-started', 'reason':'Responsibility ended before native dispatch'}
             result = self.engine.artifact({"attempt_id": aid, "thread_id": tid, "turn_id": turn_id,
                                           "error": str(exc), "report": report, "native_turn": done})
             if tid and self._data()['stop_intent']:

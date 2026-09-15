@@ -359,6 +359,8 @@ class Adaptive(Coordination):
             if data["stop_intent"] or data["status"] != "running":
                 raise ConflictError("Stop intent prevents dispatch")
             attempt = data["attempts"][attempt_id]
+            if attempt.get('delegation_id') and data.get('delegations', {}).get(attempt['delegation_id'], {}).get('state') != 'active':
+                raise ConflictError('Temporary coordination was closed before dispatch')
             work = data["works"].get(attempt["work_id"])
             if attempt["state"] != "prepared" or (work and attempt["assignment_epoch"] != work["epoch"]):
                 raise ConflictError("Attempt is not prepared/current")
@@ -669,6 +671,12 @@ class Adaptive(Coordination):
                 if grant and ('acceptance' in patch or ('depends_on' in patch and not set(patch['depends_on']) <= set(grant['work_ids']))):
                     raise ConflictError('Local changes preserve acceptance criteria and dependency scope')
                 work.update({key: val for key, val in patch.items() if key != "id"})
+                if grant and patch.get('state') == 'superseded':
+                    proposal = {'id':ident('proposal'), 'member':grant['member'], 'from_work':work_id,
+                                'work_ids':[work_id], 'body':'Review removal or consolidation of this delivery responsibility: '+reason,
+                                'original_goal':old['goal'], 'original_acceptance':old['acceptance'],
+                                'state':'pending', 'created_at':_utc_now()}
+                    data.setdefault('proposals', {})[proposal['id']] = proposal
                 text(work["goal"], "goal")
                 text(work["acceptance"], "acceptance")
                 text(work["role"], "role")
@@ -688,7 +696,13 @@ class Adaptive(Coordination):
             for spec in add or []:
                 created = self._work(data, spec)
                 if grant:
+                    created['scope_criteria'] = [{'work_id':wid, 'goal':data['works'][wid]['goal'],
+                                                  'acceptance':data['works'][wid]['acceptance']} for wid in grant['work_ids']]
                     grant['work_ids'].append(created['id'])
+            members = {w.get('member', w['role']) for w in data['works'].values()}
+            for current_grant in data.get('delegations', {}).values():
+                if current_grant['state'] == 'active' and current_grant['member'] not in members:
+                    self._close_grant(tx, data, current_grant, 'Member responsibility was transferred')
             self.validate_graph(data)
             if definition_ref:
                 if any(a["state"] in ACTIVE_ATTEMPTS for a in data["attempts"].values()):
@@ -744,7 +758,10 @@ class Adaptive(Coordination):
         return result
 
     def reconcile_observations(self, run_id, observations, snapshot_ref):
-        self.read_artifact(snapshot_ref)
+        receipt = self.read_artifact(snapshot_ref)
+        before = receipt.get('before', {})
+        if before.get('id') != run_id or receipt.get('observations') != observations or not isinstance(receipt.get('files'), list):
+            raise ConflictError('Recovery receipt does not bind this run and its observations')
         def change(tx, data):
             current = data["controller"]
             if current and current["expires"] > time.time():
@@ -753,6 +770,9 @@ class Adaptive(Coordination):
                 if attempt["state"] not in ACTIVE_ATTEMPTS:
                     continue
                 observation = observations.get(attempt["id"])
+                recorded = before.get('attempts', {}).get(attempt['id'], {})
+                if any(recorded.get(key) != attempt.get(key) for key in ('thread_id','turn_id','configuration','controller_epoch','assignment_epoch')):
+                    raise ConflictError('Recovery receipt belongs to another execution binding')
                 if not observation or observation.get("state") not in {"idle", "not-started"}:
                     raise ConflictError("Missing stop observation for " + attempt["id"])
                 if observation['state'] == 'not-started':
@@ -805,9 +825,13 @@ class Adaptive(Coordination):
                 raise ConflictError("Native execution still active")
             if any(e['state'] == 'unknown' for e in data.get('effects', {}).values()):
                 raise ConflictError('Unresolved external actions remain')
+            if any(p['state'] == 'pending' for p in data.get('proposals', {}).values()):
+                raise ConflictError('Unresolved coordination proposals remain')
             for grant in data.get('delegations', {}).values():
                 if grant['state'] == 'active':
                     grant.update(state='closed', ended_at=_utc_now(), end_reason='Run delivered')
             data.update(status="completed", final_summary=summary, accepted_by=actor, completed_at=_utc_now())
             return {"status": "completed", "summary": summary, "actor": actor}
-        return self._mutate(run_id, ident("finish"), "run-completed", {"summary": summary}, change, actor=actor)
+        result = self._mutate(run_id, ident("finish"), "run-completed", {"summary": summary}, change, actor=actor)
+        WorkspaceClaims().release(self.root, run_id)
+        return result

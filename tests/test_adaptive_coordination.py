@@ -135,7 +135,10 @@ def test_cross_state_claim_survives_controller_loss_and_releases_after_reconcile
                 {**observation, 'configuration': {'model': 'other'}}]:
         with pytest.raises(ConflictError):
             e.reconcile_observations(rid, {a['id']: bad}, e.artifact({'observation': bad}))
-    e.reconcile_observations(rid, {a['id']: observation}, e.artifact({'observation': observation}))
+    with pytest.raises(ConflictError, match='receipt'):
+        e.reconcile_observations(rid, {a['id']: observation}, e.artifact({'unrelated':True}))
+    receipt = e.artifact({'before':e.run(rid)['data'], 'observations':{a['id']:observation}, 'files':[]})
+    e.reconcile_observations(rid, {a['id']: observation}, receipt)
     second.start(other, 'other', other_epoch)
 
 
@@ -313,3 +316,74 @@ def test_noop_coordinator_does_not_abandon_active_results(tmp_path):
     result = runner.run()
     assert result['status'] == 'completed', result
     assert runner.coordination_count >= 2
+
+
+def test_revocation_before_dispatch_cancels_local_without_stopping_others(team):
+    import time
+    e, rid, epoch = team
+    grant = e.delegate(rid, 'lead', ['a'], 'Coordinate')['delegation']
+    local = e.prepare_local(rid, grant['id'], 'owner', epoch)['attempt']
+    other = active(e, rid, epoch, 'other')
+    e.close_delegation(rid, grant['id'], 'Reorganize')
+    with pytest.raises(ConflictError): e.send_start(rid, local['id'], 'owner', epoch)
+    runner = Runner(e, rid); runner.owner='owner'; runner.epoch=epoch; runner.deadline=time.monotonic()+10
+    assert runner.execute(local)['outcome'] == 'not-started'
+    assert e.run(rid)['data']['attempts'][other['id']]['state'] == 'running'
+    assert not e.run(rid)['data']['stop_intent']
+
+
+def test_member_transfer_closes_orphan_delegation(team):
+    e, rid, epoch = team
+    grant = e.delegate(rid, 'lead', ['a'], 'Coordinate')['delegation']
+    local = e.prepare_local(rid, grant['id'], 'owner', epoch)['attempt']
+    e.revise(rid, 1, 'Transfer responsibility', update=[{'id':'lead','member':'other'}])
+    data = e.run(rid)['data']
+    assert data['delegations'][grant['id']]['state'] == 'closed'
+    assert data['attempts'][local['id']]['state'] == 'not-started'
+    with pytest.raises(ConflictError): e.prepare_local(rid, grant['id'], 'owner', epoch)
+
+
+def test_claim_from_rolled_back_start_is_reclaimed_after_lease_expires(tmp_path):
+    from team_runtime.workspace_claims import WorkspaceClaims
+    project=tmp_path/'project'; project.mkdir()
+    first=Adaptive(tmp_path/'first'); second=Adaptive(tmp_path/'second')
+    rid=first.create(project,'First',[work('a')],authority='Local work')['run_id']
+    first.controller(rid,'owner')
+    def crash(tx,data):
+        WorkspaceClaims().claim(first.root,rid,data['workspace'])
+        raise RuntimeError('Process failed before run transaction committed')
+    with pytest.raises(RuntimeError): first._mutate(rid,'crash','crash',{},crash)
+    other=second.create(project,'Second',[work('b')],authority='Local work')['run_id']
+    epoch=second.controller(other,'other')['epoch']
+    with pytest.raises(ConflictError): second.start(other,'other',epoch)
+    def expire(tx,data):
+        data['controller']['expires']=0
+        return {}
+    first._mutate(rid,'expire','expire',{},expire)
+    assert second.start(other,'other',epoch)['status']=='running'
+
+
+def test_local_consolidation_keeps_original_criteria_for_overall_review(team):
+    e,rid,epoch=team
+    grant=e.delegate(rid,'lead',['a','b'],'Coordinate')['delegation']
+    local=e.prepare_local(rid,grant['id'],'owner',epoch)['attempt']
+    e.send_start(rid,local['id'],'owner',epoch)
+    e.revise(rid,1,'Consolidate outcomes',update=[{'id':'a','state':'superseded'}],
+             add=[work('replacement',directory='a')],attempt_id=local['id'])
+    data=e.run(rid)['data']
+    assert any(p['state']=='pending' and p['original_acceptance']==data['works']['a']['acceptance'] for p in data['proposals'].values())
+    assert data['works']['replacement']['scope_criteria'][0]['work_id']=='a'
+
+
+def test_direct_finish_releases_workspace_claim(tmp_path):
+    import sqlite3
+    from team_runtime.workspace_claims import WorkspaceClaims
+    project=tmp_path/'project'; project.mkdir()
+    e=Adaptive(tmp_path/'state')
+    rid=e.create(project,'One result',[work('a')],authority='Local work')['run_id']
+    epoch=e.controller(rid,'owner')['epoch']; e.start(rid,'owner',epoch)
+    _, ref=complete(e,rid,epoch)
+    e.accept(rid,'a',ref['sha256'],'Verified')
+    assert e.finish(rid,'Delivered')['status']=='completed'
+    with sqlite3.connect(WorkspaceClaims().path) as db:
+        assert db.execute('SELECT count(*) FROM claims').fetchone()[0]==0

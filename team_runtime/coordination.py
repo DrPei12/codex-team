@@ -5,6 +5,15 @@ from .store import ConflictError, _utc_now
 
 
 class Coordination:
+    @staticmethod
+    def _close_grant(tx, data, grant, reason, *, revoked=True):
+        grant.update(state='closed', ended_at=_utc_now(), end_reason=reason, revoked=revoked)
+        for attempt in data['attempts'].values():
+            if attempt.get('delegation_id') == grant['id'] and attempt['state'] == 'prepared':
+                attempt.update(state='not-started', stop_confirmed=True, ended_at=_utc_now())
+                record = tx.get('adaptive-dispatch', attempt['id'])
+                tx.put('adaptive-dispatch', attempt['id'], {**record['data'], 'state':'not-started'}, expected_revision=record['revision'])
+
     def _acting(self, data, attempt_id):
         attempt, work = self._current_attempt(data, attempt_id)
         if attempt['state'] not in {'running', 'dispatching'} or data['stop_intent']:
@@ -86,8 +95,7 @@ class Coordination:
                 current, _ = self._acting(data, attempt_id)
                 if current.get('member', current['role']) != grant['member']:
                     raise ConflictError('Only the delegated member can return this responsibility')
-            grant.update(state='closed', ended_at=_utc_now(), end_reason=reason,
-                         revoked=attempt_id is None)
+            self._close_grant(tx, data, grant, reason, revoked=attempt_id is None)
             return {'delegation': grant}
         return self._mutate(run_id, operation_id or ident('release'), 'coordination-returned',
                             {'delegation_id': delegation_id, 'reason': reason}, change, actor=attempt_id or 'coordinator')
@@ -123,7 +131,9 @@ class Coordination:
                 raise ConflictError('Observed budget exhausted')
             if any(a.get('member', a['role']) == grant['member'] for a in active):
                 raise ConflictError('Member is currently busy; coordination remains queued')
-            holder = next(w for w in data['works'].values() if w.get('member', w['role']) == grant['member'])
+            holder = next((w for w in data['works'].values() if w.get('member', w['role']) == grant['member']), None)
+            if holder is None:
+                raise ConflictError('Delegated member no longer has an assigned workspace')
             cwd = str(directory(data['workspace'], holder['directory']))
             from .adaptive import overlap
             if any(overlap(cwd, a['cwd']) and a['writable'] for a in active):
