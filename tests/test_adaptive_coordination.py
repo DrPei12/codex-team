@@ -387,3 +387,30 @@ def test_direct_finish_releases_workspace_claim(tmp_path):
     assert e.finish(rid,'Delivered')['status']=='completed'
     with sqlite3.connect(WorkspaceClaims().path) as db:
         assert db.execute('SELECT count(*) FROM claims').fetchone()[0]==0
+
+
+def test_automatic_scope_completion_cancels_prepared_coordination(team):
+    e,rid,epoch=team
+    grant=e.delegate(rid,'lead',['a'],'Review')['delegation']
+    _,ref=complete(e,rid,epoch,'a')
+    local=e.prepare_local(rid,grant['id'],'owner',epoch)['attempt']
+    e.accept(rid,'a',ref['sha256'],'Verified by overall coordinator')
+    assert e.run(rid)['data']['attempts'][local['id']]['state']=='not-started'
+    assert e.store.get('adaptive-dispatch',local['id'])['data']['state']=='not-started'
+    assert e.settle(rid,'owner',epoch)['status']=='waiting'
+
+
+def test_failed_local_coordination_retries_then_returns_to_overall(team):
+    e,rid,epoch=team
+    grant=e.delegate(rid,'lead',['a'],'Review')['delegation']
+    complete(e,rid,epoch,'a')
+    allowed=e.run(rid)['data']['policy']['max_repair_attempts']+1
+    for _ in range(allowed):
+        local=e.prepare_local(rid,grant['id'],'owner',epoch)['attempt']
+        e.send_start(rid,local['id'],'owner',epoch)
+        e.complete_attempt(rid,local['id'],e.artifact({'report':'Native attempt failed'}),outcome='failed',stopped=True)
+        assert e.run(rid)['data']['delegations'][grant['id']]['last_fingerprint'] is None
+    data=e.run(rid)['data']
+    assert data['delegations'][grant['id']]['state']=='closed'
+    assert data['works']['a']['state']=='result-ready'
+    assert e.prepare_coordination(rid,'owner',epoch)['attempt']

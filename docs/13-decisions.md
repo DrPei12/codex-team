@@ -17,4 +17,6 @@ The current definition and these accepted decisions guide implementation. Histor
 | D-078: Budget reservations and exact recovery | Dispatch reserves budget transactionally. Unknown execution retains its reservation. Recovery verifies native session, turn, project, workspace and execution policy before releasing occupancy. Explicit revocation interrupts the temporary coordination turn while other members continue. |
 | D-079: Organizational changes preserve delivery intent | Member transfers close orphaned coordination grants. Local consolidation retains the original goal and criteria in a proposal for overall coordination; newly added work carries its scope criteria. Abandoned workspace claims are reclaimed only after checking the owning run's execution and controller state. |
 
+Completing a delegated scope cancels its queued coordination turn. Failed local coordination remains retryable within the repair policy, then returns responsibility to overall coordination with the original results intact.
+
 D-074 through D-079 were adopted on September 15, 2026 under the user's formal-release delegation. Release version and project-definition version are maintained separately. Native sessions are the execution unit in 1.0; local coordination uses the same configured model and resource policy as other work.

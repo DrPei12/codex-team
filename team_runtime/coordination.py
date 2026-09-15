@@ -144,7 +144,7 @@ class Coordination:
                        'assignment_epoch': epoch, 'thread_id': None, 'turn_id': None,
                        'native_phase': 'not-started', 'definition': data['definition'], 'created_at': _utc_now()}
             self._reserve_budget(data, attempt)
-            grant['last_fingerprint'] = self.delegation_fingerprint(data, grant)
+            attempt['coordination_fingerprint'] = self.delegation_fingerprint(data, grant)
             data['attempts'][attempt['id']] = attempt
             tx.put('adaptive-dispatch', attempt['id'], {'run_id': run_id, 'state': 'pending', 'attempt_id': attempt['id']})
             return {'attempt': attempt}

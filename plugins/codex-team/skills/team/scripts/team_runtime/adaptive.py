@@ -591,6 +591,12 @@ class Adaptive(Coordination):
                     work["recovery_required"] = True
             if outcome == "unknown":
                 data.update(status="needs-reconciliation", stop_intent="pause")
+            grant = data.get('delegations', {}).get(attempt.get('delegation_id'))
+            if grant and grant['state'] == 'active':
+                grant['last_fingerprint'] = attempt.get('coordination_fingerprint') if outcome == 'succeeded' else None
+                failures = sum(a.get('delegation_id') == grant['id'] and a['state'] == 'failed' for a in data['attempts'].values())
+                if failures > data['policy']['max_repair_attempts']:
+                    self._close_grant(tx, data, grant, 'Local execution requires overall coordination after repeated failure', revoked=False)
             return {"attempt_id": attempt_id, "outcome": outcome, "late": not current, "work_state": work["state"] if work else None}
         return self._mutate(run_id, "complete:" + attempt_id + ":" + outcome, "attempt-finished",
                             {"attempt_id": attempt_id, "result": result, "outcome": outcome, "stopped": stopped}, change, actor="native")
@@ -620,7 +626,7 @@ class Adaptive(Coordination):
             work.update(state="accepted", acceptance_record=record["id"])
             for grant in data.get('delegations', {}).values():
                 if grant['state'] == 'active' and all(data['works'][wid]['state'] in {'accepted', 'superseded'} for wid in grant['work_ids']):
-                    grant.update(state='closed', ended_at=_utc_now(), end_reason='Delegated outcomes accepted')
+                    self._close_grant(tx, data, grant, 'Delegated outcomes accepted', revoked=False)
             return {"acceptance": record}
         return self._mutate(run_id, operation_id or ident("accept"), "result-accepted",
                             {"work_id": work_id, "result_hash": result_hash, "rationale": rationale}, change, actor=actor)
