@@ -14,7 +14,7 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "1.0.0"
+PLUGIN_VERSION = "1.0.1"
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAMES = (
     "team",
@@ -150,7 +150,11 @@ def _plugin_manifest() -> dict[str, Any]:
             ],
             "developerName": "DrPei12",
             "displayName": "Codex Team",
-            "longDescription": "Delegate a goal to Codex Team. It develops the brief, organizes native Codex sessions, adapts responsibilities, preserves readable collaboration and verifies delivery. Includes temporary local coordination, working notes, searchable history, recovery and a local project board.",
+            "longDescription": "Delegate a goal to Codex Team. It develops the brief, organizes native Codex sessions, adapts responsibilities, preserves readable collaboration and verifies delivery. Includes temporary local coordination, working notes, searchable history and recovery.",
+            "composerIcon": "./assets/codex-team.png",
+            "logo": "./assets/codex-team.png",
+            "logoDark": "./assets/codex-team.png",
+            "brandColor": "#00BFFF",
             "shortDescription": "Adaptive teams for goals worth finishing",
         },
         "name": PLUGIN_NAME,
@@ -177,6 +181,8 @@ def _bundle_manifest(plugin_root: Path) -> dict[str, Any]:
 
 def _build_into(plugin_root: Path) -> None:
     _write_json(plugin_root / ".codex-plugin" / "plugin.json", _plugin_manifest())
+    _copy_plain_file(ROOT / "assets" / "codex-team.png",
+                     plugin_root / "assets" / "codex-team.png", "plugin icon")
     skills_root = plugin_root / "skills"
     for skill_name in SKILL_NAMES:
         _copy_skill(ROOT / "skills" / skill_name, skills_root / skill_name)
@@ -196,10 +202,8 @@ def _build_into(plugin_root: Path) -> None:
     if package.is_symlink() or not package.is_dir():
         raise PluginBuildError("Team Auto runtime package is missing or symlinked")
     for required in ("__init__.py", "__main__.py", "cli.py", "engine.py", "codex.py",
-                     "adaptive.py", "adaptive_runner.py", "adaptive_cli.py", "adaptive_board.py",
-                     "static/adaptive.html", "static/adaptive.js", "static/adaptive.css",
-                     "store.py", "rules.py", "history.py", "board.py", "static/index.html",
-                     "static/app.js", "static/styles.css"):
+                     "adaptive.py", "adaptive_runner.py", "adaptive_cli.py",
+                     "store.py", "rules.py", "history.py"):
         _plain_source_file(package / required, "Team Auto runtime")
     for path in sorted(package.rglob("*")):
         relative = path.relative_to(package)
@@ -207,7 +211,7 @@ def _build_into(plugin_root: Path) -> None:
             raise PluginBuildError(f"Team Auto runtime: symlinked resource: {path}")
         if "__pycache__" in relative.parts or path.suffix == ".pyc":
             continue
-        if path.is_file() and (path.suffix == ".py" or relative.parts[0] == "static"):
+        if path.is_file() and path.suffix == ".py":
             _copy_plain_file(path, runtime_root / "team_runtime" / relative, "Team Auto runtime")
     schema_root = skills_root / "team" / "references" / "schemas"
     for filename in RUNTIME_SCHEMAS:

@@ -1,7 +1,7 @@
 """SQLite backed state store for the Team Auto runtime.
 
 The runtime keeps all mutable state in this module so that the controller and
-the HTTP board can use the same durable facts.  Connections are intentionally
+the CLI can use the same durable facts.  Connections are intentionally
 short lived: every operation opens its own connection, performs one complete
 transaction (for writes), and closes it.  SQLite therefore provides the
 cross-thread and cross-process serialization needed by CAS updates, event
@@ -241,7 +241,7 @@ class Store:
 
     def _initialize(self, connection: sqlite3.Connection) -> None:
         if not self._uri:
-            # WAL lets board reads proceed while a controller writes.  This is
+            # WAL lets status reads proceed while a controller writes.  This is
             # a database setting, so set it once while constructing the Store.
             connection.execute("PRAGMA journal_mode=WAL")
             connection.execute("PRAGMA synchronous=NORMAL")

@@ -44,11 +44,11 @@ The model creates the internal records and runtime commands. You do not need to 
 
 ## Follow and steer the work
 
-Ask Team to show the project board, report progress, pause, continue, or revise the plan. The board displays the current definition, work and dependencies, temporary coordinators, conversation, external action records, and results. **Open result** shows the report and its recorded files. **Original records** searches the durable event history.
+Ask Team in Codex to report progress, explain current responsibilities and waiting work, inspect results, pause, continue, or revise the plan. Team reads the saved state and retrieves the original messages, decisions and artifact receipts relevant to your question.
 
-Use **Pause** to stop dispatch and request interruption of active native work. **Continue** resumes a stopped run. **Reconcile** checks native session and background execution after a controller interruption, preserves the current files, and prepares the same run to continue.
+Ask Team to pause to stop dispatch and request interruption of active native work. Ask it to continue to resume a stopped run. After a controller interruption, Team uses `reconcile` to check native sessions and background execution, preserve the current files, and prepare the same run to continue.
 
-Keep the state directory with the project records. It contains `team.sqlite3` and content-addressed artifacts; place it outside the deliverable workspace. The controller runs while its terminal or board process is running.
+Keep the state directory with the project records. It contains `team.sqlite3` and content-addressed artifacts; place it outside the deliverable workspace. The controller runs while its terminal process is running.
 
 ## Runtime commands
 
@@ -61,10 +61,9 @@ python -B scripts/team-next.py --state /absolute/path/to/state run RUN_ID
 python -B scripts/team-next.py --state /absolute/path/to/state pause RUN_ID
 python -B scripts/team-next.py --state /absolute/path/to/state reconcile RUN_ID
 python -B scripts/team-next.py --state /absolute/path/to/state history RUN_ID "source decision"
-python -B scripts/team-next.py --state /absolute/path/to/state serve
 ```
 
-On Windows, a state path can be `D:/TeamState/my-project`. Quote paths containing spaces. The default board URL is `http://127.0.0.1:8766`; `serve --port 8770` selects another port.
+On Windows, a state path can be `D:/TeamState/my-project`. Quote paths containing spaces.
 
 For programmatic registration, `create` reads a definition, authority, initial work list, and resource policy from UTF-8 files. Run `--help` and `create --help` for the exact interface. A work item needs a title, goal, and acceptance criteria. Member identity, role, directory, write access, dependencies, and priority describe its execution context.
 

@@ -44,11 +44,11 @@ Team 调查现有信息，形成连贯的正式定义，在执行前解释建议
 
 ## 查看与调整工作
 
-让 Team 打开看板、汇报进展、暂停、继续或修改计划。看板显示当前定义、工作与依赖、临时协调者、交流、外部动作记录和成果。**查看成果**展示报告与记录的文件，**原始记录**支持检索持久保存的事件历史。
+在 Codex 中让 Team 汇报进展、解释当前职责与等待原因、查看成果、暂停、继续或修改计划。Team 读取已保存状态，并按问题检索相关原始消息、决定和产物回执。
 
-**暂停**停止新派发并请求中断活跃的原生执行，**继续**恢复已停止的运行。控制程序中断后，**核对恢复现场**检查原生会话和后台执行，保留当前文件，让同一个运行能够继续。
+让 Team 暂停时，它会停止新派发并请求中断活跃的原生执行；让它继续时，恢复已停止的运行。控制程序中断后，Team 使用 `reconcile` 核对原生会话和后台执行，保留当前文件，让同一个运行能够继续。
 
-保存项目的状态目录，其中包含 `team.sqlite3` 与按内容标识的产物；状态目录放在交付工作区之外。控制程序在对应终端或看板进程运行期间推进工作。
+保存项目的状态目录，其中包含 `team.sqlite3` 与按内容标识的产物；状态目录放在交付工作区之外。控制程序在对应终端进程运行期间推进工作。
 
 ## 运行命令
 
@@ -61,10 +61,9 @@ python -B scripts/team-next.py --state /absolute/path/to/state run RUN_ID
 python -B scripts/team-next.py --state /absolute/path/to/state pause RUN_ID
 python -B scripts/team-next.py --state /absolute/path/to/state reconcile RUN_ID
 python -B scripts/team-next.py --state /absolute/path/to/state history RUN_ID "source decision"
-python -B scripts/team-next.py --state /absolute/path/to/state serve
 ```
 
-Windows 状态路径示例为 `D:/TeamState/my-project`，含空格路径加引号。默认看板地址为 `http://127.0.0.1:8766`，可以使用 `serve --port 8770` 更换端口。
+Windows 状态路径示例为 `D:/TeamState/my-project`，含空格路径加引号。
 
 程序化登记时，`create` 从 UTF-8 文件读取定义、授权、初始工作和资源策略；具体参数见 `--help` 与 `create --help`。工作需要标题、目标和验收依据；成员身份、角色、目录、写入权限、依赖与优先级描述执行背景。
 

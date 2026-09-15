@@ -42,7 +42,7 @@ class AutoPackageTests(unittest.TestCase):
         self.assertIn("propose", result.stdout)
         self.assertIn("approve", result.stdout)
 
-    def test_moved_bundle_imports_schema_board_and_cli(self):
+    def test_moved_bundle_imports_schema_and_cli(self):
         plugin = self.build()
         destination = self.external / "moved folder"
         destination.mkdir()
@@ -54,12 +54,11 @@ class AutoPackageTests(unittest.TestCase):
         probe = (
             "import sys; from pathlib import Path; "
             "sys.path.insert(0,sys.argv[1]); "
-            "import team_runtime, team_runtime.board; "
+            "import team_runtime, team_runtime.adaptive_cli; "
             "from team_runtime.engine import Engine; "
             "from team_runtime.rules import PROPOSAL_SCHEMA; "
             "assert PROPOSAL_SCHEMA['type']=='object'; "
             "assert Path(team_runtime.__file__).resolve().is_relative_to(Path(sys.argv[1]).resolve()); "
-            "assert (Path(team_runtime.__file__).parent/'static'/'index.html').is_file(); "
             "print('portable-import-ok')"
         )
         imported = self.command("-I", "-c", probe, runtime)
@@ -70,20 +69,39 @@ class AutoPackageTests(unittest.TestCase):
         checked = self.command(runtime / "bundle-self-check.py")
         self.assertEqual(checked.returncode, 0, checked.stderr)
 
-    def test_static_asset_tamper_and_extra_file_are_rejected(self):
+    def test_icon_tamper_and_extra_file_are_rejected(self):
         plugin = self.build()
         runtime = plugin / "skills/team/scripts"
-        static = runtime / "team_runtime/static/app.js"
-        original = static.read_bytes()
-        static.write_bytes(original + b"\n/* altered */\n")
+        icon = plugin / "assets/codex-team.png"
+        original = icon.read_bytes()
+        icon.write_bytes(original + b"altered")
         checked = self.command(runtime / "bundle-self-check.py")
         self.assertNotEqual(checked.returncode, 0)
         self.assertIn("hash mismatch", checked.stderr)
-        static.write_bytes(original)
-        (runtime / "team_runtime/static/unlisted.txt").write_text("unexpected", encoding="utf-8")
+        icon.write_bytes(original)
+        (plugin / "assets/unlisted.txt").write_text("unexpected", encoding="utf-8")
         checked = self.command(runtime / "bundle-self-check.py")
         self.assertNotEqual(checked.returncode, 0)
         self.assertIn("inventory mismatch", checked.stderr)
+
+    def test_removed_web_entrypoints_are_unavailable_in_source_and_bundle(self):
+        plugin = self.build()
+        roots = [ROOT, plugin / "skills/team"]
+        for base in roots:
+            for entry in ("team-next.py", "team-auto.py"):
+                with self.subTest(root=str(base), entry=entry):
+                    help_result = self.command(base / "scripts" / entry, "--help")
+                    self.assertEqual(help_result.returncode, 0, help_result.stderr)
+                    self.assertNotIn("serve", help_result.stdout)
+                    state = self.external / (base.name + entry + "-rejected-state")
+                    result = self.command(base / "scripts" / entry, "--state", state, "serve")
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertIn("invalid choice", result.stderr)
+                    self.assertFalse(state.exists())
+        package = plugin / "skills/team/scripts/team_runtime"
+        self.assertFalse((package / "board.py").exists())
+        self.assertFalse((package / "adaptive_board.py").exists())
+        self.assertFalse((package / "static").exists())
 
     def test_manifest_paths_cannot_escape_bundle(self):
         plugin = self.build()

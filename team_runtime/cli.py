@@ -40,15 +40,11 @@ def main(argv=None):
     qualification.add_argument('run_id')
     replacement=sub.add_parser('replace-session',help='Transfer a stopped package using notes and original history')
     replacement.add_argument('run_id');replacement.add_argument('package_id');replacement.add_argument('--reason',required=True)
-    server=sub.add_parser('serve');server.add_argument('--port',type=int,default=8765)
     args=parser.parse_args(argv)
     engine=Engine(args.state)
     def emit(value): print(json.dumps(value,ensure_ascii=False,indent=2),flush=True)
     def read(path): return json.loads(path.read_text(encoding='utf-8')) if path else None
     try:
-        if args.command=='serve':
-            from .board import serve
-            serve(engine,port=args.port);return 0
         if args.command=='propose':
             emit(engine.propose(args.repo,args.brief_file.read_text(encoding='utf-8'),
                 answers=read(args.answers_file),policy=read(args.policy_file)))

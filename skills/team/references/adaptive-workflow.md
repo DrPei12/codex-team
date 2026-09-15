@@ -57,11 +57,9 @@ real Codex work and returns completion or the actual waiting/stopped/unknown sta
 Keep observing while it runs; an exec timeout does not prove the process stopped.
 `snapshot RUN_ID` reads current facts; `list` finds existing adaptive runs.
 
-`serve --port PORT` starts the local board (default 8766). Verify the server and open
-its loopback URL. It shows the definition, work responsibilities, readable messages,
-notes, original history and actual result receipts. It can start/continue, pause,
-end the run or request reconciliation. The board is a view of runtime state; its
-presence is not a completion claim or an always-running service guarantee.
+Report progress in the Codex conversation using the snapshot and original history.
+Explain current responsibilities, waiting reasons and verified results; provide
+artifact references when the user asks to inspect an outcome.
 
 Workers request assistance with the supplied Team tool. Requests queue; waiting
 workers save notes and end the turn. The controller resumes eligible work after

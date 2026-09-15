@@ -63,8 +63,6 @@ def main(argv=None):
     replace.add_argument('run_id')
     replace.add_argument('--member', required=True)
     replace.add_argument('--reason', required=True)
-    serve = commands.add_parser("serve")
-    serve.add_argument("--port", type=int, default=8766)
     args = parser.parse_args(argv)
     engine = Adaptive(args.state)
     def read(path):
@@ -102,10 +100,6 @@ def main(argv=None):
             result = engine.close_delegation(args.run_id, args.delegation_id, args.reason)
         elif args.command == 'replace-session':
             result = engine.replace_session(args.run_id, args.member, args.reason)
-        elif args.command == "serve":
-            from .adaptive_board import serve
-            serve(engine, args.port)
-            return 0
         print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
         if args.command == "run" and result["status"] != "completed":
             return 2

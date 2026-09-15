@@ -57,12 +57,8 @@ call a model. Global `--state STATE` precedes the subcommand.
 
 ## Observe, collaborate, and recover
 
-`python -B AUTO --state STATE serve` starts the loopback board (default port 8765;
-`--port PORT` overrides it). Verify the server is running and open
-`http://127.0.0.1:8765` (or the chosen port). The board reads
-the same state and supports proposals, authorization, execution, collaboration,
-evidence inspection, and checkpoint acceptance. Do not replace it with an invented
-dashboard or claim that the board server itself is a completed run.
+Report progress and respond to user direction in the Codex conversation using the
+saved runtime state, notes, original history and artifact receipts.
 
 - `snapshot RUN_ID` returns recorded state and events; omitting the ID shows all
   plans/runs. `watch RUN_ID` observes without starting another dispatch.
@@ -70,7 +66,7 @@ dashboard or claim that the board server itself is a completed run.
   request; `answer RUN_ID REQUEST_ID ANSWER` resolves it.
 - `steer RUN_ID PACKAGE_ID MESSAGE` records corrective direction. Read current
   state and ownership before steering; messages are not an alternate source of truth.
-- Use the board's work notes and searchable original history to recover context.
+- Use the saved work notes and searchable original history to recover context.
   Notes summarize navigation; verify important decisions and outcomes against the
   underlying events and artifact receipts. Package IDs, attempts, Codex thread
   identities, and plan/run IDs are distinct. App Server sessions are not promised
@@ -114,7 +110,7 @@ Report what ran, what passed, exact evidence locations, and remaining limitation
 For a user who has authorized implementing a CLI feature through its tests, write
 that goal to an absolute brief file, choose an external state directory, and run
 `propose`. Inspect the returned proposal and carry the authorized scope through
-`approve` and `run`; use `snapshot` and the loopback board to inspect the result.
+`approve` and `run`; use `snapshot` and original artifact receipts to inspect the result.
 For a read-only packaging check, run `--help` and the bundled
 `bundle-self-check.py` only; neither invokes Codex. This distinguishes a portable
 runtime check from evidence of an actual engineering run.

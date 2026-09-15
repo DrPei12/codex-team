@@ -1,5 +1,7 @@
 # Codex Team
 
+<img src="assets/codex-team.png" alt="Codex Team" width="112" height="112">
+
 **Delegate the goal. Let the team organize the work.**
 
 [English](README.md) · [简体中文](README.zh-CN.md) · [Install & use](docs/usage.md) · [Architecture](docs/architecture.md)
@@ -65,19 +67,13 @@ flowchart LR
 - **Working notes + searchable history.** Keep the current understanding compact while retaining the original decisions, sources, failures, and artifacts. A replacement session can pick up the actual record.
 - **Evidence-based delivery.** Submitting a result and accepting it are separate events. Acceptance binds the result to its content and criteria; only accepted dependencies unlock downstream work.
 - **Recoverable execution.** Persist dispatch intent, track native execution, reconcile interrupted sessions, and retain workspace occupancy while execution is uncertain. External action records preserve the identity and observed outcome of an operation.
-- **Visible control.** A local English/Chinese project board shows the definition, work, temporary responsibilities, messages, results, and original records. Start, pause, continue, or reconcile from the same view.
+- **Control from Codex.** Ask Team for progress, inspect results and original records, pause work, or continue from the saved state.
 
 [Read the architecture →](docs/architecture.md) · [Read the project definition →](docs/project-definition.md)
 
-## Using the project board
+## Planned: project workspace
 
-Ask Team to open the board for the current project. It starts the bundled server using the project's saved state directory. From a source checkout, the equivalent command is:
-
-```sh
-python -B scripts/team-next.py --state /absolute/path/to/team-state serve
-```
-
-Open **http://127.0.0.1:8766**. The state directory lives outside the deliverable workspace. The board's language switch changes between English and Chinese.
+A future project board will bring together live member activity, readable agent conversations, assistance requests, progress and results. Project-level discussion and goal editing will carry context across sessions and show how each change affects execution.
 
 ## Build and contribute
 

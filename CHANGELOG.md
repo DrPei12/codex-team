@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) · [简体中文](CHANGELOG.zh-CN.md)
 
+## 1.0.1
+
+- Adopt the new Codex Team icon throughout plugin metadata and the repository home page.
+- Remove the local web interfaces and their `serve` commands from source and the installable bundle.
+- Keep progress, control, collaboration and original history available through Codex and the CLI.
+- Move the project board to the roadmap: live member activity, readable collaboration, assistance requests, results and project-level direction changes.
+
 ## 1.0.0 · September 15, 2026
 
 Codex Team brings adaptive collaboration to delegated goals in Codex, with a complete installable plugin and English/Chinese documentation.
@@ -14,7 +21,6 @@ Codex Team brings adaptive collaboration to delegated goals in Codex, with a com
 - Workspace occupancy spans state directories and remains held through unknown execution.
 - External action records preserve a stable identity and require target observation after a lost response.
 - Result acceptance binds content and criteria; invalidation isolates affected dependencies.
-- The local project board supports English and Chinese, including organization, messages, evidence and recovery controls.
 - The repository includes the complete plugin bundle, source-to-bundle checks and regression suites.
 
 Adaptive 0.3 state continues through the current runtime. Auto 0.2 and legacy manifest entrypoints remain available for their existing records.

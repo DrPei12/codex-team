@@ -55,7 +55,7 @@ The ledger stores operation identity and observations; the actual service is acc
 
 ## Context and visibility
 
-The current definition, responsibilities, accepted results and recent messages form the execution brief. Members add working notes and retrieve original events with a literal query and cursor. Large artifacts remain addressable by content hash. The board reads the same state as the CLI and exposes the underlying receipts.
+The current definition, responsibilities, accepted results and recent messages form the execution brief. Members add working notes and retrieve original events with a literal query and cursor. Large artifacts remain addressable by content hash. The Codex conversation uses CLI snapshots and history queries to report progress and expose the underlying receipts.
 
 ## Source map
 
@@ -66,7 +66,7 @@ The current definition, responsibilities, accepted results and recent messages f
 | `adaptive_runner.py` | Native Codex sessions, dynamic tools and scheduling. |
 | `workspace_claims.py` | Occupancy shared across state directories. |
 | `store.py` | SQLite transactions, events, receipts and revision checks. |
-| `adaptive_cli.py`, `adaptive_board.py` | Commands and the local board. |
+| `adaptive_cli.py` | Persistent runtime commands used from Codex. |
 | `skills/team` | Natural-language entrypoint and runtime guidance. |
 
 All runtime modules are under [`team_runtime`](../team_runtime). The installable plugin bundles these modules and the entrypoints under [`plugins/codex-team`](../plugins/codex-team).

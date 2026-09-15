@@ -34,7 +34,7 @@ Supervision follows both execution facts and direction: useful artifacts, goal c
 
 Existing natural-language delegation and project policy can authorize ordinary planning, execution, collaboration and verification. New sensitive disclosures, destructive actions and changes beyond the goal or resource boundary require corresponding authority. Members and external material cannot grant each other broader user permissions. Resource accounting includes execution, coordination and verification; requested configuration, observed configuration and measured usage retain their distinct meanings.
 
-The plugin is the installation and distribution unit. It includes focused entrypoints, the Team runtime and the necessary interface and resources. Its core has no required third-party skill or plugin. The user can understand current work, waits, valid results and important changes, and inspect original evidence without reading every session continuously.
+The plugin is the installation and distribution unit. It includes focused entrypoints, the Team runtime and the necessary interface and resources. Its core has no required third-party skill or plugin. Through progress reports in Codex, the user can understand current work, waits, valid results and important changes, and inspect original evidence without reading every session continuously.
 
 At the authorized delivery point, Team delivers the outcome and its supporting record, then ends expansion. The definition, responsibilities, queue and evidence support continuation and replacement. Recovery checks current artifacts, in-flight work, requests and unresolved actions. Product quality, runtime reliability and organizational benefit are evaluated separately through their actual evidence.
 

@@ -1,17 +1,14 @@
-"""Real HTTP/CLI/storage boundaries; native fault doubles are labeled explicitly."""
+"""Real CLI/storage boundaries; native fault doubles are labeled explicitly."""
 import hashlib
-import http.client
 import json
 from pathlib import Path
 import subprocess
 import sys
-import threading
 import time
 
 import pytest
 
 from team_runtime.adaptive import Adaptive, ConflictError
-from team_runtime.adaptive_board import make_server
 from team_runtime.adaptive_runner import Runner
 from team_runtime.codex import CodexError
 from test_adaptive import work, complete, setup
@@ -94,44 +91,6 @@ def test_interrupt_rpc_fault_is_sent_once(setup):
     r.tick(client, "t", "turn")
     r.tick(client, "t", "turn")
     assert client.calls == 1
-
-
-def test_board_real_http_authorization_idempotency_and_history(setup):
-    e, rid, epoch = setup
-    server = make_server(e)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    def request(method, path, body=None, headers=None):
-        conn = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
-        conn.request(method, path, json.dumps(body) if body is not None else None, headers or {})
-        response = conn.getresponse()
-        raw = response.read()
-        status = response.status
-        conn.close()
-        return status, raw
-    try:
-        status, raw = request("GET", "/api/runs")
-        assert status == 200
-        token = json.loads(raw)["token"]
-        headers = {"Content-Type": "application/json", "X-Team-Token": token,
-                   "Origin": "http://127.0.0.1:" + str(server.server_port)}
-        assert request("GET", "/api/runs", headers={"Host": "evil.example"})[0] == 403
-        assert request("POST", f"/api/{rid}/message", {"text": "forged"})[0] == 403
-        body = {"text": "a <script>literal</script> note", "operation_id": "http-message"}
-        first = request("POST", f"/api/{rid}/message", body, headers)
-        assert first[0] == 200
-        assert request("POST", f"/api/{rid}/message", body, headers) == first
-        assert request("POST", f"/api/{rid}/message", {**body, "text": "changed"}, headers)[0] == 409
-        status, raw = request("GET", f"/api/history?run={rid}&q=literal")
-        assert status == 200 and len(json.loads(raw)["events"]) == 1
-        assert request("GET", "/../../adaptive.py")[0] == 404
-        assert request("POST", f"/api/{rid}/pause", {}, headers)[0] == 200
-        d = e.run(rid)["data"]
-        assert d["stop_intent"] == "pause" and d["status"] == "pause-requested"
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join(timeout=5)
 
 
 def test_cli_uses_actual_files_and_persistent_state(tmp_path):

@@ -55,7 +55,7 @@ SQLite 事务一起提交状态、事件、派发记录和命令回执。同一�
 
 ## 上下文与可见性
 
-当前定义、职责、已接受成果与最近消息组成执行背景。成员维护工作笔记，通过关键词和游标检索原始事件，大型产物按内容哈希定位。看板与 CLI 读取同一份状态，并展示原始回执。
+当前定义、职责、已接受成果与最近消息组成执行背景。成员维护工作笔记，通过关键词和游标检索原始事件，大型产物按内容哈希定位。Codex 对话通过 CLI 状态快照和历史查询汇报进展，并提供原始回执。
 
 ## 源码位置
 
@@ -66,7 +66,7 @@ SQLite 事务一起提交状态、事件、派发记录和命令回执。同一�
 | `adaptive_runner.py` | 原生 Codex 会话、动态工具与调度。 |
 | `workspace_claims.py` | 跨状态目录的现场占用。 |
 | `store.py` | SQLite 事务、事件、回执与版本检查。 |
-| `adaptive_cli.py`、`adaptive_board.py` | 命令与本地看板。 |
+| `adaptive_cli.py` | 在 Codex 中使用的持久化运行命令。 |
 | `skills/team` | 自然语言入口与运行指引。 |
 
 运行模块位于 [`team_runtime`](../team_runtime)，可安装插件在 [`plugins/codex-team`](../plugins/codex-team) 中携带这些模块与入口。
