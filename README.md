@@ -5,13 +5,13 @@
 
 Codex Team 的产品方向是只面向 Codex、承接跨领域目标的自适应协作插件。它通过自然交流形成对目标的理解，按需调查、提供专业建议并组织执行，推进到可验证的结果。当前目标见[正式项目定义](docs/project-definition.md)，原始方向与讨论依据通过定义末尾的引用检索。
 
-当前0.2 Auto实现及验证主要覆盖软件工程：从自然语言目标生成可审阅方案，通过本地控制程序组织独立会话，维护工作笔记与可检索历史，并在约定检查点收口。新版跨领域能力和交互仍待实现；原有七个 skills 和0.1.x证据/集成协议继续保留。
+0.3预览实现已经提供新的跨领域运行入口：由Codex对话理解委托和维护完整定义，程序保存工作、执行尝试、协作队列、接收记录和原始历史，实际调用Codex会话执行。当前验证范围及限制见[实现记录](docs/27-adaptive-plugin-preview.md)。原有0.2 Auto、七个skills和0.1.x证据/集成协议继续按原版本保留。
 
 项目不会因为“可以并行”就创建更多任务。只有共享契约、依赖、owner、输入输出、Gate 与集成点足够清楚时才允许并行。
 
 ## 当前版本
 
-本地开发版本：`0.2.0`，仍为 `incubating`，里程碑1–5已完成本地验收。仓库记录的上一公开版本为 `0.1.9`；本轮没有发布新Release或更新全局安装。
+本地开发版本：`0.3.0`，为预览实现，仍为 `incubating`。此前0.2里程碑1–5的验收与新版验证分开记录。仓库记录的上一公开版本为 `0.1.9`；本轮不发布公开Release。
 
 0.2新增：真实Codex App Server执行、单/多会话规划、版本化授权、原生沙箱Gate、持久状态与事件、本地中文看板、协作请求、纠偏、暂停/恢复、工作笔记/历史检索、Session接替和中途方向审查。Team核心不依赖第三方Skill或插件。CheckCSV单会话与LabLedger双会话真实工程闭环均已完成，见[里程碑5验收记录](docs/22-milestone5-acceptance.md)。
 
@@ -28,7 +28,13 @@ Codex Team 的产品方向是只面向 Codex、承接跨领域目标的自适应
 
 长期无人值守可靠性、多任务收益、跨环境兼容和正式安装升级仍须独立验证。运行时必须保留控制程序及其状态目录；界面活跃、测试通过和最终用户接受分别记录。
 
-## Team Auto 本地运行
+## 新版Team本地运行
+
+安装插件后，在Codex新任务中使用 `$team` 并描述目标。Team在对话中形成定义和建议方案，然后使用包内的 `team-next.py` 登记与运行；用户无需填写JSON或选择固定工作模式。当前执行方式及恢复命令见[自适应工作流](skills/team/references/adaptive-workflow.md)。
+
+需要Python 3.12+及已登录的官方Codex。普通研究目录无需Git。`python -B scripts/team-next.py --help` 查看程序入口；`python -B scripts/team-next.py --state "D:/TeamState/my-project" serve` 启动本地看板，默认端口8766。只有控制程序实际运行时才会继续推进；界面打开不代表后台持续工作。
+
+## 0.2 Team Auto 本地运行
 
 需要Python 3.12+、Git、已登录的官方Codex。使用与产品仓库分离的状态目录：
 
@@ -42,7 +48,7 @@ python -B scripts/team-auto.py --state "D:/TeamState/my-project" serve
 
 ## 七个 skills
 
-- [`team`](skills/team/SKILL.md)：Auto入口；已有0.1.x manifest继续只读路由到下一 canonical phase；
+- [`team`](skills/team/SKILL.md)：新委托进入0.3自适应执行；已有0.2状态或0.1.x manifest按原版本继续；
 - [`team-plan`](skills/team-plan/SKILL.md)：验证 requirement coverage、DAG、ownership、Gate 和 checkpoint；
 - [`team-run`](skills/team-run/SKILL.md)：生成 preregistration、preflight、prompt/dispatch 与 worker backbrief；
 - [`team-status`](skills/team-status/SKILL.md)：从 immutable facts 派生 lane/checkpoint 状态；
@@ -62,7 +68,7 @@ python -B scripts\build-team-plugin.py --out $output
 python -B "$output\skills\team\scripts\bundle-self-check.py" "$output\skills\team"
 ```
 
-Builder 不覆盖已存在的输出目录。生成包包含 7 个 skills、8 个 runtime 入口、7 份 schema 与 SHA-256 bundle manifest。
+Builder 不覆盖已存在的输出目录。生成包包含 7 个 skills、9 个 runtime 入口、7 份 schema 与 SHA-256 bundle manifest。
 
 ## 本地 marketplace 安装
 

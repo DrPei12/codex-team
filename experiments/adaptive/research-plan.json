@@ -1,0 +1,20 @@
+[
+  {
+    "id": "sources",
+    "title": "来源核对",
+    "goal": "阅读项目定义。通过公开官方资料核对链接稳定性、内容变化与网络资料保存的关系，提供至少两条一手来源和简短结论。可优先查W3C关于持久URI的说明及Library of Congress的Web Archiving资料。只读研究，最终回复附原始链接和适用局限。需要回应后续排队的协助。",
+    "role": "source-research",
+    "directory": ".",
+    "writable": false,
+    "acceptance": "至少两条真实可访问官方来源，结论与原文相符，区分URL稳定与内容不变。"
+  },
+  {
+    "id": "recommendation",
+    "title": "保存方案建议",
+    "goal": "按照完整项目定义交付decision.md。首次回合先使用team_request向sources请求核对：URI持久性是否意味着内容不变，以及保存原文快照有哪些适用边界；wait=true，保存工作笔记并结束回合。恢复后读取被接受的回答和原始资料，在当前目录写decision.md，并检查字数、来源和推荐理由。不要重复提交相同请求。",
+    "role": "recommendation",
+    "directory": "output",
+    "writable": true,
+    "acceptance": "真实decision.md存在，中文800字左右或以内，三种策略有明确取舍、默认建议、最小字段、两条官方来源及敏感资料边界；使用已接受协助。"
+  }
+]

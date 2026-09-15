@@ -1,32 +1,42 @@
 ---
 name: team
-description: Use Team Auto for natural-language Codex engineering goals, proposals, authorized execution, live status, and checkpoints; preserve the legacy router for existing manifest-driven runs.
+description: Use Team for delegated goals that need organized execution, readable collaboration, persistent project context, evidence and recovery in Codex; also continue existing Team runs.
 ---
 
 # Team
 
-Use this skill when the user asks Team to carry an engineering goal through
+Use this skill when the user asks Team to carry a goal through understanding,
 planning and execution, or to continue, inspect, or finish a Team run. Ordinary
 questions about teamwork or unrelated single-file edits do not require Team.
 
-## Choose the existing run or Auto
+Keep the conversation natural. Offer substantive judgments and useful information;
+choose prose, examples, questions or informed options according to the content.
+Maintain a coherent project definition as clear user revisions and adopted ideas
+emerge. Discuss the execution organization after understanding the goal; it is not
+an entry-mode questionnaire. Investigate uncertain external facts with native web
+search and preserve sources. Working notes navigate current work; original records
+and actual artifacts carry the evidence.
 
-- Natural-language goal without a legacy manifest, or an existing Auto plan/run:
-  read [auto-workflow.md](references/auto-workflow.md) and use Team's own
-  `team-auto.py` controller. Generate a real proposal, resolve necessary
-  questions, then approve and run within the user's current authorization.
+## Choose the existing record
+
+- New delegated goal or adaptive 0.3 run: read
+  [adaptive-workflow.md](references/adaptive-workflow.md). Use the plugin's own
+  `team-next.py` runtime to register the understood definition and initial work,
+  then execute and verify within existing authorization.
+- Existing Auto 0.2 plan/run: use [auto-workflow.md](references/auto-workflow.md)
+  and `team-auto.py`; preserve its original contract and evidence.
 - Existing legacy manifest/run artifacts: use the route below. Do not reinterpret
   legacy artifacts as Auto state or silently migrate them.
 
-Auto is a mode of this skill, not an additional skill. Its Python standard-library
-runtime uses the official Codex App Server and existing Codex authentication;
+Team's Python standard-library runtime uses the official Codex App Server and existing Codex authentication;
 it requires no third-party skill, plugin, or model API key. A missing optional
 project tool must not become a dependency of Team itself.
 
-Keep current explicit execution authority in effect. Legacy non-live preparation
-boundaries do not cancel an authorized Auto run. Review the concrete proposal
-against that authority before freezing its digest; ask only for missing decisions
-or authority beyond the agreed scope. Neither mode bypasses environment approval.
+Keep current explicit execution authority in effect. Legacy preparation boundaries
+do not cancel an authorized current run. Ask only for consequential missing intent
+or authority beyond scope. Methods remain autonomous within assigned responsibility.
+The runtime preserves work identities, queues action requests, records attempts and
+separates result submission from acceptance. Its controls do not bypass the host.
 
 ## Legacy route
 

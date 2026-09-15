@@ -14,7 +14,7 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "0.2.0"
+PLUGIN_VERSION = "0.3.0"
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAMES = (
     "team",
@@ -26,6 +26,7 @@ SKILL_NAMES = (
     "team-recover",
 )
 RUNTIME_SCRIPTS = (
+    "team-next.py",
     "team-auto.py",
     "team.py",
     "team-plan.py",
@@ -136,12 +137,12 @@ def _copy_skill(source: Path, target: Path) -> None:
 def _plugin_manifest() -> dict[str, Any]:
     return {
         "author": {"name": "Codex Multi-task Engineering Project"},
-        "description": "Codex Team Auto execution and legacy manifest workflows with verifiable evidence.",
+        "description": "Adaptive Codex collaboration for delegated goals, readable work queues, evidence and recovery.",
         "interface": {
             "capabilities": ["Read", "Write"],
-            "category": "Developer Tools",
+            "category": "Productivity",
             "defaultPrompt": [
-                "Use Team Auto to turn this engineering goal into a proposal and authorized run.",
+                "Use Team to understand this goal, recommend an execution plan and carry it to a verified result.",
                 "Use Team Plan to split work only when ownership and dependencies support it.",
                 "Use Team Recover to prepare a bounded successor for this blocked run.",
             ],
@@ -193,6 +194,8 @@ def _build_into(plugin_root: Path) -> None:
     if package.is_symlink() or not package.is_dir():
         raise PluginBuildError("Team Auto runtime package is missing or symlinked")
     for required in ("__init__.py", "__main__.py", "cli.py", "engine.py", "codex.py",
+                     "adaptive.py", "adaptive_runner.py", "adaptive_cli.py", "adaptive_board.py",
+                     "static/adaptive.html", "static/adaptive.js", "static/adaptive.css",
                      "store.py", "rules.py", "history.py", "board.py", "static/index.html",
                      "static/app.js", "static/styles.css"):
         _plain_source_file(package / required, "Team Auto runtime")

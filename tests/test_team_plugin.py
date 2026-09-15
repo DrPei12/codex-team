@@ -92,11 +92,12 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = read_json(plugin / ".codex-plugin" / "plugin.json")
     assert manifest["name"] == PLUGIN_NAME
-    assert manifest["version"] == "0.2.0"
+    assert manifest["version"] == "0.3.0"
     assert manifest["skills"] == "./skills/"
     assert {path.name for path in (plugin / "skills").iterdir() if path.is_dir()} == SKILLS
     runtime = plugin / "skills" / "team" / "scripts"
     assert {path.name for path in runtime.glob("team*.py")} == {
+        "team-next.py",
         "team-auto.py",
         "team.py",
         "team-plan.py",

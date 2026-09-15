@@ -15,6 +15,7 @@ from typing import Any
 PROFILE = "codex-team-plugin-bundle"
 PLUGIN_NAME = "codex-team"
 RUNTIME_SCRIPTS = (
+    "team-next.py",
     "team-auto.py",
     "team.py",
     "team-plan.py",

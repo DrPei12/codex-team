@@ -13,6 +13,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
+import hashlib
 import math
 import os
 from pathlib import Path
@@ -27,6 +28,15 @@ class ConflictError(RuntimeError):
 
 
 _SCHEMA = (
+    """
+    CREATE TABLE IF NOT EXISTS command_receipts (
+        scope TEXT NOT NULL,
+        command_id TEXT NOT NULL,
+        request_hash TEXT NOT NULL,
+        result_json TEXT NOT NULL,
+        PRIMARY KEY (scope, command_id)
+    )
+    """,
     """
     CREATE TABLE IF NOT EXISTS entities (
         kind TEXT NOT NULL,
@@ -108,10 +118,84 @@ def _decoded_object(value: str) -> dict[str, Any]:
     return decoded
 
 
+class Transaction:
+    """A synchronous view of one Store command transaction; never retain it."""
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def get(self, kind, entity_id):
+        row = self.connection.execute(
+            "SELECT * FROM entities WHERE kind=? AND entity_id=?", (kind, entity_id)).fetchone()
+        return None if row is None else Store._entity_envelope(row)
+
+    def list(self, kind):
+        return [Store._entity_envelope(row) for row in self.connection.execute(
+            "SELECT * FROM entities WHERE kind=? ORDER BY entity_id", (kind,))]
+
+    def put(self, kind, entity_id, data, *, expected_revision=None):
+        _text(kind, "kind")
+        _text(entity_id, "entity_id")
+        encoded = _json_object(data, "data")
+        old = self.get(kind, entity_id)
+        if expected_revision is not None and (type(expected_revision) is not int or expected_revision < 1):
+            raise ValueError("expected_revision must be a positive integer")
+        if (old is None) != (expected_revision is None) or (old and old["revision"] != expected_revision):
+            raise ConflictError("Entity revision changed: " + kind + "/" + entity_id)
+        revision = 1 if old is None else old["revision"] + 1
+        stamp = _utc_now()
+        self.connection.execute(
+            "INSERT INTO entities VALUES (?,?,?,?,?) ON CONFLICT(kind,entity_id) "
+            "DO UPDATE SET revision=excluded.revision,data_json=excluded.data_json,updated_at=excluded.updated_at",
+            (kind, entity_id, revision, encoded, stamp))
+        return {"kind": kind, "id": entity_id, "revision": revision,
+                "data": _decoded_object(encoded), "updated_at": stamp}
+
+    def event(self, run_id, event_type, payload):
+        _text(run_id, "run_id")
+        _text(event_type, "event_type")
+        encoded = _json_object(payload, "payload")
+        seq = self.connection.execute(
+            "SELECT COALESCE(MAX(seq),0)+1 FROM events WHERE run_id=?", (run_id,)).fetchone()[0]
+        stamp = _utc_now()
+        self.connection.execute(
+            "INSERT INTO events(run_id,seq,event_type,payload_json,created_at) VALUES (?,?,?,?,?)",
+            (run_id, seq, event_type, encoded, stamp))
+        return {"run_id": run_id, "seq": seq, "type": event_type,
+                "payload": _decoded_object(encoded), "created_at": stamp}
+
+
 class Store:
     """Durable state, append-only events, and cross-process leases in SQLite."""
 
     _busy_timeout_ms = 30_000
+
+    def command(self, scope, command_id, request, handler):
+        """Commit a command's entities, events, outbox and receipt together.
+
+        The handler must use the supplied transaction and perform no external
+        side effects. Retrying an identical command returns the original result.
+        """
+        _text(scope, "scope")
+        _text(command_id, "command_id")
+        encoded = _json_object(request, "request")
+        canonical = json.dumps(json.loads(encoded), sort_keys=True, ensure_ascii=False,
+                               separators=(",", ":"), allow_nan=False)
+        fingerprint = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        with self._write_connection() as connection:
+            row = connection.execute(
+                "SELECT request_hash,result_json FROM command_receipts WHERE scope=? AND command_id=?",
+                (scope, command_id)).fetchone()
+            if row:
+                if row["request_hash"] != fingerprint:
+                    raise ConflictError("Command id reused with different content")
+                return _decoded_object(row["result_json"])
+            transaction = Transaction(connection)
+            result = handler(transaction)
+            result_json = _json_object(result, "command result")
+            connection.execute("INSERT INTO command_receipts VALUES (?,?,?,?)",
+                               (scope, command_id, fingerprint, result_json))
+            return _decoded_object(result_json)
 
     def __init__(self, path: str | Path):
         raw_path = os.fspath(path)

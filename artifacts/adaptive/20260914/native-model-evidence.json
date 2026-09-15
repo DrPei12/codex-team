@@ -1,0 +1,96 @@
+{
+  "kind": "original native rollout turn_context observations; no model was called",
+  "records": [
+    {
+      "thread_id": "01a09fd4-6bd0-78e2-ad89-1cc2d2bc6fcc",
+      "source": "C:\\Users\\lenovo\\.codex\\sessions\\2026\\09\\14\\rollout-2026-09-14T08-11-33-01a09fd4-6bd0-78e2-ad89-1cc2d2bc6fcc.jsonl",
+      "turn_contexts": [
+        {
+          "turn_id": "01a09fd4-6eec-79a3-bd2a-dfdbf22bab97",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\software\\project"
+        }
+      ]
+    },
+    {
+      "thread_id": "01a09fcf-9d34-7c11-880a-92f424492940",
+      "source": "C:\\Users\\lenovo\\.codex\\sessions\\2026\\09\\14\\rollout-2026-09-14T08-06-18-01a09fcf-9d34-7c11-880a-92f424492940.jsonl",
+      "turn_contexts": [
+        {
+          "turn_id": "01a09fcf-a03b-7c60-9f88-442ebc422f9f",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project"
+        },
+        {
+          "turn_id": "01a09fd2-8a13-7372-98da-a31e69e72ae3",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project"
+        },
+        {
+          "turn_id": "01a09fd9-035e-7261-9bdd-b7dda5a83c26",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project"
+        }
+      ]
+    },
+    {
+      "thread_id": "01a09fce-af09-7e30-a13d-b94edade8e58",
+      "source": "C:\\Users\\lenovo\\.codex\\sessions\\2026\\09\\14\\rollout-2026-09-14T08-05-17-01a09fce-af09-7e30-a13d-b94edade8e58.jsonl",
+      "turn_contexts": [
+        {
+          "turn_id": "01a09fce-b210-70b0-8007-7eac2dbee09a",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project\\output"
+        }
+      ]
+    },
+    {
+      "thread_id": "01a09fc2-d626-7bd1-a318-5e39de53e78f",
+      "source": "C:\\Users\\lenovo\\.codex\\sessions\\2026\\09\\14\\rollout-2026-09-14T07-52-21-01a09fc2-d626-7bd1-a318-5e39de53e78f.jsonl",
+      "turn_contexts": [
+        {
+          "turn_id": "01a09fc2-d95d-71a2-b66d-69b8a502ca82",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project"
+        },
+        {
+          "turn_id": "01a09fc8-76c0-7661-9a5c-6a25cb59b8cf",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project"
+        },
+        {
+          "turn_id": "01a09fce-5c5a-7461-ac4e-541974b13140",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project"
+        }
+      ]
+    },
+    {
+      "thread_id": "01a09fc1-8bf6-7d32-b548-2439fba09ea5",
+      "source": "C:\\Users\\lenovo\\.codex\\sessions\\2026\\09\\14\\rollout-2026-09-14T07-50-56-01a09fc1-8bf6-7d32-b548-2439fba09ea5.jsonl",
+      "turn_contexts": [
+        {
+          "turn_id": "01a09fc2-d7f8-7ef0-b541-fb38058288cc",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project\\output"
+        },
+        {
+          "turn_id": "01a09fd4-2136-7123-9caa-d0b610d91bb1",
+          "model": "gpt-5.6-luna",
+          "effort": "max",
+          "cwd": "D:\\Desktop\\Codex多任务工程系统实验场\\runs\\2026-09-14-adaptive-plugin\\research\\project\\output"
+        }
+      ]
+    }
+  ],
+  "missing_thread_ids": []
+}

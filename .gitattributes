@@ -1,0 +1,2 @@
+# Preserve recorded artifact bytes and their SHA-256 evidence across checkouts.
+/artifacts/adaptive/** -text whitespace=blank-at-eol,space-before-tab,cr-at-eol

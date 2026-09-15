@@ -343,7 +343,7 @@ class CodexClient:
 
     def start_thread(self, cwd, *, instructions='', model='gpt-5.6-luna', effort='max',
                      writable=False, max_subagents=0, dynamic_tools=None, network_access=False,
-                     project_id=None, title=None) -> dict:
+                     project_id=None, title=None, web_search=None) -> dict:
         if not isinstance(network_access, bool):
             raise ValueError('network_access must be boolean')
         config = {'model_reasoning_effort': effort, 'features.plugins': False, 'agents.enabled': max_subagents > 0,
@@ -355,6 +355,10 @@ class CodexClient:
                   'sandbox_workspace_write.exclude_slash_tmp': True}
         if max_subagents:
             config['agents.max_concurrent_threads_per_session'] = max_subagents
+        if web_search is not None:
+            if web_search not in {'disabled', 'cached', 'live'}:
+                raise ValueError('Unknown native web search mode')
+            config['web_search'] = web_search
         params = {
             'cwd': str(Path(cwd).resolve()), 'model': model, 'approvalPolicy': 'never',
             'sandbox': 'workspace-write' if writable else 'read-only',

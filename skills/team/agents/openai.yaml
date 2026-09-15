@@ -1,4 +1,4 @@
 interface:
   display_name: "Team"
-  short_description: "Route a Codex multi-task run safely"
-  default_prompt: "Use $team to inspect canonical run evidence, select the next Team v0.1 phase, and preserve all explicit authority boundaries."
+  short_description: "Organize goals into verifiable results"
+  default_prompt: "Use $team to understand my goal, recommend how to organize the work, and carry it through to a verified result."
