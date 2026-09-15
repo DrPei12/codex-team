@@ -17,6 +17,7 @@ jobs:
     env:
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
+      PYTHONUNBUFFERED: '1'
 
     steps:
       - name: Checkout full history
@@ -38,6 +39,10 @@ jobs:
         run: |
           git config --global user.name 'Codex Team CI'
           git config --global user.email 'codex-team-ci@example.invalid'
+
+      - name: Check bilingual documentation and links
+        shell: pwsh
+        run: python -B -c "import runpy; runpy.run_path('scripts/check-release.py')['check_public_docs']()"
 
       - name: Run Team regression suites
         shell: pwsh
@@ -72,4 +77,6 @@ jobs:
           python -B scripts\build-team-plugin.py --out $output
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -B "$output\skills\team\scripts\bundle-self-check.py" "$output\skills\team"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B -c "import pathlib; a=pathlib.Path(r'$output'); b=pathlib.Path('plugins/codex-team'); read=lambda root:{p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}; assert read(a)==read(b), 'Checked-in plugin differs from source'"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

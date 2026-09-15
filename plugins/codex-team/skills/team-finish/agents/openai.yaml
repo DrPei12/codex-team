@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team Finish"
+  short_description: "Audit and close a team milestone safely"
+  default_prompt: "Use $team-finish to bind review, audit final state, and prepare a non-destructive milestone result without archiving or cleanup."

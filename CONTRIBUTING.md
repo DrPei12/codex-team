@@ -1,40 +1,25 @@
 # Contributing
 
-Codex Team 仍处于 `incubating`。贡献应优先提交可复现失败、边界测试和小范围协议修正，而不是未经实测的大型抽象。
+[English](CONTRIBUTING.md) · [简体中文](CONTRIBUTING.zh-CN.md)
 
-## 开始前
+Start with the [project definition](docs/project-definition.md), [architecture](docs/architecture.md), and [accepted decisions](docs/13-decisions.md). Changes should improve how Codex Team understands a delegation, organizes work, or delivers a result.
 
-1. 阅读 `AGENTS.md`、`docs/13-decisions.md` 与 `docs/16-project-status.md`。
-2. 区分 confirmed fact、experiment observation、decision、inference 与 unknown。
-3. 核对变更是否会改变核心协议、默认范式或生命周期；若会，必须同步决策日志与状态页。
-4. 不提交 API Key、Authorization header、真实业务隐私、Codex session 文件或本机 credential。
+The runtime uses Python 3.12+ and its standard library. Install `pytest` and `jsonschema` for development. Keep native model validation in a separate workspace and state directory; select its model and budget explicitly.
 
-## 修改要求
+Edit `team_runtime`, `scripts`, and `skills`. Build a fresh plugin directory with:
 
-- 只面向 Codex，不增加平台无关 adapter。
-- 公共 schema/runtime保持单一事实源，不在多个 skill 复制实现。
-- Manifest、receipt、Gate 与 evidence必须fail closed且不可静默覆盖。
-- 新行为需要正向、负向和篡改/失败测试。
-- 不把 fixture、package self-check 或单次 live run描述为长期稳定能力。
-
-## 本地验证
-
-运行 README 中的九组测试。修改 skill 后还应执行：
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" skills\team-plan
+```sh
+python -B scripts/build-team-plugin.py --out /existing/parent/codex-team
 ```
 
-将路径替换为所有受影响的 skill。Plugin 修改还必须构建到新的、此前不存在的临时目录并运行 bundle self-check。
+Copy the generated bundle into `plugins/codex-team`, then run:
 
-## Pull Request
+```sh
+python -B scripts/check-release.py
+```
 
-PR 应包含：
+The release check exercises runtime and compatibility tests, builds a fresh bundle, verifies its inventory and imports, and compares it with the checked-in distribution. Regression tests should exercise the actual state transition or user outcome. Native test doubles must be labeled and supplemented by real Codex validation for changes to execution behavior.
 
-- 问题与可复现证据；
-- 变更边界和未改变内容；
-- exact test commands/results；
-- breaking schema/lifecycle changes；
-- 未验证能力与后续 forward-test建议。
+Keep English and Chinese public documentation aligned. Update the definition and decision log when changing concepts or lifecycle rules. Working notes and private validation outputs belong outside the distributable tree.
 
-本仓库当前没有开源许可证；提交贡献前请确认你有权提交相关内容。合并贡献不自动改变仓库许可证状态。
+Open a pull request explaining the concrete problem, resulting behavior, and validation. Preserve existing work and failures. Use one explicit owner for each mutable file during concurrent work, and integrate against the actual resulting artifacts.

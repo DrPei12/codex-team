@@ -1,102 +1,20 @@
-# Changelog
+# Releases
 
-本文件记录 Codex Team 的公开版本。完整设计决策见 [`docs/13-decisions.md`](docs/13-decisions.md)。
+[English](CHANGELOG.md) · [简体中文](CHANGELOG.zh-CN.md)
 
-## [Unreleased]
+## 1.0.0 · September 15, 2026
 
-- 新增0.3本地预览：跨领域Team入口、工作/尝试/接收模型、原子命令与派发记录、协作队列、局部变更、原生停止恢复和可读看板。旧协议继续保留。
-- 研究场景已真实交付；软件场景在新授权额度上限处停止，保留实际产物及通过的程序测试。完整可靠性验收仍未完成，详见docs/27-adaptive-plugin-preview.md。
+Codex Team brings adaptive collaboration to delegated goals in Codex, with a complete installable plugin and English/Chinese documentation.
 
-## [0.1.9] - 2026-09-01
+- Natural conversation develops the definition and execution arrangement.
+- Native Codex members execute, share readable findings, and queue assistance.
+- Temporary local coordinators can revise their work scope, accept other members' results, and return responsibility.
+- Member identity survives role changes; stopped sessions can be replaced with a preserved handoff.
+- Disjoint plan revisions rebase, queue aging addresses prolonged waiting, and independent local coordination can run alongside execution.
+- Workspace occupancy spans state directories and remains held through unknown execution.
+- External action records preserve a stable identity and require target observation after a lost response.
+- Result acceptance binds content and criteria; invalidation isolates affected dependencies.
+- The local project board supports English and Chinese, including organization, messages, evidence and recovery controls.
+- The repository includes the complete plugin bundle, source-to-bundle checks and regression suites.
 
-### Fixed
-
-- Canonical reviewer plan, apply, Gate, candidate, and backbrief file checks now compare existing files by filesystem identity.
-- Nonexistent canonical output paths compare exact filenames plus parent-directory identity.
-
-## [0.1.8] - 2026-09-01
-
-### Fixed
-
-- Windows CI now forces Python UTF-8 mode and UTF-8 stdio, preventing successful commands from failing while printing Unicode paths on a cp1252 runner console.
-
-## [0.1.7] - 2026-09-01
-
-### Fixed
-
-- All run/artifact containment checks now use the shared resolved filesystem boundary, including future output paths via their nearest existing parent.
-- Short/long Windows aliases no longer fail report, evidence, candidate, proof, Gate, status, finish, or router containment checks.
-
-## [0.1.6] - 2026-09-01
-
-### Fixed
-
-- Filesystem identity matching now covers integration and recovery candidate paths plus reviewer plan/apply lineage.
-- Plan, run, status, integrate, and recover share the same existing-path alias semantics.
-
-## [0.1.5] - 2026-09-01
-
-### Fixed
-
-- Existing workspace and Git common-directory identities now use filesystem `samefile` checks, so Windows short/long aliases compare by object identity instead of display text.
-- Existing-path containment walks resolved parents with `samefile`, retaining symlink escape protection.
-
-## [0.1.4] - 2026-09-01
-
-### Fixed
-
-- Team status file references now accept Windows short/long path aliases when both resolve inside the same allowed artifact root.
-- Real-path containment remains fail-closed for paths that actually escape the run root.
-
-## [0.1.3] - 2026-09-01
-
-### Added
-
-- Requirement coverage lattice：绑定 requirement、owner、path、Gate 和 reviewer。
-- `change` / `verification-only` requirement 类型。
-- Hash-bound worker backbrief 与 `passed` / `needs-input` / `failed` receipt。
-- Stage checkpoint、material-progress facts、manifest-specific heartbeat 与 turn budget。
-
-### Changed
-
-- Active lane 必须同时具备 passed preflight、passed backbrief 和未过期 progress fact才能显示为 `working`。
-- Plugin version 升为 0.1.3；旧 manifest/facts 不自动升级。
-
-## [0.1.2] - 2026-08-30
-
-### Added
-
-- `user_locale`、`execution_surface`、独立 `task_title` 与 lane `lifecycle`。
-- Finish 按 lane 输出 archive/retain/not-applicable task disposition。
-
-### Changed
-
-- Visible task 标题与 prompt 分离；internal subagent 不再创建 sidebar task。
-
-## [0.1.1] - 2026-08-30
-
-### Fixed
-
-- Ownership 裸路径统一表示路径自身与子树；`forbidden_paths` 始终覆盖 write allow。
-- Reviewer preflight 绑定 passed integration Gate 的 post-integration exact commit/tree，而不是错误回退到 manifest base。
-
-## [0.1.0] - 2026-08-26
-
-### Added
-
-- 七个 manifest-driven Team skills。
-- Plan/run/status/integrate/finish/recover/router 离线主链。
-- Deterministic skills-only plugin builder、bundle manifest/self-check 与 repo marketplace。
-- 首次真实安装、discovery、explicit load、implicit routing 与卸载回滚证据。
-
-[Unreleased]: https://github.com/DrPei12/codex-team/compare/v0.1.9...HEAD
-[0.1.9]: https://github.com/DrPei12/codex-team/compare/v0.1.8...v0.1.9
-[0.1.8]: https://github.com/DrPei12/codex-team/compare/v0.1.7...v0.1.8
-[0.1.7]: https://github.com/DrPei12/codex-team/compare/v0.1.6...v0.1.7
-[0.1.6]: https://github.com/DrPei12/codex-team/compare/v0.1.5...v0.1.6
-[0.1.5]: https://github.com/DrPei12/codex-team/compare/v0.1.4...v0.1.5
-[0.1.4]: https://github.com/DrPei12/codex-team/compare/v0.1.3...v0.1.4
-[0.1.3]: https://github.com/DrPei12/codex-team/compare/v0.1.2...v0.1.3
-[0.1.2]: https://github.com/DrPei12/codex-team/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/DrPei12/codex-team/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/DrPei12/codex-team/releases/tag/v0.1.0
+Adaptive 0.3 state continues through the current runtime. Auto 0.2 and legacy manifest entrypoints remain available for their existing records.

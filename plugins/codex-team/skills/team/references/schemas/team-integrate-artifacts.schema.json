@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask/team-integrate-artifacts.schema.json",
+  "title": "Codex team-integrate artifacts v0.1",
+  "oneOf": [
+    {"$ref": "#/$defs/integration_candidate"},
+    {"$ref": "#/$defs/integration_plan"},
+    {"$ref": "#/$defs/apply_receipt"},
+    {"$ref": "#/$defs/gate_receipt"}
+  ],
+  "$defs": {
+    "nonempty_string": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "git_hash": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "sha256"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "commit_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree"],
+      "properties": {
+        "commit": {"$ref": "#/$defs/git_hash"},
+        "tree": {"$ref": "#/$defs/git_hash"}
+      }
+    },
+    "candidate_workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "branch", "base_revision", "head", "tree", "ordinary_status"],
+      "properties": {
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "branch": {"$ref": "#/$defs/nonempty_string"},
+        "base_revision": {"$ref": "#/$defs/git_hash"},
+        "head": {"$ref": "#/$defs/git_hash"},
+        "tree": {"$ref": "#/$defs/git_hash"},
+        "ordinary_status": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "integration_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "created_at",
+        "lane_id",
+        "workspace",
+        "changed_files",
+        "report_ref",
+        "evidence_ref",
+        "worker_receipt_ref"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-integrate"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "integration-candidate"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "created_at": {"$ref": "#/$defs/timestamp"},
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "workspace": {"$ref": "#/$defs/candidate_workspace"},
+        "changed_files": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "report_ref": {"$ref": "#/$defs/file_ref"},
+        "evidence_ref": {"$ref": "#/$defs/file_ref"},
+        "worker_receipt_ref": {"$ref": "#/$defs/file_ref"}
+      }
+    },
+    "manifest_workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "branch", "base_revision", "clean_start_required"],
+      "properties": {
+        "mode": {"enum": ["permanent-worktree", "read-only"]},
+        "path": {"$ref": "#/$defs/nonempty_string"},
+        "branch": {
+          "oneOf": [
+            {"$ref": "#/$defs/nonempty_string"},
+            {"type": "null"}
+          ]
+        },
+        "base_revision": {"$ref": "#/$defs/git_hash"},
+        "clean_start_required": {"type": "boolean"}
+      }
+    },
+    "gate_definition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "owner", "command", "evidence_required"],
+      "properties": {
+        "gate_id": {"$ref": "#/$defs/nonempty_string"},
+        "owner": {"$ref": "#/$defs/nonempty_string"},
+        "command": {"$ref": "#/$defs/nonempty_string"},
+        "evidence_required": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        }
+      }
+    },
+    "planned_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "order", "candidate_ref", "commit", "tree", "changed_files"],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "order": {"type": "integer", "minimum": 1},
+        "candidate_ref": {"$ref": "#/$defs/file_ref"},
+        "commit": {"$ref": "#/$defs/git_hash"},
+        "tree": {"$ref": "#/$defs/git_hash"},
+        "changed_files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        }
+      }
+    },
+    "integration_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "created_at",
+        "status",
+        "status_snapshot_ref",
+        "integration_lane",
+        "candidates",
+        "gates",
+        "authorization"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-integrate"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "integration-plan"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "created_at": {"$ref": "#/$defs/timestamp"},
+        "status": {"const": "ready-for-authorized-apply"},
+        "status_snapshot_ref": {"$ref": "#/$defs/file_ref"},
+        "integration_lane": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lane_id", "workspace", "base_head", "base_tree"],
+          "properties": {
+            "lane_id": {"$ref": "#/$defs/nonempty_string"},
+            "workspace": {"$ref": "#/$defs/manifest_workspace"},
+            "base_head": {"$ref": "#/$defs/git_hash"},
+            "base_tree": {"$ref": "#/$defs/git_hash"}
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/planned_candidate"}
+        },
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/gate_definition"}
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["git_mutation", "command_execution"],
+          "properties": {
+            "git_mutation": {"const": false},
+            "command_execution": {"const": false}
+          }
+        }
+      }
+    },
+    "merge_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "source_commit", "result_commit"],
+      "properties": {
+        "lane_id": {"$ref": "#/$defs/nonempty_string"},
+        "source_commit": {"$ref": "#/$defs/git_hash"},
+        "result_commit": {"$ref": "#/$defs/git_hash"}
+      }
+    },
+    "apply_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "recorded_at",
+        "status",
+        "plan_ref",
+        "workspace",
+        "before",
+        "after",
+        "merges",
+        "ordinary_status_after",
+        "errors"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-integrate"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "integration-apply-receipt"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"},
+        "status": {"enum": ["applied", "failed"]},
+        "plan_ref": {"$ref": "#/$defs/file_ref"},
+        "workspace": {"$ref": "#/$defs/nonempty_string"},
+        "before": {"$ref": "#/$defs/commit_tree"},
+        "after": {"$ref": "#/$defs/commit_tree"},
+        "merges": {"type": "array", "items": {"$ref": "#/$defs/merge_result"}},
+        "ordinary_status_after": {"type": "array", "items": {"type": "string"}},
+        "errors": {"type": "array", "items": {"$ref": "#/$defs/nonempty_string"}}
+      }
+    },
+    "gate_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gate_id", "owner", "command", "exit_code", "status", "log_ref"],
+      "properties": {
+        "gate_id": {"$ref": "#/$defs/nonempty_string"},
+        "owner": {"$ref": "#/$defs/nonempty_string"},
+        "command": {"$ref": "#/$defs/nonempty_string"},
+        "exit_code": {"type": "integer"},
+        "status": {"enum": ["passed", "failed"]},
+        "log_ref": {"$ref": "#/$defs/file_ref"}
+      }
+    },
+    "gate_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "schema_version",
+        "kind",
+        "manifest_ref",
+        "recorded_at",
+        "status",
+        "plan_ref",
+        "apply_receipt_ref",
+        "target",
+        "gates"
+      ],
+      "properties": {
+        "profile": {"const": "codex-multitask-team-integrate"},
+        "schema_version": {"const": "0.1"},
+        "kind": {"const": "gate-receipt"},
+        "manifest_ref": {"$ref": "#/$defs/manifest_ref"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"},
+        "status": {"enum": ["passed", "failed"]},
+        "plan_ref": {"$ref": "#/$defs/file_ref"},
+        "apply_receipt_ref": {"$ref": "#/$defs/file_ref"},
+        "target": {"$ref": "#/$defs/commit_tree"},
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/gate_result"}
+        }
+      }
+    }
+  }
+}

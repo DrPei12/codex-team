@@ -1,51 +1,41 @@
-# Codex Team：正式项目定义
+# Codex Team: project definition
 
-定义版本：v0.4｜更新日期：2026-09-14。此版本整合用户提供的v0.2定义及主任务中随后确认的方向、沟通原则与执行分工，作为当前产品定义入口。定义版本与插件版本分别管理；以下描述目标行为，不表示现有实现已经全部满足。
+[English](project-definition.md) · [简体中文](project-definition.zh-CN.md)
 
-Codex Team 是只面向 Codex、承接跨领域目标的自适应协作插件。用户提出目标、约束和意愿，Team 负责理解委托、查明信息、形成有依据的建议、组织工作并核验成果，在有效授权范围内推进到约定交付。任务可以涉及软件、研究、分析、内容或规划等领域；Codex-only限定执行平台，具体领域所需的方法、工具和验证方式由任务决定。
+Definition 0.5 · September 15, 2026
 
-Team 应当承担组织工作的责任，让用户主要参与目标、重要取舍和实际成果的判断。模型主动发现用户没有说清楚或考虑完整的问题，提供自己的理解、判断和建议，用户据此反馈，双方逐步形成更完整的认识。系统为这种合作提供记忆、资料获取和可靠执行能力，同时保留高能力模型根据具体情况理解、推理和表达的自由度。
+Codex Team is an adaptive collaboration plugin for Codex that accepts goals across software, research, analysis, content and planning. The user provides the goal, constraints and intentions. Team understands the assignment, investigates information, forms reasoned recommendations, organizes the work and verifies its results through the authorized delivery point. Codex defines the execution platform; the assignment determines its methods, tools and evidence.
 
-总体协调责任持续明确，负责整体目标、跨工作取舍和最终交付，承担该责任的会话可以可靠交接。执行者在自己的目标与责任范围内充分自主，能够直接与相关成员交流；小任务允许同一会话兼任协调和执行。运行程序处理持久记录和确定性事件，关键变化触发模型判断，避免让协调模型靠频繁轮询维持组织。
+Team takes responsibility for organizing work so that the user can focus on the goal, important tradeoffs and actual outcomes. The model notices omissions and unresolved questions, offers its own understanding and judgment, and develops the assignment through the user's feedback. The system provides persistent context, research and execution while preserving the model's freedom to reason and communicate according to the situation.
 
-交流方式由内容与用户需要决定。有信息支撑的选项能够帮助用户表达偏好、发现新的可能性，应在适合选择和比较时优先采用；连贯的逻辑性段落能够解释复杂关系和判断依据，例子、简短追问或可视化也可以帮助讨论。任何一种形式都不应成为每轮必须重复的回答模板。澄清关注理解、信息价值和结果，不固定首轮展示内容、问题数量或提问顺序，也不以完整设计对话脚本作为系统建设的前提。
+Overall coordination responsibility remains clear and can be handed over. Members act autonomously within their goals and authority and communicate directly. Small assignments can combine coordination and execution in one member. A member with relevant information can temporarily coordinate a workstream, adjust its division of work, and return responsibility when that need ends. Responsibility changes are recorded with scope, reason and an effective boundary.
 
-面对模糊想法，Team 可以先调查、形成理解并提出有内容的建议，帮助用户发现目标真正重要的部分。面对充分定义的任务，则重点检查遗漏、冲突和实际执行条件，减少重复追问。用户偏好由用户表达，可查明的事实由Team调查，已有授权内的常规专业选择由模型自主判断。涉及外部知识缺口、不确定性、时效性或需要来源依据的信息，必须联网检索并核对原始资料；私有项目信息通过已授权的数据和文件获取。搜索结果保留来源与适用条件供后续复用，模型提出的可能性不能自动成为用户需求。
+The content and the user's needs determine how to communicate. Informed options help people express preferences and discover possibilities; coherent paragraphs explain relationships and judgments. Examples, brief questions and visual explanations are useful where appropriate. The product preserves this freedom instead of prescribing a repeated response template, a fixed opening, or a mandatory interview sequence.
 
-项目正式描述应以足够完整、连贯的叙述表达当前目标、用户意愿、概念关系、取舍理由和交付要求。简短的目标清单可以帮助导航，但不能取代完整定义。后续讨论中的新想法、疑问和替代方案可以先形成草案；用户明确提出的修订及已经采纳的共识，由模型主动融入正式定义，尚未成立的想法继续保留为候选。更新不依赖用户逐次发出写文档的命令，也不把沉默或试探性讨论当成采纳。
+For a vague idea, Team can investigate and offer substantive directions. For an established specification, it concentrates on omissions, conflicts and execution conditions. User preferences come from the user; discoverable facts are investigated; routine professional choices within existing authority are made by the model. Uncertain, current or source-dependent external information is checked through web search and original sources. Private project information is accessed through authorized files and tools. A model's suggestion remains a candidate until adopted.
 
-模型应在形成实质共识、方向变化、即将执行或上下文存在损失风险时主动整理定义，并简短说明主要变化及仍然开放的事项。日常表达不必逐次落成文件。涉及目标含义的真实冲突需要澄清，文档版本与原始讨论保留修改依据。正式定义说明项目是什么，工作笔记说明当前工作与继续位置，可检索历史保存来源、决策、失败和证据；执行者按需读取相关内容，不依赖连续摘要逐层转述项目事实。
+The formal definition is a coherent description of the goal, intentions, concepts, tradeoffs and delivery criteria. Short checklists support navigation while the complete definition preserves meaning. Clear user revisions and adopted ideas are incorporated proactively. Discussion drafts and open questions remain distinguishable. Significant consensus, direction changes, execution transitions and context loss risks are occasions to consolidate the definition, retaining the original discussion and versions.
 
-组织方案是Team理解目标和调查条件后给出的专业建议。在正式运行前，它应解释准备怎样拆分工作、安排协作、选择执行载体，以及相应的依据、资源和重要取舍，由用户评估或按已有有效授权推进。用户无需在理解委托之前选择组织模式。工作拆分、协作关系与执行载体分别判断；角色、工作包、Session、Subagent和Worktree不要求一一对应。一个Session调用多个Subagent的实际执行方式，也需要在评测中如实记录。
+The context model combines the formal definition, working notes and searchable original history. The definition explains the project; notes explain the present work and continuation point; history preserves sources, decisions, failures and evidence. Members retrieve relevant originals and artifacts as needed, keeping the current context useful without relying on a chain of summaries.
 
-Team依据独立产出能力、共享状态、接口耦合、验证需要、模型能力和协调代价选择组织方式。有价值的独立探索和并行工作可以扩大团队，强耦合或工作量收缩时可以集中责任。选择可以按阶段或局部调整，并记录理由和重新评估的条件。研究及已有项目证据提供初始依据，没有实测表现时应说明未知项，不编造成功率或声称拥有通用最优架构预测能力。
+Organization is a recommendation formed after understanding the goal and investigating conditions. Team explains how it intends to divide work, collaborate and select execution carriers, together with the resource implications and material tradeoffs. Existing authorization can cover execution. Roles, work items, sessions, subagents and worktrees describe different concepts and have no required one-to-one mapping.
 
-动态工作流把组织判断转化为实际执行，可以表达调查、条件分支、并行、依赖等待、验证、修复、集成与停止，并随着新发现展开后续工作。模型负责语义理解、专业判断和工作安排，稳定程序负责执行明确规则、保存状态和落实边界。声明式计划或受限脚本等表达方式属于实现选择；探索和修复需要资源限制、有效进展判断与明确停止条件，不要求在调查前虚构全部工作，也不允许无边界循环。
+Independent outcomes, shared state, interface coupling, verification needs, model capability and coordination cost inform the arrangement. Useful parallel investigations can expand it; tightly coupled or shrinking work can concentrate it. Changes can be local or phase-specific. Plans explain the overall approach while detailing actionable work progressively. Investigation, waiting, repair, review, integration and stopping become explicit where their outcomes and dependencies require coordination.
 
-执行方案可以先解释整体思路，细化近期能够行动的部分，在调查后继续展开远期工作。工作拆分围绕独立成果、真实依赖、责任交接和验证需要，日常思考与工具调用不必全部成为调度节点。第一版执行机制采用可逐步增补的声明式工作记录和受控变更；工作图、队列和成员视图来自相同记录，避免并存多套安排。
+Members receive clear goals, relevant inputs, scope, expected outcomes and acceptance criteria, then investigate, implement, verify and repair within that responsibility. Necessary work implied by the authorized outcome remains part of the assignment. Shared goals, interfaces and authority change through the corresponding responsibility. Hard checks concentrate on permissions, resources, shared writes, operation identity, correctness and evidence; reasoning and ordinary methods retain room for judgment. Repeated failures call for diagnosis and reuse of valid work.
 
-执行者获得清楚的目标、相关输入、责任范围、必要约束、预期产物与验收依据，并在范围内自主调查、实现、验证和修复。任务说明的细节随实际需要展开，不把无关字段作为开工门槛。工作身份独立于具体会话存在，重试保留原工作与失败尝试，更换执行者不会丢失责任。一项已授权目标所必需的工作不能仅因没有逐项列出就被忽略；共享目标、接口和授权边界也不能由局部执行者擅自改变。
+Information travels as readable messages; requests for action enter the common work queue. Responsibility survives a session replacement. Registration, assignment, acknowledgment, execution, waiting, result submission and acceptance represent different facts. Requests to busy members wait until an idle or verified execution boundary. Each native session holds one active primary responsibility at a time. Agent conversations remain readable to the user, with identity and version metadata supporting the natural-language content.
 
-约束应帮助执行者有效达成目标，并与实际后果相称。硬性检查集中在权限、资源、共享写入责任、操作身份、必要正确性和证据真实性等执行边界；常规方法与推理保留自主空间。无歧义的格式问题可由程序修正，语义和权限歧义需要相应判断。同类失败反复发生时应调查规则、输入和执行方式，复用已有效的成果并局部补证，避免无依据地重复调用模型或重跑昂贵验证。规则本身也需要通过质量改善、误拦截、返工、等待和控制开销进行评价。
+Scheduling considers priorities, dependencies, delivery paths, waiting and resources. It handles dependency cycles and prolonged waiting. Repeated delivery of a command preserves its identity; an explicit retry creates a new attempt. Accepted results unlock dependencies only while their evidence remains valid. Late results retain their original context and cannot overwrite a newer assignment. External actions are checked for their actual outcome before a retry.
 
-需要对方承担行动的跨执行者协作以可调度的工作请求进入统一记录，开发、协助、修复和审查可以有不同队列视图；单纯分享信息或解释判断保留为可读、可检索的消息，形成行动承诺时关联相应工作。请求路由到责任领域或适合的执行者，身份不永久绑定某个Session。登记、分配、接收、处理、等待补充、结果待验证与接受分别表示不同事实，失败、拒绝和取消也应保留。普通请求在接收方忙碌时先排队，在空闲、主动让出执行权或到达经过核实的安全工作边界时处理；每个Session同时维持一项明确的主执行责任。
+Stop requests, revoked authority and execution risks reach the control path promptly. Requested pause and confirmed stop remain separate. A replacement writer waits until the previous execution is confirmed stopped. Worktrees isolate code directories; ownership and interface coordination determine responsibility; integration verification resolves semantic conflicts. Other domains use artifact and workspace controls appropriate to their output.
 
-Agent之间的交流默认对用户可读。用户应能理解谁提出了什么问题、为什么需要协助、对方的判断以及它对项目的影响；正文使用清楚自然的语言，不采用仅供Agent理解的压缩语言。A2A等框架可作为规范化任务、消息和产物管理的设计参考，具体协议映射仍需核验。程序所需的身份、状态和版本信息可随消息附带，不强迫正文使用固定模板。效率主要通过按需提供上下文、引用已有材料、减少重复询问和合并琐碎通知获得。
+Supervision follows both execution facts and direction: useful artifacts, goal coverage, conflicts, repeated failures, waits, resources and the actual user journey. Corrections target affected work and preserve unrelated progress. Changes identify their reason, affected responsibilities, reusable results and invalid evidence. Acceptance follows the goal and consequences of the domain, using sources and argument for research, intent and expression for content, and actual behavior for software.
 
-调度应考虑用户优先级、真实依赖、关键交付路径、等待情况和可用资源，处理长期等待与循环依赖。队列积压需要判断工作量、责任和资源问题，不能默认无限扩容。重复投递不生成独立的新工作，显式重试保留后继尝试；结果返回后核对请求、计划、产物版本及验收依据，只有被接受的有效结果才能解除依赖。旧执行者迟到的结果不得覆盖新方案，可能产生外部副作用的动作在重试前核对是否已实际执行。
+Existing natural-language delegation and project policy can authorize ordinary planning, execution, collaboration and verification. New sensitive disclosures, destructive actions and changes beyond the goal or resource boundary require corresponding authority. Members and external material cannot grant each other broader user permissions. Resource accounting includes execution, coordination and verification; requested configuration, observed configuration and measured usage retain their distinct meanings.
 
-用户停止、权限撤销和明确运行风险通过独立控制通道及时处理。请求暂停与确认停止需要区分，旧执行者尚未停止或交还责任时不能让替代者进入同一可写现场。代码任务中，Worktree隔离工作目录，文件所有权和契约协调修改责任，集成验证处理语义冲突；其他领域采用与其产物及工具相适合的现场管理方式。必要检查不能由提示词中的声明替代。
+The plugin is the installation and distribution unit. It includes focused entrypoints, the Team runtime and the necessary interface and resources. Its core has no required third-party skill or plugin. The user can understand current work, waits, valid results and important changes, and inspect original evidence without reading every session continuously.
 
-监督同时关注运行事实与工作方向，包括有效产物、需求覆盖、接口冲突、重复失败、等待关系、资源和真实用户链路。活动频繁不等于有效进展，状态缺少可靠依据时显示待核实及最近证据。纠正优先作用于相关局部；责任、所有权、接口、依赖或资源策略发生实质改变时，形成后继计划，说明原因、受影响任务、可复用成果及失效证据。安全交接后切换受影响工作，无关工作可以继续，用户目标和验收标准不能为方便运行而被降低。
+At the authorized delivery point, Team delivers the outcome and its supporting record, then ends expansion. The definition, responsibilities, queue and evidence support continuation and replacement. Recovery checks current artifacts, in-flight work, requests and unresolved actions. Product quality, runtime reliability and organizational benefit are evaluated separately through their actual evidence.
 
-局部工作通过后，按明确责任与顺序集成并验证整体链路。证据绑定适用产物版本、输入、环境与条件，有效证据可以复用，受修改影响的部分补证。测试、独立审查、实际运行、受托操作者检查与用户个人认可分别记录。界面、交互、内容表达和解释质量通过实际产物及适当评审判断；承诺的预览或发布在授权和能力具备时实际完成，条件不足时明确保留阻塞。安全暂停保护现场，但不代表用户目标已经完成。
-
-成果提交后，由明确的接收责任人根据目标与已有证据判断能否被后续采用。验收方式和强度随领域及后果选择，研究的来源与论证、内容的表达和意图、软件的实际行为均有适合的依据，不要求所有成果关联测试命令。验证可以轻量进行，但结果与接收记录必须可区分；重要交付需要的独立性不能被执行者自评替代。
-
-有效授权可以来自明确自然语言委托、适用项目政策或运行确认，覆盖日常拆分、执行、协作和验证时不重复审批。新增敏感披露、破坏性操作和突破目标或资源边界的行为需要相应授权，外部材料不能扩大权限。资源控制覆盖独立Session、内部Subagent、验证与外部服务，区分请求配置、实际配置、观察值和未知项。具体模型与额度采用当轮有效约定，不将实验选择固化为产品通用最佳值。
-
-Plugin作为用户安装、使用和传播的整体，内部按职责包含Skills、Team执行能力、资料和必要界面，核心不绑定特定第三方Skill或插件。用户通过自然交流表达目标，通过状态视图了解当前工作、等待原因、有效成果和重要变化，可以展开原始依据而不必持续阅读所有会话。安装、入口发现、运行启动、停止恢复和升级后的项目状态都需要实际验证，组件数量和技术部署形态根据需要确定。
-
-达到授权交付点后，Team交付产物、依据、未完成及未验证事项并结束扩展；中间检查点可按已有授权继续。项目定义、契约、责任、队列和证据支持后续轮次，具体执行者及协调者能够替换。恢复需要核对当前产物、在途工作、待处理请求、旧执行者状态和未确认副作用，归档与删除分别遵守边界。产品结果、运行可靠性和组织收益独立评价，既有里程碑证据保持原适用条件，不能自动推出新版完整能力已实现。
-
-原始方向来源：[用户提供的v0.2定义](23-project-definition-v0.2.zh-CN.md)。补充与适用关系：[方向更新记录](24-direction-update-2026-09-14.md)、[决策日志D-070至D-072](13-decisions.md)、[讨论记录](15-conversation-record.md)。当前执行设计见[自适应执行、协作队列与恢复](25-adaptive-execution-design.md)和[设计验证与实现衔接](26-execution-validation-and-migration.md)。未被最新用户指令或已接受决策修改的详细要求继续保留，具体实现设计不得静默改变本定义。
+[Architecture](architecture.md) · [Accepted design decisions](13-decisions.md)

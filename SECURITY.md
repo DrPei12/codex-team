@@ -1,29 +1,22 @@
-# Security Policy
+# Security policy
 
-## Supported versions
+[English](SECURITY.md) · [简体中文](SECURITY.zh-CN.md)
 
-当前仅维护最新公开版本。历史 releases用于复现与审计，不承诺安全更新。
+## Supported version
 
-| Version | Supported |
-| --- | --- |
-| 0.1.9 | Yes |
-| 0.1.0–0.1.8 | No |
+Security fixes target the latest release, **1.0.x**.
 
-## Reporting a vulnerability
+## Report a vulnerability
 
-请使用 GitHub 仓库的 **Private vulnerability reporting / Security advisory** 提交安全问题，不要在公开 issue、discussion、PR、日志或截图中粘贴密钥、Authorization header、credential、真实业务数据或可利用细节。
+Use this repository's [private security reporting](https://github.com/DrPei12/codex-team/security/advisories/new). Include the affected version or commit, a minimal reproduction, the observed impact, and the permissions needed to reproduce it. Keep credentials, private project data, and exploit details in the private report.
 
-报告应包含：受影响版本/commit、最小复现、影响边界、是否需要网络或用户授权、已观察与推测的区分。收到报告不代表漏洞已确认；维护者会先验证 candidate finding，再决定修复与披露。
+## Areas to examine
 
-## Scope
+- Work, execution, acceptance, and artifact identity.
+- Workspace ownership, path containment, symlinks, and junctions.
+- Private data in prompts, logs, artifacts, and release assets.
+- Unintended external actions and ambiguous retry outcomes.
+- Temporary coordination scope and native session recovery.
+- Plugin bundle integrity.
 
-优先关注：
-
-- manifest/receipt/hash 身份绕过；
-- ownership、forbidden path 或 symlink/junction逃逸；
-- secret进入artifact、prompt、日志或发布资产；
-- 未授权 task/Git/cleanup 外部副作用；
-- reviewer/Gate target混淆；
-- plugin bundle完整性检查绕过。
-
-模型输出质量、未承诺的长期scheduler能力和第三方Codex平台本身的问题不自动属于本仓库漏洞，但可作为边界报告。
+Maintainers reproduce the reported behavior, assess its impact, and coordinate a fix and disclosure through the advisory.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team Status"
+  short_description: "Derive multi-task status from durable facts"
+  default_prompt: "Use $team-status to render lane status and next actions from manifest-bound facts without changing tasks or workspaces."

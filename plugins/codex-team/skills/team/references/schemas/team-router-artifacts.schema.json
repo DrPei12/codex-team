@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/codex-multitask/team-router-artifacts.schema.json",
+  "title": "Codex team router artifact v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "schema_version",
+    "kind",
+    "manifest_ref",
+    "generated_at",
+    "run_dir",
+    "run_exists",
+    "state",
+    "next_skill",
+    "next_action",
+    "reason",
+    "requires_separate_authority",
+    "observations",
+    "authorization"
+  ],
+  "properties": {
+    "profile": {"const": "codex-multitask-team"},
+    "schema_version": {"const": "0.1"},
+    "kind": {"const": "team-route"},
+    "manifest_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "sha256"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "generated_at": {"type": "string", "format": "date-time"},
+    "run_dir": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "run_exists": {"type": "boolean"},
+    "state": {
+      "enum": [
+        "planned",
+        "prepared",
+        "dispatch-ready",
+        "observing",
+        "receiving",
+        "integration-prepared",
+        "integrating",
+        "reviewing",
+        "finishing",
+        "recovering",
+        "recovery-prepared",
+        "blocked",
+        "complete"
+      ]
+    },
+    "next_skill": {
+      "oneOf": [
+        {"enum": ["team-run", "team-status", "team-integrate", "team-finish", "team-recover"]},
+        {"type": "null"}
+      ]
+    },
+    "next_action": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "reason": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "requires_separate_authority": {"type": "boolean"},
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "sha256"],
+        "properties": {
+          "kind": {"type": "string", "minLength": 1, "pattern": "\\S"},
+          "path": {"type": "string", "minLength": 1, "pattern": "\\S"},
+          "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_creation", "git_mutation", "command_execution", "workspace_cleanup"],
+      "properties": {
+        "task_creation": {"const": false},
+        "git_mutation": {"const": false},
+        "command_execution": {"const": false},
+        "workspace_cleanup": {"const": false}
+      }
+    }
+  }
+}

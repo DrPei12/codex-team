@@ -8,7 +8,7 @@ tmp/
 coverage/
 dist/
 build/
-plugins/codex-team/
+plugins/codex-team/**/__pycache__/
 artifacts/runtime/
 *.log
 __pycache__/
@@ -19,3 +19,5 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
+.pytest_cache/
+.ruff_cache/

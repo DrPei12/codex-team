@@ -14,7 +14,7 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "0.3.0"
+PLUGIN_VERSION = "1.0.0"
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAMES = (
     "team",
@@ -136,7 +136,9 @@ def _copy_skill(source: Path, target: Path) -> None:
 
 def _plugin_manifest() -> dict[str, Any]:
     return {
-        "author": {"name": "Codex Multi-task Engineering Project"},
+        "author": {"name": "DrPei12"},
+        "homepage": "https://github.com/DrPei12/codex-team#readme",
+        "repository": "https://github.com/DrPei12/codex-team",
         "description": "Adaptive Codex collaboration for delegated goals, readable work queues, evidence and recovery.",
         "interface": {
             "capabilities": ["Read", "Write"],
@@ -146,10 +148,10 @@ def _plugin_manifest() -> dict[str, Any]:
                 "Use Team Plan to split work only when ownership and dependencies support it.",
                 "Use Team Recover to prepare a bounded successor for this blocked run.",
             ],
-            "developerName": "Codex Multi-task Engineering Project",
+            "developerName": "DrPei12",
             "displayName": "Codex Team",
-            "longDescription": "Turn natural language goals into Codex proposals, authorized runs, live status, and evidence-bound checkpoints. Includes legacy manifest workflows and a bundled Python standard-library controller.",
-            "shortDescription": "Evidence-bound Codex team workflows",
+            "longDescription": "Delegate a goal to Codex Team. It develops the brief, organizes native Codex sessions, adapts responsibilities, preserves readable collaboration and verifies delivery. Includes temporary local coordination, working notes, searchable history, recovery and a local project board.",
+            "shortDescription": "Adaptive teams for goals worth finishing",
         },
         "name": PLUGIN_NAME,
         "skills": "./skills/",
@@ -240,7 +242,7 @@ def build(output_value: str) -> int:
         raise
     shutil.rmtree(staging_parent, ignore_errors=True)
     print(f"PASS: built relocatable {PLUGIN_NAME} plugin at {output}")
-    print("STOP: no marketplace, global skill directory, or Codex installation was changed")
+    print("Plugin bundle ready for installation.")
     return 0
 
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team"
+  short_description: "Organize goals into verifiable results"
+  default_prompt: "Use $team to understand my goal, recommend how to organize the work, and carry it through to a verified result."

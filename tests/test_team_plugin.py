@@ -84,7 +84,7 @@ def test_repo_marketplace_contract() -> None:
             "source": {"path": "./plugins/codex-team", "source": "local"},
         }
     ]
-    assert "plugins/codex-team/" in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert "plugins/codex-team/" not in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
 
 
 def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
@@ -92,7 +92,7 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = read_json(plugin / ".codex-plugin" / "plugin.json")
     assert manifest["name"] == PLUGIN_NAME
-    assert manifest["version"] == "0.3.0"
+    assert manifest["version"] == "1.0.0"
     assert manifest["skills"] == "./skills/"
     assert {path.name for path in (plugin / "skills").iterdir() if path.is_dir()} == SKILLS
     runtime = plugin / "skills" / "team" / "scripts"

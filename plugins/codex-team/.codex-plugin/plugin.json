@@ -1,0 +1,27 @@
+{
+  "author": {
+    "name": "DrPei12"
+  },
+  "description": "Adaptive Codex collaboration for delegated goals, readable work queues, evidence and recovery.",
+  "homepage": "https://github.com/DrPei12/codex-team#readme",
+  "interface": {
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Use Team to understand this goal, recommend an execution plan and carry it to a verified result.",
+      "Use Team Plan to split work only when ownership and dependencies support it.",
+      "Use Team Recover to prepare a bounded successor for this blocked run."
+    ],
+    "developerName": "DrPei12",
+    "displayName": "Codex Team",
+    "longDescription": "Delegate a goal to Codex Team. It develops the brief, organizes native Codex sessions, adapts responsibilities, preserves readable collaboration and verifies delivery. Includes temporary local coordination, working notes, searchable history, recovery and a local project board.",
+    "shortDescription": "Adaptive teams for goals worth finishing"
+  },
+  "name": "codex-team",
+  "repository": "https://github.com/DrPei12/codex-team",
+  "skills": "./skills/",
+  "version": "1.0.0"
+}

@@ -19,7 +19,7 @@ and actual artifacts carry the evidence.
 
 ## Choose the existing record
 
-- New delegated goal or adaptive 0.3 run: read
+- New delegated goal or adaptive run: read
   [adaptive-workflow.md](references/adaptive-workflow.md). Use the plugin's own
   `team-next.py` runtime to register the understood definition and initial work,
   then execute and verify within existing authorization.
@@ -37,6 +37,10 @@ do not cancel an authorized current run. Ask only for consequential missing inte
 or authority beyond scope. Methods remain autonomous within assigned responsibility.
 The runtime preserves work identities, queues action requests, records attempts and
 separates result submission from acceptance. Its controls do not bypass the host.
+Suggest organizational changes when the current division stops serving the goal.
+Members can offer temporary local coordination. The overall coordinator delegates
+an explicit scope, which ends when its outcomes are accepted or the responsibility
+is returned. Keep member identity separate from changing roles.
 
 ## Legacy route
 

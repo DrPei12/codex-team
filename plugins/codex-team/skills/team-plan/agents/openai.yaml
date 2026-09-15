@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team Plan"
+  short_description: "Validate manifest-driven lane plans"
+  default_prompt: "Use $team-plan to freeze and validate a manifest-driven multi-task plan before dispatch."
