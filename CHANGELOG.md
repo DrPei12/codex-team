@@ -2,6 +2,16 @@
 
 [English](CHANGELOG.md) · [简体中文](CHANGELOG.zh-CN.md)
 
+## 2.1.0 · September 19, 2026
+
+- Check for published updates when Team starts or resumes, with automatic installation enabled by default for the official Git marketplace.
+- Describe successful updates with concise English/Chinese experience improvements and new capabilities.
+- Preserve auto/notify/off preferences, local development and pinned versions; cache checks and continue through network failures.
+- Defer installation for active or unknown execution; verify release hashes, use native Codex installation and retain a rollback bundle and recovery receipt.
+- Continue existing schema 0.3 projects through the updated runtime path.
+
+**Upgrade:** users on 2.0 and earlier install 2.1 once to enable use-time checks. See the [upgrade guide](docs/usage.md#upgrade).
+
 ## 2.0.0 · September 19, 2026
 
 - Make **Team** the sole plugin entrypoint for goal discussion, execution, steering and delivery.

@@ -23,4 +23,6 @@ Completing a delegated scope cancels its queued coordination turn. Failed local 
 
 D-074 through D-079 were adopted on September 15, 2026 under the user's formal-release delegation. Release version and project-definition version are maintained separately. Native sessions are the execution unit in the current release; local coordination uses the same configured model and resource policy as other work.
 
-D-081 was adopted on September 19, 2026.
+D-081 and D-082 were adopted on September 19, 2026.
+
+**D-082: Automatic updates at use-time execution boundaries.** Check published stable releases when Team starts or resumes, cache checks, and default to native installation of compatible updates within the current major version. Preserve user-selected notify/off modes, pinned revisions, local development, project state and active or unknown native executions. Verify artifacts, retain a rollback bundle and install receipt, report useful changes once, and continue through the new installed paths.

@@ -14,7 +14,7 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "2.0.0"
+PLUGIN_VERSION = "2.1.0"
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAMES = ("team",)
 RUNTIME_SCRIPTS = ("team.py",)
@@ -67,6 +67,7 @@ def _packaged_skill_text(source: Path) -> str:
     )
     text = text[:title_end] + runtime_note + text[title_end:]
     text = text.replace("python scripts/", "python <TEAM_SKILL_DIR>/scripts/")
+    text = text.replace("python -B scripts/", "python -B <TEAM_SKILL_DIR>/scripts/")
     verification = (
         "## Bundle verification\n\n"
         "Run `python -B <TEAM_SKILL_DIR>/scripts/bundle-self-check.py` to verify\n"
@@ -175,7 +176,7 @@ def _build_into(plugin_root: Path) -> None:
         raise PluginBuildError("Team runtime package is missing or symlinked")
     for required in ("__init__.py", "__main__.py", "cli.py", "codex.py",
                      "adaptive.py", "adaptive_runner.py", "coordination.py",
-                     "workspace_claims.py", "store.py", "policy.py", "redaction.py"):
+                     "workspace_claims.py", "store.py", "policy.py", "redaction.py", "updates.py"):
         _plain_source_file(package / required, "Team runtime")
     for path in sorted(package.rglob("*")):
         relative = path.relative_to(package)

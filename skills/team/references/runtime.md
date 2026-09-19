@@ -11,6 +11,13 @@ copy it into the product or require another skill/plugin. Python 3.12+ and an
 installed, authenticated official Codex CLI are required. `python -B TEAM --help`
 loads no model. Set `CODEX_TEAM_CODEX` only if native launcher discovery fails.
 
+Run `python -B TEAM updates` at conversation start or resumption before other
+runtime commands. It uses the official release and native installer, with no
+project state argument. On success, read the returned skill and replace `TEAM`
+with `runtime_path`. The updater never stops work to install a release. On a
+deferred result, continue with the current runtime and check again at a later
+entry boundary. Update preferences use `updates --mode auto|notify|off`.
+
 Choose a persistent absolute `STATE` outside the product `WORKSPACE`. Record it in
 the project's working notes. Use it for every continuation. The workspace can be
 a normal document directory; Git is optional. Never edit Team's SQLite by hand.

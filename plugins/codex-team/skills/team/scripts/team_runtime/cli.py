@@ -11,8 +11,12 @@ def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(prog="team")
-    parser.add_argument("--state", required=True, help="Persistent Team state outside the product workspace")
+    parser.add_argument("--state", help="Persistent Team state outside the product workspace")
     commands = parser.add_subparsers(dest="command", required=True)
+    updates = commands.add_parser('updates', help='Check for a published release or set the update preference')
+    updates.add_argument('--mode', choices=['auto', 'notify', 'off'])
+    updates.add_argument('--force', action='store_true')
+    updates.add_argument('--language', choices=['en', 'zh-CN'], default='en')
     create = commands.add_parser("create", help="Register the understood goal, reviewed plan and existing authority")
     create.add_argument("--workspace", required=True)
     create.add_argument("--definition-file", type=Path, required=True)
@@ -64,6 +68,12 @@ def main(argv=None):
     replace.add_argument('--member', required=True)
     replace.add_argument('--reason', required=True)
     args = parser.parse_args(argv)
+    if args.command == 'updates':
+        from .updates import check
+        print(json.dumps(check(mode=args.mode, force=args.force, language=args.language), ensure_ascii=False, indent=2), flush=True)
+        return 0
+    if not args.state:
+        parser.error('--state is required for project runtime operations')
     engine = Adaptive(args.state)
     def read(path):
         return json.loads(path.read_text(encoding="utf-8-sig")) if path else None

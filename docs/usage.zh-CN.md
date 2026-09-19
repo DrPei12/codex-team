@@ -77,14 +77,41 @@ Windows 状态路径示例为 `D:/TeamState/my-project`，含空格路径加引�
 
 ## 升级
 
-先暂停正在运行的 Team 项目，等待执行停止，再刷新 marketplace 并安装当前插件：
+从 2.1 起，Team 在开始或恢复对话时检查已发布版本。从官方 Git marketplace 安装的版本默认自动更新。检查结果缓存一小时；检查失败后，下一次使用时在五分钟间隔后重试。检查无需后台轮询或额外模型会话。
+
+同一主版本内的兼容更新，通过 Codex 在 Team 执行停止后安装。存在活动控制程序或尚未确认结束的原生执行时，安装延后。更新成功后，Team 读取新的 skill 与运行说明，改用新的运行程序绝对路径继续工作，并简短说明体验改善。项目状态、笔记、历史和成果保留在原目录。
+
+直接在对话中选择偏好：
+
+- “让 Team 保持自动更新。”
+- “更新只通知我。”
+- “关闭更新检查。”
+- “现在检查一下 Team 更新。”
+
+本地源码安装、自定义来源和明确固定的版本提供更新通知。需要将本地 marketplace 切换到官方自动更新时，使用上面的 marketplace add 命令注册 `DrPei12/codex-team` 并安装插件。跨主版本或需要改变状态格式的发布提供升级通知。
+
+手动升级，或从 2.0 及更早版本首次升级时，先暂停活动 Team 项目并确认执行停止，再刷新 Git marketplace 并安装插件：
 
 ```sh
 codex plugin marketplace upgrade codex-team-local
 codex plugin add codex-team@codex-team-local
 ```
 
-升级后打开新任务，从原状态目录继续。Codex 安装时会替换插件缓存，因此应先确认原控制程序已停止。
+本地 marketplace 先更新源码，再执行 plugin add；marketplace upgrade 用于 Git 来源。手动安装后打开新任务，从原状态目录继续。
+
+更新程序在安装前核对 GitHub 发布文件的哈希和安装包文件清单，将旧安装包与安装回执保存在插件缓存之外。安装失败时恢复旧包；中断的安装先核对实际结果，再处理恢复。偏好和回执保存在 `$CODEX_HOME/team-updates`，默认位置为 `~/.codex/team-updates`。联网失败时继续使用当前版本。
+
+更新下载遵循命令行代理设置：`HTTP_PROXY`、`HTTPS_PROXY` 和 `NO_PROXY`。
+
+开发者可以使用下列内部命令，将 `scripts/team.py` 换成已安装运行程序的绝对路径：
+
+```sh
+python -B scripts/team.py updates
+python -B scripts/team.py updates --mode notify
+python -B scripts/team.py updates --mode auto
+python -B scripts/team.py updates --mode off
+python -B scripts/team.py updates --force --language zh-CN
+```
 
 2.0 只提供 **Team** 入口，六个阶段 skill 与 Auto 0.2 控制器已经退役。规划、状态查询、恢复、整合和交付继续由 Team 在对话中承接。
 

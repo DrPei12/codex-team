@@ -38,6 +38,8 @@ Team develops the brief with you. It offers informed choices when they help, exp
 
 [Full installation, upgrades, controls, and recovery →](docs/usage.md)
 
+**Updates arrive when you use Team.** Starting with 2.1, Team checks for published releases and automatically installs compatible updates between runs. A successful update comes with a short explanation of the improvements. Say “only notify me about updates” or “turn off update checks” to change this preference.
+
 ## The idea
 
 Working with several capable agents can turn the user into the team's message bus: forwarding answers, rebuilding context, deciding who should act next, and checking whether “done” means done.

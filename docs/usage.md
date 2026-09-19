@@ -77,14 +77,41 @@ The runtime reserves part of the remaining token budget for each in-flight execu
 
 ## Upgrade
 
-Pause active Team runs and wait for their execution to stop. Refresh the marketplace and install the current plugin:
+From 2.1 onward, Team checks for published releases when starting or resuming a conversation. Automatic updates are the default for an installation from the official Git marketplace. Checks are cached for one hour; failed checks retry after five minutes on the next use. There is no background polling or extra model session.
+
+Compatible updates within the current major version install through Codex when all Team executions have stopped. Active controllers and unconfirmed native work defer installation. Team then reads the new skill and runtime instructions, continues with the new absolute runtime path, and briefly describes what improved. Existing project state, notes, history and results remain in their original directories.
+
+Use ordinary conversation to choose a preference:
+
+- “Keep Team updated automatically.”
+- “Only notify me about updates.”
+- “Turn off update checks.”
+- “Check for a Team update now.”
+
+Local source installations, custom sources and explicitly pinned revisions receive release notices. To switch a local marketplace to official automatic updates, register `DrPei12/codex-team` with the marketplace add command above and install it. Major releases or releases requiring a different state format provide an upgrade notice.
+
+For a manual upgrade, or the first upgrade from 2.0 and earlier, pause active Team runs and confirm execution has stopped. Refresh the Git marketplace and install the plugin:
 
 ```sh
 codex plugin marketplace upgrade codex-team-local
 codex plugin add codex-team@codex-team-local
 ```
 
-Open a new task after upgrading and continue from the original state directory. Codex replaces the cached plugin during installation, so the previous controller must have stopped first.
+For a local marketplace, update your source checkout, then run the plugin add command; marketplace upgrade applies to Git sources. Open a new task after a manual installation and continue from the original state directory.
+
+The updater verifies the GitHub release asset hashes and the packaged file inventory before installation. It saves the old bundle and an installation receipt outside the plugin cache, restores that bundle after an unsuccessful installation, and observes interrupted installations before retrying. Preferences and receipts live under `$CODEX_HOME/team-updates` (normally `~/.codex/team-updates`). Network failures leave the current version available.
+
+Update downloads follow command-line proxy settings: `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`.
+
+Developer controls use the installed absolute launcher path in place of `scripts/team.py`:
+
+```sh
+python -B scripts/team.py updates
+python -B scripts/team.py updates --mode notify
+python -B scripts/team.py updates --mode auto
+python -B scripts/team.py updates --mode off
+python -B scripts/team.py updates --force --language en
+```
 
 Version 2.0 exposes only **Team**. The six phase skills and the Auto 0.2 controller have been retired. Planning, status, recovery, integration and delivery remain available through the Team conversation.
 

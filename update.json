@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "version": "2.1.0",
+  "automatic": true,
+  "state_schema": "0.3",
+  "highlights": {
+    "en": [
+      "Team checks for new releases when you use it and installs compatible updates automatically.",
+      "Active work continues uninterrupted; successful updates come with a short explanation of what improved.",
+      "Choose automatic updates, notifications only, or turn update checks off in the Team conversation."
+    ],
+    "zh-CN": [
+      "使用 Team 时自动检查新版本，并自动安装兼容更新。",
+      "更新会等待正在执行的任务结束，成功后简短说明体验改善和新增能力。",
+      "在 Team 对话中即可选择自动更新、仅通知或关闭更新检查。"
+    ]
+  }
+}

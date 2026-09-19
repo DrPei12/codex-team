@@ -72,7 +72,7 @@ class CodexClient:
         threading.Thread(target=self._read_stderr, daemon=True).start()
         try:
             self.info = self.request('initialize', {
-                'clientInfo': {'name': 'codex_team', 'title': 'Codex Team', 'version': '2.0.0'},
+                'clientInfo': {'name': 'codex_team', 'title': 'Codex Team', 'version': '2.1.0'},
                 'capabilities': {'experimentalApi': True},
             })
             self.notify('initialized', {})

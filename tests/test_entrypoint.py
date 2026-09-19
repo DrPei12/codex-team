@@ -23,7 +23,7 @@ def test_source_has_one_skill_and_current_runtime():
     assert {p.name for p in (ROOT/"team_runtime").glob("*.py")} == {
         "__init__.py", "__main__.py", "cli.py", "adaptive.py", "adaptive_runner.py",
         "codex.py", "coordination.py", "workspace_claims.py", "store.py",
-        "policy.py", "redaction.py"}
+        "policy.py", "redaction.py", "updates.py"}
     for name in RETIRED:
         assert not (ROOT/"scripts"/(name+".py")).exists()
     text = "\n".join(p.read_text(encoding="utf-8") for p in (ROOT/"skills/team").rglob("*.md"))

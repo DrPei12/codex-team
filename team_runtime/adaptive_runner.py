@@ -13,6 +13,7 @@ import uuid
 
 from .adaptive import Adaptive, ACTIVE_ATTEMPTS, ConflictError, digest, ident
 from .codex import CodexClient, CodexError
+from .updates import protected_runtime
 
 
 def tool(name, description, properties):
@@ -418,6 +419,7 @@ class Runner:
                        'proposals': data.get('proposals', {}), 'delegations': data.get('delegations', {}),
                        "stop": data["stop_intent"]})
 
+    @protected_runtime
     def run(self):
         current = self._data()
         self.epoch = self.engine.controller(self.run_id, self.owner)["epoch"]

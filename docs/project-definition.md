@@ -2,9 +2,11 @@
 
 [English](project-definition.md) · [简体中文](project-definition.zh-CN.md)
 
-Definition 0.6 · September 19, 2026
+Definition 0.7 · September 19, 2026
 
 Codex Team is an adaptive collaboration plugin for Codex that accepts goals across software, research, analysis, content and planning. The user provides the goal, constraints and intentions. Team understands the assignment, investigates information, forms reasoned recommendations, organizes the work and verifies its results through the authorized delivery point. Codex defines the execution platform; the assignment determines its methods, tools and evidence.
+
+Team maintains the installed experience as the product evolves. Use-time checks install compatible published updates automatically between executions and briefly explain the improvements. Users can choose notification-only or disable checks; local development, fixed versions, ongoing execution and saved project context retain their intended continuity. Changes requiring a new state format or major version receive an upgrade notice.
 
 Team takes responsibility for organizing work so that the user can focus on the goal, important tradeoffs and actual outcomes. The model notices omissions and unresolved questions, offers its own understanding and judgment, and develops the assignment through the user's feedback. The system provides persistent context, research and execution while preserving the model's freedom to reason and communicate according to the situation.
 

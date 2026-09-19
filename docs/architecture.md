@@ -61,6 +61,12 @@ The ledger stores operation identity and observations; the actual service is acc
 
 The current definition, responsibilities, accepted results and recent messages form the execution brief. Members add working notes and retrieve original events with a literal query and cursor. Large artifacts remain addressable by content hash. The Codex conversation uses CLI snapshots and history queries to report progress and expose the underlying receipts.
 
+## Use-time release updates
+
+The Team skill invokes the bundled updater when a conversation starts or resumes. The updater checks the official GitHub stable release, caches availability and saves the user's auto/notify/off preference. Release highlights are descriptive data shown once per change. Only compatible releases within the same major version update an unpinned official Git installation automatically.
+
+Downloads and file hashes are verified before the native Codex `plugin/install` call. A shared SQLite read lock protects controllers; installation acquires an exclusive lock and checks the cross-state workspace registry, including older controllers and unknown executions. The installer runs while that registry is locked. A preserved old bundle and independent installation journal support observed recovery and rollback. The registered marketplace and project state stay in place; Team switches to the returned installed skill and runtime paths.
+
 ## Source map
 
 | Source | Responsibility |
@@ -73,6 +79,7 @@ The current definition, responsibilities, accepted results and recent messages f
 | `policy.py` | Resource settings and finite limit validation. |
 | `redaction.py` | Credential redaction in native observations. |
 | `cli.py` | Persistent runtime commands used from Codex. |
+| `updates.py` | Published release checks, preferences, native installation and recovery. |
 | `skills/team` | Natural-language entrypoint and runtime guidance. |
 
 All runtime modules are under [`team_runtime`](../team_runtime). The installable plugin bundles these modules and the entrypoints under [`plugins/codex-team`](../plugins/codex-team).

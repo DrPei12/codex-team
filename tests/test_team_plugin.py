@@ -66,7 +66,7 @@ def test_build_creates_valid_relocatable_layout(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     manifest = read_json(plugin / ".codex-plugin" / "plugin.json")
     assert manifest["name"] == PLUGIN_NAME
-    assert manifest["version"] == "2.0.0"
+    assert manifest["version"] == "2.1.0"
     for field in ("composerIcon", "logo", "logoDark"):
         assert manifest["interface"][field] == "./assets/codex-team.png"
     assert (plugin / "assets/codex-team.png").read_bytes() == (ROOT / "assets/codex-team.png").read_bytes()
