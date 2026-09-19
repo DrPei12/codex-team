@@ -50,17 +50,17 @@ Team 调查现有信息，形成连贯的正式定义，在执行前解释建议
 
 保存项目的状态目录，其中包含 `team.sqlite3` 与按内容标识的产物；状态目录放在交付工作区之外。控制程序在对应终端进程运行期间推进工作。
 
-## 运行命令
+## 开发者运行命令
 
-源码入口为 `scripts/team-next.py`。已安装插件在 `skills/team/scripts` 下携带同一脚本，Team 会定位其安装绝对路径。
+源码入口为 `scripts/team.py`。已安装插件在 `skills/team/scripts` 下携带同一脚本，Team 会定位其安装绝对路径。
 
 ```sh
-python -B scripts/team-next.py --state /absolute/path/to/state list
-python -B scripts/team-next.py --state /absolute/path/to/state snapshot RUN_ID
-python -B scripts/team-next.py --state /absolute/path/to/state run RUN_ID
-python -B scripts/team-next.py --state /absolute/path/to/state pause RUN_ID
-python -B scripts/team-next.py --state /absolute/path/to/state reconcile RUN_ID
-python -B scripts/team-next.py --state /absolute/path/to/state history RUN_ID "source decision"
+python -B scripts/team.py --state /absolute/path/to/state list
+python -B scripts/team.py --state /absolute/path/to/state snapshot RUN_ID
+python -B scripts/team.py --state /absolute/path/to/state run RUN_ID
+python -B scripts/team.py --state /absolute/path/to/state pause RUN_ID
+python -B scripts/team.py --state /absolute/path/to/state reconcile RUN_ID
+python -B scripts/team.py --state /absolute/path/to/state history RUN_ID "source decision"
 ```
 
 Windows 状态路径示例为 `D:/TeamState/my-project`，含空格路径加引号。
@@ -71,7 +71,7 @@ Windows 状态路径示例为 `D:/TeamState/my-project`，含空格路径加引�
 
 ## 模型与资源
 
-默认模型为 `gpt-5.6-luna`，推理档位为 `max`。可按任务设置模型、推理档位、并发会话数、运行时间、单回合时间、修复尝试次数、可观察 token 预算和联网权限。协调与执行使用相同的模型和资源策略。Team 1.0 调度独立原生会话，`max_subagents_per_session` 设为 `0`。
+默认模型为 `gpt-5.6-luna`，推理档位为 `max`。可按任务设置模型、推理档位、并发会话数、运行时间、单回合时间、修复尝试次数、可观察 token 预算和联网权限。协调与执行使用相同的模型和资源策略。Team 2.0 调度独立原生会话，`max_subagents_per_session` 设为 `0`。
 
 运行程序为每个在途执行预留部分剩余 token 预算，记录原生用量通知，并在分配额度或时间到达限制时暂停。已结束执行释放未使用的预留；结果未知的执行保留预留，直到恢复核对完成。原生 token 报告包含缓存输入，在执行过程中陆续到达。账户百分点预算通过 Codex 账户额度单独监控，因为账户同时包含其他任务用量。自动定位 Codex 启动器需要指定路径时，设置 `CODEX_TEAM_CODEX`；`CODEX_TEAM_PYTHON` 指定原生检查使用的 Python。
 
@@ -84,7 +84,13 @@ codex plugin marketplace upgrade codex-team-local
 codex plugin add codex-team@codex-team-local
 ```
 
-升级后打开新任务，从原状态目录继续。Codex 安装时会替换插件缓存，因此应先确认原控制程序已停止。自适应 0.3 记录由 `team-next.py` 继续；旧 Auto 0.2 记录使用 `team-auto.py`；旧 manifest 记录保留对应阶段入口。
+升级后打开新任务，从原状态目录继续。Codex 安装时会替换插件缓存，因此应先确认原控制程序已停止。
+
+2.0 只提供 **Team** 入口，六个阶段 skill 与 Auto 0.2 控制器已经退役。规划、状态查询、恢复、整合和交付继续由 Team 在对话中承接。
+
+1.0.x 的自适应记录保留 0.3 状态格式、运行 ID、产物和历史，通过 `scripts/team.py` 接续，无需转换数据。开发者集成应将原自适应启动脚本改为这一入口，或在源码目录中使用 `python -m team_runtime`。
+
+更早的 Auto 0.2 和 manifest 记录由原版本解释。保留其状态目录，查阅时使用对应的[历史版本](https://github.com/DrPei12/codex-team/releases/tag/v1.0.1)。需要继续发展早期项目时，将已采纳的定义、笔记和已核验产物带入新的 Team 项目。升级保留已保存数据，不转换旧执行状态。
 
 ## 常见问题
 

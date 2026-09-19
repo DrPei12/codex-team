@@ -11,6 +11,8 @@
 
 Codex Team 是一个从自然交流推进到成果交付的 Codex 插件。它理解委托、调查缺失信息、提出执行建议，并随着工作的展开组织与调整原生 Codex 会话之间的协作。
 
+插件统一使用 Team 入口。提出目标、讨论方向、查看进展、暂停续接与接收成果，都通过自然对话进行。规划、执行、协调、恢复和核验由 Team 根据任务进展按需组织。
+
 你参与目标、重要取舍和实际成果的判断。Team 承担组织工作：谁需要哪些背景、哪些工作可以继续、什么时候需要协助、发生了什么变化，以及成果是否已经可以采用。
 
 ## 从 Codex 开始
@@ -77,13 +79,13 @@ flowchart LR
 
 ## 构建与参与开发
 
-运行程序使用 Python 标准库，开发检查使用 `pytest` 与 `jsonschema`。
+运行程序使用 Python 标准库，开发检查使用 `pytest`。
 
 ```sh
-python -m pip install pytest jsonschema
+python -m pip install pytest
 python -B scripts/check-release.py
 ```
 
-仓库中的 `plugins/codex-team` 是完整可安装包。源码位于 `team_runtime`、`scripts` 和 `skills`；`build-team-plugin.py` 生成带 SHA-256 清单的插件包。CI 检查运行程序、兼容契约和打包内容。
+仓库中的 `plugins/codex-team` 是完整可安装包。源码位于 `team_runtime`、`scripts` 和 `skills`；`build-team-plugin.py` 生成带 SHA-256 清单的插件包。CI 检查运行行为、唯一入口和打包内容。
 
 [贡献指南](CONTRIBUTING.zh-CN.md) · [版本说明](CHANGELOG.zh-CN.md) · [设计决策](docs/13-decisions.zh-CN.md)

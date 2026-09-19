@@ -1,6 +1,6 @@
 ---
 name: team
-description: Use Team for delegated goals that need organized execution, readable collaboration, persistent project context, evidence and recovery in Codex; also continue existing Team runs.
+description: Use Team to understand a delegated goal, organize native Codex collaboration, preserve project context and carry work to verified delivery; also inspect, steer or continue an existing Team project.
 ---
 
 # Team
@@ -12,76 +12,59 @@ containing the bundled `team/SKILL.md`. Never resolve it from the target
 repository working directory.
 
 
-Use this skill when the user asks Team to carry a goal through understanding,
-planning and execution, or to continue, inspect, or finish a Team run. Ordinary
-questions about teamwork or unrelated single-file edits do not require Team.
+Take responsibility for the user's delegated outcome. Understand the assignment,
+investigate missing information, recommend how to organize the work, and carry
+authorized work through verification and delivery. Continue existing projects
+from their saved facts. Ordinary questions or unrelated small edits need not
+start a Team run.
 
-Keep the conversation natural. Offer substantive judgments and useful information;
-choose prose, examples, questions or informed options according to the content.
-Maintain a coherent project definition as clear user revisions and adopted ideas
-emerge. Discuss the execution organization after understanding the goal; it is not
-an entry-mode questionnaire. Investigate uncertain external facts with native web
-search and preserve sources. Working notes navigate current work; original records
-and actual artifacts carry the evidence.
+## Understand and develop the assignment
 
-## Choose the existing record
+Keep communication natural. Offer your judgment, relevant information and useful
+alternatives; use logical prose, examples or informed choices when they help the
+user think. Investigate discoverable facts. Ask for missing user judgment when it
+materially affects the goal, and keep independent work moving. Check uncertain,
+current or source-dependent external facts through web search and original sources.
 
-- New delegated goal or adaptive run: read
-  [adaptive-workflow.md](references/adaptive-workflow.md). Use the plugin's own
-  `team-next.py` runtime to register the understood definition and initial work,
-  then execute and verify within existing authorization.
-- Existing Auto 0.2 plan/run: use [auto-workflow.md](references/auto-workflow.md)
-  and `team-auto.py`; preserve its original contract and evidence.
-- Existing legacy manifest/run artifacts: use the route below. Do not reinterpret
-  legacy artifacts as Auto state or silently migrate them.
+Maintain a coherent formal definition as clear revisions and adopted ideas emerge.
+Distinguish proposals from adopted decisions. Keep working notes about current
+work and its continuation point, with references to searchable original history.
+Consolidate important changes before context loss makes earlier intent disappear.
 
-Team's Python standard-library runtime uses the official Codex App Server and existing Codex authentication;
-it requires no third-party skill, plugin, or model API key. A missing optional
-project tool must not become a dependency of Team itself.
+## Organize and carry the work
 
-Keep current explicit execution authority in effect. Legacy preparation boundaries
-do not cancel an authorized current run. Ask only for consequential missing intent
-or authority beyond scope. Methods remain autonomous within assigned responsibility.
-The runtime preserves work identities, queues action requests, records attempts and
-separates result submission from acceptance. Its controls do not bypass the host.
-Suggest organizational changes when the current division stops serving the goal.
-Members can offer temporary local coordination. The overall coordinator delegates
-an explicit scope, which ends when its outcomes are accepted or the responsibility
-is returned. Keep member identity separate from changing roles.
+Explain the recommended organization after understanding the goal, including
+material tradeoffs and resources. Choose responsibilities and methods for this
+assignment; detail work as it becomes actionable. Existing user authorization
+covers routine decisions within its scope.
 
-## Legacy route
+Use [runtime operations](references/runtime.md) when registering work, dispatching
+native sessions, observing progress, changing responsibilities or continuing after
+an interruption. These are internal operations of the same Team. Decide which
+operations are needed from the current facts and outcome; the user communicates
+their intent through Team throughout the project.
 
-Run:
+The model decides how to split work, request help, revise an arrangement and assess
+quality. The runtime preserves durable messages and queues, task and attempt
+identity, resource limits, workspace occupancy and evidence-bound acceptance.
+Keep these responsibilities distinct. A temporary coordinator receives a bounded
+scope and returns it when resolved; members cannot enlarge their own authority.
 
-`python <TEAM_SKILL_DIR>/scripts/team.py route MANIFEST --run-dir RUN_DIR`
+Use the official Codex App Server and existing Codex authentication. The plugin
+contains its runtime and requires no third-party skill or plugin. Follow the
+user's model and budget settings for every native member, including coordination.
 
-The router reads only canonical run artifacts and returns `next_skill`,
-`next_action`, its evidence references, and whether separate authority is still
-required. To persist a non-overwriting route receipt inside an existing run:
+## Observe, steer and deliver
 
-`python <TEAM_SKILL_DIR>/scripts/team.py route MANIFEST --run-dir RUN_DIR --out ROUTE`
+Read current snapshots and relevant original events when reporting progress or
+responding to changes. Preserve the state directory and run ID in project notes
+so another Codex task can continue. Incorporate new user context and adopted
+direction into the saved definition and affected work.
 
-Read [workflow-map.md](references/workflow-map.md) for the phase boundaries and
-canonical artifact names.
-
-## Delegate to one phase
-
-- `$team-plan`: create and validate the manifest and lane briefs.
-- `$team-run`: prepare preregistration, preflight receipts, prompts, and the
-  non-live dispatch bundle.
-- `$team-status`: record supplied facts and render derived status.
-- `$team-integrate`: freeze candidates, prepare/apply the ordered integration,
-  and run declared Gates with explicit authority.
-- `$team-finish`: bind independent review, audit final state, and record the
-  milestone without cleanup.
-- `$team-recover`: freeze a failed candidate and prepare one bounded successor.
-
-## Boundaries
-
-The legacy router never creates or messages Codex tasks, executes Gate commands, mutates
-Git, archives tasks, cleans workspaces, or treats a recommendation as authority.
-Do not skip a phase helper's own hash, identity, ownership, or precondition
-checks merely because the router selected it.
+Keep responsibility through waiting, repair, review, integration and recovery
+whenever the actual assignment needs them. Reuse valid results and checks.
+Verify the real artifacts against the user's intent before final delivery.
+Report a stopped or waiting run with its actual state and continuation point.
 
 ## Bundle verification
 

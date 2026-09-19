@@ -1,4 +1,4 @@
-"""Codex Team 0.3 durable work, attempt, queue and acceptance semantics.
+"""Codex Team durable work, attempt, queue and acceptance semantics.
 
 No model or external operation runs inside a database transaction. The native
 runner consumes durable dispatch records and reports observations back here.
@@ -12,7 +12,7 @@ import time
 import uuid
 
 from .store import Store, ConflictError, _utc_now
-from .rules import validate_policy
+from .policy import validate_policy
 from .coordination import Coordination
 from .workspace_claims import WorkspaceClaims
 
@@ -448,8 +448,8 @@ class Adaptive(Coordination):
         params = event.get("params", {})
         if method not in {"turn/completed", "item/completed", "thread/tokenUsage/updated", "model/rerouted"}:
             return None
-        from .history import _safe
-        safe_event = _safe(event)
+        from .redaction import redact
+        safe_event = redact(event)
         def change(tx, data):
             if attempt_id not in data["attempts"]:
                 raise ValueError("Unknown event attempt")

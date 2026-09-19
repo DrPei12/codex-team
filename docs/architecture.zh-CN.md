@@ -2,6 +2,10 @@
 
 [English](architecture.md) · [简体中文](architecture.zh-CN.md) · [首页](../README.zh-CN.md)
 
+## 统一的公开入口
+
+Team skill 承接目标讨论、执行、方向调整与交付，内部运行指引供模型按当前工作需要读取。`scripts/team.py` 与 `python -m team_runtime` 调用同一个 CLI。规划和完成工具属于内部能力，不再单独提供阶段 skill 或其他控制器。状态格式 0.3 与发布版本分别管理，本次升级继续读取原记录。
+
 ## 先理解委托，再组织工作
 
 入口运行在用户的 Codex 对话中，将委托整理为连贯的项目定义，调查缺失事实，并建议执行安排。用户的明确修订与已采纳想法进入正式定义；工作笔记保存继续位置，原始历史保存判断与证据。
@@ -66,7 +70,9 @@ SQLite 事务一起提交状态、事件、派发记录和命令回执。同一�
 | `adaptive_runner.py` | 原生 Codex 会话、动态工具与调度。 |
 | `workspace_claims.py` | 跨状态目录的现场占用。 |
 | `store.py` | SQLite 事务、事件、回执与版本检查。 |
-| `adaptive_cli.py` | 在 Codex 中使用的持久化运行命令。 |
+| `policy.py` | 资源配置与有限额度校验。 |
+| `redaction.py` | 原生观察记录中的凭据脱敏。 |
+| `cli.py` | 在 Codex 中使用的持久化运行命令。 |
 | `skills/team` | 自然语言入口与运行指引。 |
 
 运行模块位于 [`team_runtime`](../team_runtime)，可安装插件在 [`plugins/codex-team`](../plugins/codex-team) 中携带这些模块与入口。

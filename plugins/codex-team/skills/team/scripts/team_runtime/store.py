@@ -1,4 +1,4 @@
-"""SQLite backed state store for the Team Auto runtime.
+"""SQLite backed state store for the Team runtime.
 
 The runtime keeps all mutable state in this module so that the controller and
 the CLI can use the same durable facts.  Connections are intentionally

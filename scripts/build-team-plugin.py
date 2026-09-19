@@ -14,37 +14,10 @@ from typing import Any
 
 
 PLUGIN_NAME = "codex-team"
-PLUGIN_VERSION = "1.0.1"
+PLUGIN_VERSION = "2.0.0"
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_NAMES = (
-    "team",
-    "team-plan",
-    "team-run",
-    "team-status",
-    "team-integrate",
-    "team-finish",
-    "team-recover",
-)
-RUNTIME_SCRIPTS = (
-    "team-next.py",
-    "team-auto.py",
-    "team.py",
-    "team-plan.py",
-    "team-run.py",
-    "team-status.py",
-    "team-integrate.py",
-    "team-finish.py",
-    "team-recover.py",
-)
-RUNTIME_SCHEMAS = (
-    "team-plan-manifest.schema.json",
-    "team-run-artifacts.schema.json",
-    "team-status-artifacts.schema.json",
-    "team-integrate-artifacts.schema.json",
-    "team-finish-artifacts.schema.json",
-    "team-recover-artifacts.schema.json",
-    "team-router-artifacts.schema.json",
-)
+SKILL_NAMES = ("team",)
+RUNTIME_SCRIPTS = ("team.py",)
 
 
 class PluginBuildError(ValueError):
@@ -94,7 +67,6 @@ def _packaged_skill_text(source: Path) -> str:
     )
     text = text[:title_end] + runtime_note + text[title_end:]
     text = text.replace("python scripts/", "python <TEAM_SKILL_DIR>/scripts/")
-    text = text.replace("`schemas/team-", "`<TEAM_SKILL_DIR>/references/schemas/team-")
     verification = (
         "## Bundle verification\n\n"
         "Run `python -B <TEAM_SKILL_DIR>/scripts/bundle-self-check.py` to verify\n"
@@ -145,8 +117,8 @@ def _plugin_manifest() -> dict[str, Any]:
             "category": "Productivity",
             "defaultPrompt": [
                 "Use Team to understand this goal, recommend an execution plan and carry it to a verified result.",
-                "Use Team Plan to split work only when ownership and dependencies support it.",
-                "Use Team Recover to prepare a bounded successor for this blocked run.",
+                "Use Team to review this project's progress and adjust the work to my updated goal.",
+                "Use Team to continue this project from its saved notes, history and results.",
             ],
             "developerName": "DrPei12",
             "displayName": "Codex Team",
@@ -200,26 +172,19 @@ def _build_into(plugin_root: Path) -> None:
     )
     package = ROOT / "team_runtime"
     if package.is_symlink() or not package.is_dir():
-        raise PluginBuildError("Team Auto runtime package is missing or symlinked")
-    for required in ("__init__.py", "__main__.py", "cli.py", "engine.py", "codex.py",
-                     "adaptive.py", "adaptive_runner.py", "adaptive_cli.py",
-                     "store.py", "rules.py", "history.py"):
-        _plain_source_file(package / required, "Team Auto runtime")
+        raise PluginBuildError("Team runtime package is missing or symlinked")
+    for required in ("__init__.py", "__main__.py", "cli.py", "codex.py",
+                     "adaptive.py", "adaptive_runner.py", "coordination.py",
+                     "workspace_claims.py", "store.py", "policy.py", "redaction.py"):
+        _plain_source_file(package / required, "Team runtime")
     for path in sorted(package.rglob("*")):
         relative = path.relative_to(package)
         if path.is_symlink():
-            raise PluginBuildError(f"Team Auto runtime: symlinked resource: {path}")
+            raise PluginBuildError(f"Team runtime: symlinked resource: {path}")
         if "__pycache__" in relative.parts or path.suffix == ".pyc":
             continue
         if path.is_file() and path.suffix == ".py":
-            _copy_plain_file(path, runtime_root / "team_runtime" / relative, "Team Auto runtime")
-    schema_root = skills_root / "team" / "references" / "schemas"
-    for filename in RUNTIME_SCHEMAS:
-        _copy_plain_file(
-            ROOT / "schemas" / filename,
-            schema_root / filename,
-            f"runtime schema {filename}",
-        )
+            _copy_plain_file(path, runtime_root / "team_runtime" / relative, "Team runtime")
     _write_json(
         skills_root / "team" / "references" / "bundle-manifest.json",
         _bundle_manifest(plugin_root),

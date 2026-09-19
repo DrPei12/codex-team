@@ -1,1 +1,1 @@
-"""Codex Team local execution controller."""
+"""Codex Team: durable, adaptive collaboration for delegated goals."""

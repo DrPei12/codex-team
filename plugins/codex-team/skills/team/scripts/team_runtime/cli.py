@@ -1,89 +1,118 @@
-"""Command line for the local Codex Team controller."""
+"""Team CLI. Conversation stays in Codex; this owns durable actions."""
 import argparse
 import json
 from pathlib import Path
 import sys
-import time
 
-from .engine import Engine
+from .adaptive import Adaptive
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(prog='python -m team_runtime')
-    parser.add_argument('--state',required=True,help='Controller state directory outside the product repository')
-    sub=parser.add_subparsers(dest='command',required=True)
-    proposal=sub.add_parser('propose',help='Clarify a natural language goal and prepare a real model-generated plan')
-    proposal.add_argument('--repo',required=True)
-    proposal.add_argument('--brief-file',type=Path,required=True)
-    proposal.add_argument('--answers-file',type=Path)
-    proposal.add_argument('--policy-file',type=Path)
-    approve=sub.add_parser('approve',help='Authorize the reviewed exact proposal')
-    approve.add_argument('plan_id');approve.add_argument('--digest',required=True)
-    for name in ('run','resume','pause','cancel','snapshot','watch'):
-        item=sub.add_parser(name);item.add_argument('run_id',nargs='?' if name=='snapshot' else None)
-    steer=sub.add_parser('steer');steer.add_argument('run_id');steer.add_argument('package_id');steer.add_argument('message')
-    request=sub.add_parser('request');request.add_argument('run_id');request.add_argument('from_package');request.add_argument('to_package');request.add_argument('question')
-    answer=sub.add_parser('answer');answer.add_argument('run_id');answer.add_argument('request_id');answer.add_argument('answer')
-    accept=sub.add_parser('accept');accept.add_argument('run_id');accept.add_argument('--digest',required=True)
-    notes=sub.add_parser('notes',help='Read current working notes with links to original evidence')
-    notes.add_argument('run_id');notes.add_argument('package_id')
-    history=sub.add_parser('history',help='Search append-only run history')
-    history.add_argument('run_id');history.add_argument('query');history.add_argument('--package')
-    history.add_argument('--limit',type=int,default=20)
-    limits=sub.add_parser('limits',help='Authorize a versioned resource amendment for a stopped run')
-    limits.add_argument('run_id');limits.add_argument('--digest',required=True);limits.add_argument('--policy-file',type=Path,required=True)
-    supervise=sub.add_parser('supervise',help='Independently review direction at a stopped checkpoint')
-    supervise.add_argument('run_id')
-    reconciliation=sub.add_parser('reconcile',help='Recover a stale controller state from native observations and exact source')
-    reconciliation.add_argument('run_id')
-    qualification=sub.add_parser('requalify',help='Recheck an updated interpreter while preserving its old evidence')
-    qualification.add_argument('run_id')
-    replacement=sub.add_parser('replace-session',help='Transfer a stopped package using notes and original history')
-    replacement.add_argument('run_id');replacement.add_argument('package_id');replacement.add_argument('--reason',required=True)
-    args=parser.parse_args(argv)
-    engine=Engine(args.state)
-    def emit(value): print(json.dumps(value,ensure_ascii=False,indent=2),flush=True)
-    def read(path): return json.loads(path.read_text(encoding='utf-8')) if path else None
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(prog="team")
+    parser.add_argument("--state", required=True, help="Persistent Team state outside the product workspace")
+    commands = parser.add_subparsers(dest="command", required=True)
+    create = commands.add_parser("create", help="Register the understood goal, reviewed plan and existing authority")
+    create.add_argument("--workspace", required=True)
+    create.add_argument("--definition-file", type=Path, required=True)
+    create.add_argument("--plan-file", type=Path, required=True, help="JSON list of initial work items; may be empty for investigation")
+    create.add_argument("--authority-file", type=Path, required=True)
+    create.add_argument("--policy-file", type=Path)
+    create.add_argument("--operation-id", required=True, help="Stable ID for retries of this create request")
+    create.add_argument("--title", default="Team项目")
+    for name in ("run", "snapshot", "pause", "cancel", "reconcile"):
+        item = commands.add_parser(name)
+        item.add_argument("run_id")
+    commands.add_parser("list")
+    history = commands.add_parser("history")
+    history.add_argument("run_id")
+    history.add_argument("query")
+    history.add_argument("--after", type=int, default=0)
+    history.add_argument("--limit", type=int, default=20)
+    message = commands.add_parser("message", help="Record a user message without bypassing the work queue")
+    message.add_argument("run_id")
+    message.add_argument("--file", type=Path, required=True)
+    message.add_argument("--operation-id", required=True)
+    revise = commands.add_parser("revise")
+    revise.add_argument("run_id")
+    revise.add_argument("--changes-file", type=Path, required=True)
+    revise.add_argument("--operation-id", required=True)
+    limits = commands.add_parser("limits")
+    limits.add_argument("run_id")
+    limits.add_argument("--policy-file", type=Path, required=True)
+    limits.add_argument("--reason", required=True)
+    limits.add_argument("--operation-id", required=True)
+    accept = commands.add_parser("accept")
+    accept.add_argument("run_id")
+    accept.add_argument("work_id")
+    accept.add_argument("--result-hash", required=True)
+    accept.add_argument("--reason", required=True)
+    accept.add_argument("--actor", choices=["operator", "user"], default="operator")
+    delegate = commands.add_parser('delegate', help='Assign temporary local coordination within existing authority')
+    delegate.add_argument('run_id')
+    delegate.add_argument('--member', required=True)
+    delegate.add_argument('--work', action='append', required=True)
+    delegate.add_argument('--reason', required=True)
+    delegate.add_argument('--operation-id', required=True)
+    release = commands.add_parser('return-coordination')
+    release.add_argument('run_id')
+    release.add_argument('delegation_id')
+    release.add_argument('--reason', required=True)
+    replace = commands.add_parser('replace-session')
+    replace.add_argument('run_id')
+    replace.add_argument('--member', required=True)
+    replace.add_argument('--reason', required=True)
+    args = parser.parse_args(argv)
+    engine = Adaptive(args.state)
+    def read(path):
+        return json.loads(path.read_text(encoding="utf-8-sig")) if path else None
     try:
-        if args.command=='propose':
-            emit(engine.propose(args.repo,args.brief_file.read_text(encoding='utf-8'),
-                answers=read(args.answers_file),policy=read(args.policy_file)))
-        elif args.command=='approve':emit(engine.approve(args.plan_id,args.digest))
-        elif args.command=='snapshot':emit(engine.snapshot(args.run_id))
-        elif args.command=='steer':emit(engine.steer(args.run_id,args.package_id,args.message))
-        elif args.command=='request':emit(engine.request_collaboration(args.run_id,args.from_package,args.to_package,args.question))
-        elif args.command=='answer':emit(engine.resolve_request(args.run_id,args.request_id,args.answer))
-        elif args.command=='accept':emit(engine.accept_checkpoint(args.run_id,args.digest))
-        elif args.command=='notes':emit(engine.get_note(args.run_id,args.package_id))
-        elif args.command=='history':emit(engine.search_history(args.run_id,args.query,package_id=args.package,limit=args.limit))
-        elif args.command=='limits':emit(engine.amend_limits(args.run_id,read(args.policy_file),args.digest))
-        elif args.command=='supervise':emit(engine.supervise(args.run_id))
-        elif args.command=='reconcile':emit(engine.reconcile(args.run_id))
-        elif args.command=='requalify':emit(engine.requalify(args.run_id))
-        elif args.command=='replace-session':emit(engine.replace_session(args.run_id,args.package_id,args.reason))
-        elif args.command in {'run','resume','watch'}:
-            if args.command=='run':emit(engine.start(args.run_id))
-            elif args.command=='resume':emit(engine.resume(args.run_id))
-            cursor=0
-            while True:
-                for event in engine.store.events(args.run_id,after=cursor):
-                    emit(event);cursor=event['seq']
-                record=engine.store.get('run',args.run_id)
-                if not record:raise ValueError('Unknown run')
-                if record['data']['status'] in {'completed','awaiting-user','blocked','paused','cancelled'}:
-                    emit(record)
-                    return 0 if record['data']['status'] in {'completed','awaiting-user'} else 2
-                time.sleep(1)
-        else:emit(getattr(engine,args.command)(args.run_id))
+        if args.command == "create":
+            result = engine.create(args.workspace, args.definition_file.read_text(encoding="utf-8-sig"),
+                read(args.plan_file), authority=args.authority_file.read_text(encoding="utf-8-sig"),
+                policy=read(args.policy_file), operation_id=args.operation_id, title=args.title)
+        elif args.command == "run":
+            from .adaptive_runner import Runner
+            result = Runner(engine, args.run_id).run()
+        elif args.command == "snapshot":
+            result = engine.snapshot(args.run_id)
+        elif args.command == "list":
+            result = {"runs": engine.store.list("adaptive-run")}
+        elif args.command in {"pause", "cancel"}:
+            result = engine.stop(args.run_id, "pause" if args.command == "pause" else "cancel")
+        elif args.command == "reconcile":
+            from .adaptive_runner import reconcile
+            result = reconcile(engine, args.run_id)
+        elif args.command == "history":
+            result = engine.history(args.run_id, args.query, after=args.after, limit=args.limit)
+        elif args.command == "message":
+            result = engine.message(args.run_id, args.file.read_text(encoding="utf-8-sig"), operation_id=args.operation_id)
+        elif args.command == "revise":
+            result = engine.revise(args.run_id, operation_id=args.operation_id, **read(args.changes_file))
+        elif args.command == "limits":
+            result = engine.amend_policy(args.run_id, read(args.policy_file), args.reason, operation_id=args.operation_id)
+        elif args.command == "accept":
+            result = engine.accept(args.run_id, args.work_id, args.result_hash, args.reason, actor=args.actor)
+        elif args.command == 'delegate':
+            result = engine.delegate(args.run_id, args.member, args.work, args.reason, operation_id=args.operation_id)
+        elif args.command == 'return-coordination':
+            result = engine.close_delegation(args.run_id, args.delegation_id, args.reason)
+        elif args.command == 'replace-session':
+            result = engine.replace_session(args.run_id, args.member, args.reason)
+        print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
+        if args.command == "run" and result["status"] != "completed":
+            return 2
         return 0
     except KeyboardInterrupt:
-        if hasattr(args,'run_id') and args.run_id:
-            emit(engine.pause(args.run_id))
+        if getattr(args, "run_id", None):
+            result = engine.stop(args.run_id)
+            print(json.dumps(result, ensure_ascii=False), flush=True)
         return 130
     except Exception as exc:
-        emit({'error':str(exc),'status':'failed'})
+        print(json.dumps({"error": type(exc).__name__, "message": str(exc)}, ensure_ascii=False), flush=True)
         return 1
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     sys.exit(main())

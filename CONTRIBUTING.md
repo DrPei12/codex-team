@@ -4,7 +4,7 @@
 
 Start with the [project definition](docs/project-definition.md), [architecture](docs/architecture.md), and [accepted decisions](docs/13-decisions.md). Changes should improve how Codex Team understands a delegation, organizes work, or delivers a result.
 
-The runtime uses Python 3.12+ and its standard library. Install `pytest` and `jsonschema` for development. Keep native model validation in a separate workspace and state directory; select its model and budget explicitly.
+The runtime uses Python 3.12+ and its standard library. Install `pytest` for development. Keep native model validation in a separate workspace and state directory; select its model and budget explicitly.
 
 Edit `team_runtime`, `scripts`, and `skills`. Build a fresh plugin directory with:
 
@@ -18,7 +18,7 @@ Copy the generated bundle into `plugins/codex-team`, then run:
 python -B scripts/check-release.py
 ```
 
-The release check exercises runtime and compatibility tests, builds a fresh bundle, verifies its inventory and imports, and compares it with the checked-in distribution. Regression tests should exercise the actual state transition or user outcome. Native test doubles must be labeled and supplemented by real Codex validation for changes to execution behavior.
+The release check exercises runtime, current-state continuation and package tests, builds a fresh bundle, verifies its inventory and imports, and compares it with the checked-in distribution. Regression tests should exercise the actual state transition or user outcome. Native test doubles must be labeled and supplemented by real Codex validation for changes to execution behavior.
 
 Keep English and Chinese public documentation aligned. Update the definition and decision log when changing concepts or lifecycle rules. Working notes and private validation outputs belong outside the distributable tree.
 

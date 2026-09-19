@@ -2,6 +2,10 @@
 
 [English](architecture.md) · [简体中文](architecture.zh-CN.md) · [Home](../README.md)
 
+## One public entrypoint
+
+The Team skill handles goal discussion, execution, steering and delivery. Its focused runtime reference describes operations the model selects as work develops. The script `scripts/team.py` and `python -m team_runtime` call the same CLI. Planning and completion tools are internal capabilities, with no separate phase skills or alternate controllers. State schema 0.3 is independent of release numbering and remains readable across this upgrade.
+
 ## Understanding comes before organization
 
 The entrypoint runs in the user's Codex conversation. It develops the assignment into a coherent project definition, investigates missing facts, and recommends an execution arrangement. It carries clear revisions and adopted ideas into that definition. Working notes record the current position; the original history preserves the reasoning and evidence behind it.
@@ -66,7 +70,9 @@ The current definition, responsibilities, accepted results and recent messages f
 | `adaptive_runner.py` | Native Codex sessions, dynamic tools and scheduling. |
 | `workspace_claims.py` | Occupancy shared across state directories. |
 | `store.py` | SQLite transactions, events, receipts and revision checks. |
-| `adaptive_cli.py` | Persistent runtime commands used from Codex. |
+| `policy.py` | Resource settings and finite limit validation. |
+| `redaction.py` | Credential redaction in native observations. |
+| `cli.py` | Persistent runtime commands used from Codex. |
 | `skills/team` | Natural-language entrypoint and runtime guidance. |
 
 All runtime modules are under [`team_runtime`](../team_runtime). The installable plugin bundles these modules and the entrypoints under [`plugins/codex-team`](../plugins/codex-team).

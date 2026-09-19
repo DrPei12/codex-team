@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md) · [简体中文](CHANGELOG.zh-CN.md)
 
+## 2.0.0 · September 19, 2026
+
+- Make **Team** the sole plugin entrypoint for goal discussion, execution, steering and delivery.
+- Retire the six phase skills, legacy manifest router, Auto 0.2 controller and their dedicated scripts, schemas, examples and tests.
+- Unify runtime commands under `scripts/team.py` and `python -m team_runtime`.
+- Preserve adaptive state schema 0.3, native collaboration, working notes, searchable history, resource controls, acceptance and recovery.
+- Extract shared policy validation and native-event redaction into focused modules.
+- Update English/Chinese guidance and release checks around the current runtime and single-entrypoint package.
+
+**Upgrade:** existing adaptive runs from 1.0.x continue from their saved state. Early Auto/manifest records remain with their historical release. See the [upgrade guide](docs/usage.md#upgrade).
+
 ## 1.0.1
 
 - Adopt the new Codex Team icon throughout plugin metadata and the repository home page.
@@ -23,4 +34,4 @@ Codex Team brings adaptive collaboration to delegated goals in Codex, with a com
 - Result acceptance binds content and criteria; invalidation isolates affected dependencies.
 - The repository includes the complete plugin bundle, source-to-bundle checks and regression suites.
 
-Adaptive 0.3 state continues through the current runtime. Auto 0.2 and legacy manifest entrypoints remain available for their existing records.
+The 1.0 release included the adaptive runtime alongside entrypoints for earlier record formats.

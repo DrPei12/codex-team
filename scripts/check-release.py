@@ -33,10 +33,7 @@ def check_public_docs():
 
 def main():
     check_public_docs()
-    for test in sorted((ROOT/'tests').glob('test_team_*.py')):
-        run(test)
-    tests = sorted((ROOT/'tests').glob('test_auto_*.py')) + sorted((ROOT/'tests').glob('test_adaptive*.py'))
-    run('-m', 'pytest', '-q', *tests)
+    run('-m', 'pytest', '-q', 'tests')
     with tempfile.TemporaryDirectory(prefix='codex-team-release-') as temp:
         bundle = Path(temp)/'codex-team'
         run('scripts/build-team-plugin.py', '--out', bundle)

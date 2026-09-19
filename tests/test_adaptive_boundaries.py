@@ -102,7 +102,7 @@ def test_cli_uses_actual_files_and_persistent_state(tmp_path):
     authority.write_text("Read-only investigation", encoding="utf-8")
     plan = tmp_path / "plan.json"
     plan.write_text(json.dumps([work("research")]), encoding="utf-8")
-    cli = Path(__file__).resolve().parents[1] / "scripts/team-next.py"
+    cli = Path(__file__).resolve().parents[1] / "scripts/team.py"
     base = [sys.executable, "-B", str(cli), "--state", str(tmp_path / "state")]
     def run(*args):
         p = subprocess.run(base + list(args), capture_output=True, text=True, encoding="utf-8", timeout=15)

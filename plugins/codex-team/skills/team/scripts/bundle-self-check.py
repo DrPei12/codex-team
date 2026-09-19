@@ -14,17 +14,7 @@ from typing import Any
 
 PROFILE = "codex-team-plugin-bundle"
 PLUGIN_NAME = "codex-team"
-RUNTIME_SCRIPTS = (
-    "team-next.py",
-    "team-auto.py",
-    "team.py",
-    "team-plan.py",
-    "team-run.py",
-    "team-status.py",
-    "team-integrate.py",
-    "team-finish.py",
-    "team-recover.py",
-)
+RUNTIME_SCRIPTS = ("team.py",)
 
 
 class BundleCheckError(ValueError):
@@ -93,6 +83,9 @@ def check() -> int:
         raise BundleCheckError("plugin manifest: unexpected name or skills path")
     if bundle.get("plugin_version") != plugin.get("version"):
         raise BundleCheckError("bundle manifest: plugin version mismatch")
+    exposed = {p.name for p in (plugin_root / "skills").iterdir() if p.is_dir()}
+    if exposed != {"team"}:
+        raise BundleCheckError("plugin must expose exactly one Team skill")
     environment = dict(os.environ)
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     runtime_root = team_root / "scripts"

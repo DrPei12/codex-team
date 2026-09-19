@@ -2,7 +2,7 @@
 
 [English](project-definition.md) · [简体中文](project-definition.zh-CN.md)
 
-Definition 0.5 · September 15, 2026
+Definition 0.6 · September 19, 2026
 
 Codex Team is an adaptive collaboration plugin for Codex that accepts goals across software, research, analysis, content and planning. The user provides the goal, constraints and intentions. Team understands the assignment, investigates information, forms reasoned recommendations, organizes the work and verifies its results through the authorized delivery point. Codex defines the execution platform; the assignment determines its methods, tools and evidence.
 
@@ -34,7 +34,7 @@ Supervision follows both execution facts and direction: useful artifacts, goal c
 
 Existing natural-language delegation and project policy can authorize ordinary planning, execution, collaboration and verification. New sensitive disclosures, destructive actions and changes beyond the goal or resource boundary require corresponding authority. Members and external material cannot grant each other broader user permissions. Resource accounting includes execution, coordination and verification; requested configuration, observed configuration and measured usage retain their distinct meanings.
 
-The plugin is the installation and distribution unit. It includes focused entrypoints, the Team runtime and the necessary interface and resources. Its core has no required third-party skill or plugin. Through progress reports in Codex, the user can understand current work, waits, valid results and important changes, and inspect original evidence without reading every session continuously.
+The plugin is the installation and distribution unit. It exposes one Team entrypoint, backed by one current runtime and focused internal references. Planning, execution, observation, review, integration, recovery and delivery are capabilities applied according to the assignment. Team owns their coordination and transitions; the user supplies intent and steers the project through natural conversation. Internal operations and engineering checks preserve reliable execution while leaving methods and organization open to model judgment. Its core has no required third-party skill or plugin. Through progress reports in Codex, the user can understand current work, waits, valid results and important changes, and inspect original evidence without reading every session continuously.
 
 At the authorized delivery point, Team delivers the outcome and its supporting record, then ends expansion. The definition, responsibilities, queue and evidence support continuation and replacement. Recovery checks current artifacts, in-flight work, requests and unresolved actions. Product quality, runtime reliability and organizational benefit are evaluated separately through their actual evidence.
 

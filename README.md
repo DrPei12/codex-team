@@ -11,6 +11,8 @@
 
 Codex Team is a Codex plugin that takes a goal from conversation to verified delivery. It develops an understanding of the assignment, investigates missing information, proposes how to organize the work, and coordinates native Codex sessions as the work evolves.
 
+Team is the plugin's single entrypoint. Describe the goal, discuss its direction, inspect progress, pause or continue, and receive the result through the same conversation. Planning, execution, coordination, recovery and verification are capabilities Team applies as the assignment develops.
+
 You stay involved in the goal, the important tradeoffs, and the result. Team handles the coordination: who needs which context, what can proceed, when help is useful, what changed, and whether an outcome is ready to use.
 
 ## Start in Codex
@@ -77,13 +79,13 @@ A future project board will bring together live member activity, readable agent 
 
 ## Build and contribute
 
-The runtime uses the Python standard library. Development checks use `pytest` and `jsonschema`.
+The runtime uses the Python standard library. Development checks use `pytest`.
 
 ```sh
-python -m pip install pytest jsonschema
+python -m pip install pytest
 python -B scripts/check-release.py
 ```
 
-The checked-in plugin under `plugins/codex-team` is a complete installable bundle. Source lives in `team_runtime`, `scripts`, and `skills`; `build-team-plugin.py` produces the bundle with a SHA-256 inventory. CI checks the runtime, compatibility contracts, and package contents.
+The checked-in plugin under `plugins/codex-team` is a complete installable bundle. Source lives in `team_runtime`, `scripts`, and `skills`; `build-team-plugin.py` produces the bundle with a SHA-256 inventory. CI checks the runtime behavior, the single entrypoint, and package contents.
 
 [Contributor guide](CONTRIBUTING.md) · [Release notes](CHANGELOG.md) · [Design decisions](docs/13-decisions.md)

@@ -13,70 +13,19 @@ permissions:
 jobs:
   test:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     env:
       PYTHONUTF8: '1'
       PYTHONIOENCODING: 'utf-8'
       PYTHONUNBUFFERED: '1'
-
     steps:
-      - name: Checkout full history
+      - name: Checkout
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-
       - name: Install test dependency
-        shell: pwsh
-        run: python -m pip install --disable-pip-version-check jsonschema pytest
-
-      - name: Configure Git identity for fixture repositories
-        shell: pwsh
-        run: |
-          git config --global user.name 'Codex Team CI'
-          git config --global user.email 'codex-team-ci@example.invalid'
-
-      - name: Check bilingual documentation and links
-        shell: pwsh
-        run: python -B -c "import runpy; runpy.run_path('scripts/check-release.py')['check_public_docs']()"
-
-      - name: Run Team regression suites
-        shell: pwsh
-        run: |
-          $tests = @(
-            'test_team_finish.py',
-            'test_team_integrate.py',
-            'test_team_plan.py',
-            'test_team_plugin.py',
-            'test_team_recover.py',
-            'test_team_router.py',
-            'test_team_run.py',
-            'test_team_status.py',
-            'test_team_v01.py'
-          )
-          foreach ($test in $tests) {
-            python -B "tests\$test"
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          }
-
-      - name: Run runtime and adaptive protocol checks
-        shell: pwsh
-        run: |
-          $runtimeTests = @(Get-ChildItem -Path tests/test_auto_*.py,tests/test_adaptive*.py | ForEach-Object { $_.FullName })
-          python -B -m pytest -q @runtimeTests
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Build and verify plugin
-        shell: pwsh
-        run: |
-          $output = Join-Path $env:RUNNER_TEMP 'codex-team'
-          python -B scripts\build-team-plugin.py --out $output
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -B "$output\skills\team\scripts\bundle-self-check.py" "$output\skills\team"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -B -c "import pathlib; a=pathlib.Path(r'$output'); b=pathlib.Path('plugins/codex-team'); read=lambda root:{p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*') if p.is_file()}; assert read(a)==read(b), 'Checked-in plugin differs from source'"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Verify runtime, sole entrypoint, bilingual docs and distribution
+        run: python -B scripts/check-release.py
